@@ -1,88 +1,67 @@
-# React + TypeScript + Vite
+# Raices Puntanas
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicacion full stack para gestion comercial de lotes, clientes y operaciones.
 
-Currently, two official plugins are available:
+## Stack actual
+- Frontend: React + TypeScript + Vite.
+- Backend: Node.js + Express por capas (`routes`, `controllers`, `services`, `repositories`).
+- Base de datos: PostgreSQL con Prisma ORM.
+- Seguridad: JWT por roles, Helmet, Rate limit, validacion con Zod.
+- Tiempo real: Socket.io para eventos de auditoria.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Roles implementados
+- `admin`: acceso total (usuarios + auditoria).
+- `empleado`: gestion operativa limitada.
+- `usuario`: vista basica y operaciones propias.
+- Registro publico: crea solo rol `usuario` (sin escalada de privilegios).
 
-## React Compiler
+## Arranque local (metodico)
+1. Levanta PostgreSQL:
+   - `docker compose up -d`
+2. Configura backend:
+   - `cd backend`
+   - `Copy-Item .env.example .env`
+   - Ajusta `JWT_SECRET` si corresponde.
+3. Inicializa esquema y datos:
+   - `npm install`
+   - `npm run prisma:generate`
+   - `npm run prisma:migrate -- --name init`
+   - `npm run db:seed`
+4. Inicia backend:
+   - `npm run dev`
+5. Inicia frontend (desde raiz):
+   - `npm install`
+   - `npm run dev`
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Endpoints principales
+- `GET /health`
+- `GET /api/lotes`
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/password-reset`
+- `GET /api/dashboard/me` (JWT)
+- `GET /api/audit` (admin)
+- `GET /api/users` (admin)
+- `GET/POST/PUT/DELETE /api/clientes` (admin/empleado, delete admin)
+- `GET/POST/PUT/DELETE /api/productos` (admin/empleado, delete admin)
+- `GET/POST /api/ventas` (GET todos autenticados, POST admin/empleado)
+- `GET/POST /api/inventario/movimientos` (admin/empleado)
 
-## Expanding the ESLint configuration
+## Credenciales seed
+- `email`: `admin@raicespuntanas.local`
+- `password`: `admin1234`
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Migraciones nuevas
+- `20260220113000_comercial_core` agrega:
+  - `Cliente`
+  - `Producto`
+  - `Venta`
+  - `VentaItem`
+  - `InventarioMovimiento`
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-# Lotes Venta App
-
-## Tech Stack
-- React + TypeScript
-- Vite
-- Tailwind CSS
-- Firebase (para data mock inicial)
-
-## Installation
-1. npm install
-2. npm run dev
-
-## Features
-- Lista de lotes con filtros
-- Detalles con maps
+## Ruta de aprendizaje recomendada
+1. TypeScript frontend: modelado de tipos de dominio (`AuthUser`, `Lote`, respuestas API).
+2. Backend por capas: separar HTTP de reglas de negocio y acceso a datos.
+3. Seguridad API: JWT + middlewares + validacion de payload.
+4. Base de datos profesional: migraciones y seed reproducibles con Prisma.
+5. DevOps inicial: Docker para DB y luego CI/CD con GitHub Actions.

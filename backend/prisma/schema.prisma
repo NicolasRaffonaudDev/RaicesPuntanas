@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  empleado
+  usuario
+}
+
+enum StockMovementType {
+  entrada
+  salida
+  ajuste
+}
+
+model User {
+  id           String               @id @default(cuid())
+  name         String
+  email        String               @unique
+  role         Role                 @default(usuario)
+  passwordHash String
+  createdAt    DateTime             @default(now())
+  audits       AuditLog[]
+  ventas       Venta[]
+  movimientos  InventarioMovimiento[]
+}
+
+model Lote {
+  id        Int      @id @default(autoincrement())
+  title     String
+  price     Int
+  size      Int
+  amenities String[]
+  image     String
+  lat       Float
+  lng       Float
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  meta      Json?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
+}
+
+model Cliente {
+  id        String   @id @default(cuid())
+  nombre    String
+  email     String?  @unique
+  telefono  String?
+  direccion String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ventas    Venta[]
+}
+
+model Producto {
+  id          Int                   @id @default(autoincrement())
+  nombre      String
+  sku         String                @unique
+  precio      Int
+  stock       Int                   @default(0)
+  activo      Boolean               @default(true)
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+  ventaItems  VentaItem[]
+  movimientos InventarioMovimiento[]
+}
+
+model Venta {
+  id        String     @id @default(cuid())
+  clienteId String?
+  userId    String
+  total     Int
+  createdAt DateTime   @default(now())
+  cliente   Cliente?   @relation(fields: [clienteId], references: [id], onDelete: SetNull)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Restrict)
+  items     VentaItem[]
+
+  @@index([userId, createdAt])
+  @@index([clienteId, createdAt])
+}
+
+model VentaItem {
+  id         Int      @id @default(autoincrement())
+  ventaId    String
+  productoId Int
+  cantidad   Int
+  precioUnit Int
+  subtotal   Int
+  venta      Venta    @relation(fields: [ventaId], references: [id], onDelete: Cascade)
+  producto   Producto @relation(fields: [productoId], references: [id], onDelete: Restrict)
+}
+
+model InventarioMovimiento {
+  id         String            @id @default(cuid())
+  productoId Int
+  userId     String?
+  tipo       StockMovementType
+  cantidad   Int
+  motivo     String?
+  createdAt  DateTime          @default(now())
+  producto   Producto          @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  user       User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([productoId, createdAt])
+}

@@ -1,7 +1,84 @@
-@import "tailwindcss"; 
+@import "tailwindcss";
 
-@theme {
-  --color-primary-green: #228B22; 
-  --color-beige: #F5F5DC;
-  --color-earth-brown: #8B4513;
+:root {
+  --color-bg: #000000;
+  --color-surface: #121212;
+  --color-surface-alt: #1d1d1d;
+  --color-primary: #ffd700;
+  --color-primary-hover: #e0bf00;
+  --color-text: #ffffff;
+  --color-text-muted: #d4d4d4;
+  --color-border: #3a3a3a;
+  --radius: 0.625rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #1f1f1f 0%, var(--color-bg) 55%);
+  color: var(--color-text);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.container {
+  width: min(1100px, 92vw);
+  margin: 0 auto;
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0.65rem 1rem;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: #000;
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-hover);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-primary);
+}
+
+.field {
+  width: 100%;
+  padding: 0.7rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+}
+
+.field:focus {
+  border-color: var(--color-primary);
+  outline: 2px solid rgba(255, 215, 0, 0.2);
+  outline-offset: 1px;
 }
