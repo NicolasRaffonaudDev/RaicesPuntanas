@@ -13,6 +13,13 @@ interface LoginPayload {
   password: string;
 }
 
+interface SetupAdminPayload {
+  setupKey: string;
+  name: string;
+  email: string;
+  password: string;
+}
+
 const parseResponse = async (res: Response) => {
   const payload = await res.json();
   if (!res.ok) {
@@ -43,6 +50,15 @@ export const authApi = {
   dashboard: async (token: string) => {
     const res = await fetch(`${API_URL}/dashboard/me`, {
       headers: { Authorization: `Bearer ${token}` },
+    });
+    return parseResponse(res);
+  },
+
+  setupAdmin: async (body: SetupAdminPayload): Promise<AuthResponse> => {
+    const res = await fetch(`${API_URL}/auth/setup-admin`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
     });
     return parseResponse(res);
   },

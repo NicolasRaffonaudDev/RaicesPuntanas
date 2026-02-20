@@ -1,5 +1,5 @@
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 
 const Login: React.FC = () => {
@@ -51,6 +51,9 @@ const Login: React.FC = () => {
           <button className="btn btn-primary w-full" disabled={isSubmitting}>
             {isSubmitting ? "Validando..." : "Entrar"}
           </button>
+          <p className="text-center text-xs text-[var(--color-text-muted)]">
+            Si no existe admin, usa <Link to="/setup-admin" className="text-[var(--color-primary)]">setup admin</Link>.
+          </p>
         </form>
       </div>
     </section>

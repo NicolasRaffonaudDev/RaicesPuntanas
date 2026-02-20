@@ -6,6 +6,7 @@ const {
   registerSchema,
   loginSchema,
   passwordResetSchema,
+  setupAdminSchema,
 } = require("../schemas/auth-schema");
 
 const authRoutes = Router();
@@ -17,5 +18,6 @@ authRoutes.post(
   validateBody(passwordResetSchema),
   asyncHandler(authController.passwordReset),
 );
+authRoutes.post("/setup-admin", validateBody(setupAdminSchema), asyncHandler(authController.setupAdmin));
 
 module.exports = { authRoutes };

@@ -1,9 +1,12 @@
 const { clienteService } = require("../services/cliente-service");
+const { parsePagination } = require("../utils/query");
 
 const clienteController = {
   list: async (req, res) => {
-    const data = await clienteService.list();
-    res.json({ data });
+    const { page, limit, skip } = parsePagination(req.query);
+    const search = req.query.search ? String(req.query.search).trim() : "";
+    const result = await clienteService.list({ search, page, limit, skip });
+    res.json(result);
   },
 
   create: async (req, res) => {

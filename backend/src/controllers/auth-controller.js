@@ -15,6 +15,11 @@ const authController = {
     const data = await authService.requestPasswordReset(req.body);
     res.json(data);
   },
+
+  setupAdmin: async (req, res) => {
+    const data = await authService.setupAdmin(req.body);
+    res.status(201).json(data);
+  },
 };
 
 module.exports = { authController };

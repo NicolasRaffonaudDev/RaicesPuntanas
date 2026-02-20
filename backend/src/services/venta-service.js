@@ -3,17 +3,51 @@ const { AppError } = require("../utils/app-error");
 const { auditService } = require("./audit-service");
 
 const ventaService = {
-  list: async ({ userRole, userId }) => {
-    const where = userRole === "usuario" ? { userId } : {};
-    return prisma.venta.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      include: {
-        cliente: true,
-        user: { select: { id: true, name: true, role: true } },
-        items: { include: { producto: true } },
+  list: async ({ userRole, userId, search, from, to, page, limit, skip }) => {
+    const where = {
+      ...(userRole === "usuario" ? { userId } : {}),
+      ...(search
+        ? {
+            OR: [
+              { id: { contains: search, mode: "insensitive" } },
+              { cliente: { nombre: { contains: search, mode: "insensitive" } } },
+            ],
+          }
+        : {}),
+      ...(from || to
+        ? {
+            createdAt: {
+              ...(from ? { gte: from } : {}),
+              ...(to ? { lte: to } : {}),
+            },
+          }
+        : {}),
+    };
+
+    const [data, total] = await Promise.all([
+      prisma.venta.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+        include: {
+          cliente: true,
+          user: { select: { id: true, name: true, role: true } },
+          items: { include: { producto: true } },
+        },
+      }),
+      prisma.venta.count({ where }),
+    ]);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit) || 1,
       },
-    });
+    };
   },
 
   create: async ({ actorUserId, clienteId, items }) => {

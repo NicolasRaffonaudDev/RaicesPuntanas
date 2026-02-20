@@ -1,9 +1,43 @@
 const { AppError } = require("../utils/app-error");
 const { productoRepository } = require("../repositories/producto-repository");
 const { auditService } = require("./audit-service");
+const { prisma } = require("../db/prisma");
 
 const productoService = {
-  list: async () => productoRepository.findAll(),
+  list: async ({ search, onlyActive, lowStock, page, limit, skip }) => {
+    const where = {
+      ...(search
+        ? {
+            OR: [
+              { nombre: { contains: search, mode: "insensitive" } },
+              { sku: { contains: search, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+      ...(onlyActive ? { activo: true } : {}),
+      ...(lowStock ? { stock: { lte: 5 } } : {}),
+    };
+
+    const [data, total] = await Promise.all([
+      prisma.producto.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.producto.count({ where }),
+    ]);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit) || 1,
+      },
+    };
+  },
 
   create: async ({ actorUserId, data }) => {
     const existingSku = await productoRepository.findBySku(data.sku);

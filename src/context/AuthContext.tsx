@@ -59,8 +59,8 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   }, []);
 
   const value = useMemo(
-    () => ({ token, user, login, register, logout }),
-    [token, user, login, register, logout],
+    () => ({ token, user, login, register, establishSession: saveSession, logout }),
+    [token, user, login, register, saveSession, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

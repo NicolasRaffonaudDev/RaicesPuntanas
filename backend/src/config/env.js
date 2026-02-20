@@ -8,6 +8,7 @@ const envSchema = z.object({
   JWT_EXPIRES_IN: z.string().default("8h"),
   DATABASE_URL: z.string().min(1),
   SMTP_FROM: z.string().email().default("no-reply@raicespuntanas.local"),
+  SETUP_ADMIN_KEY: z.string().optional(),
 });
 
 const env = envSchema.parse(process.env);

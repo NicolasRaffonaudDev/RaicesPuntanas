@@ -79,6 +79,52 @@ const authService = {
 
     return { message: "Reset solicitado", resetTokenPreview: resetToken };
   },
+
+  setupAdmin: async ({ setupKey, name, email, password }) => {
+    if (!env.SETUP_ADMIN_KEY) {
+      throw new AppError(503, "Bootstrap admin deshabilitado en este entorno");
+    }
+
+    if (setupKey !== env.SETUP_ADMIN_KEY) {
+      throw new AppError(403, "Setup key invalida");
+    }
+
+    const normalizedEmail = email.toLowerCase();
+    const adminCount = await userRepository.countAdmins();
+    const existingByEmail = await userRepository.findByEmail(normalizedEmail);
+
+    if (adminCount > 0) {
+      if (!existingByEmail || existingByEmail.role !== "admin") {
+        throw new AppError(409, "Ya existe al menos un usuario admin con otro email");
+      }
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    let user = existingByEmail;
+
+    if (existingByEmail) {
+      user = await userRepository.update(existingByEmail.id, {
+        name,
+        role: "admin",
+        passwordHash,
+      });
+    } else {
+      user = await userRepository.create({
+        name,
+        email: normalizedEmail,
+        role: "admin",
+        passwordHash,
+      });
+    }
+
+    await auditService.create({
+      userId: user.id,
+      action: "admin.setup_bootstrap",
+      meta: { email: user.email },
+    });
+
+    return { token: createToken(user), user: sanitizeUser(user) };
+  },
 };
 
 module.exports = { authService };

@@ -3,14 +3,43 @@ const { AppError } = require("../utils/app-error");
 const { auditService } = require("./audit-service");
 
 const inventarioService = {
-  listMovements: async () =>
-    prisma.inventarioMovimiento.findMany({
-      orderBy: { createdAt: "desc" },
-      include: {
-        producto: true,
-        user: { select: { id: true, name: true, role: true } },
+  listMovements: async ({ tipo, from, to, page, limit, skip }) => {
+    const where = {
+      ...(tipo ? { tipo } : {}),
+      ...(from || to
+        ? {
+            createdAt: {
+              ...(from ? { gte: from } : {}),
+              ...(to ? { lte: to } : {}),
+            },
+          }
+        : {}),
+    };
+
+    const [data, total] = await Promise.all([
+      prisma.inventarioMovimiento.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+        include: {
+          producto: true,
+          user: { select: { id: true, name: true, role: true } },
+        },
+      }),
+      prisma.inventarioMovimiento.count({ where }),
+    ]);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit) || 1,
       },
-    }),
+    };
+  },
 
   createMovement: async ({ actorUserId, data }) => {
     const producto = await prisma.producto.findUnique({ where: { id: data.productoId } });

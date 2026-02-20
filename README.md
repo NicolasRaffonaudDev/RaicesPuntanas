@@ -39,6 +39,7 @@ Aplicacion full stack para gestion comercial de lotes, clientes y operaciones.
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 - `POST /api/auth/password-reset`
+- `POST /api/auth/setup-admin` (bootstrap inicial por `SETUP_ADMIN_KEY`)
 - `GET /api/dashboard/me` (JWT)
 - `GET /api/audit` (admin)
 - `GET /api/users` (admin)
@@ -50,6 +51,11 @@ Aplicacion full stack para gestion comercial de lotes, clientes y operaciones.
 ## Credenciales seed
 - `email`: `admin@raicespuntanas.local`
 - `password`: `admin1234`
+
+## Bootstrap admin (si aun no tienes admin)
+1. Define `SETUP_ADMIN_KEY` en `backend/.env`.
+2. Inicia backend y frontend.
+3. Entra a `/setup-admin` y crea tu primer admin con esa clave.
 
 ## Migraciones nuevas
 - `20260220113000_comercial_core` agrega:

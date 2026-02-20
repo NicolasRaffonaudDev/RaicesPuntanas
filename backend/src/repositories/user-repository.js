@@ -27,6 +27,17 @@ const userRepository = {
         createdAt: true,
       },
     }),
+
+  countAdmins: () =>
+    prisma.user.count({
+      where: { role: "admin" },
+    }),
+
+  update: (id, data) =>
+    prisma.user.update({
+      where: { id },
+      data,
+    }),
 };
 
 module.exports = { userRepository };

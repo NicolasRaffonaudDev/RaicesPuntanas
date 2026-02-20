@@ -1,9 +1,40 @@
 const { AppError } = require("../utils/app-error");
 const { clienteRepository } = require("../repositories/cliente-repository");
 const { auditService } = require("./audit-service");
+const { prisma } = require("../db/prisma");
 
 const clienteService = {
-  list: async () => clienteRepository.findAll(),
+  list: async ({ search, page, limit, skip }) => {
+    const where = search
+      ? {
+          OR: [
+            { nombre: { contains: search, mode: "insensitive" } },
+            { email: { contains: search, mode: "insensitive" } },
+            { telefono: { contains: search, mode: "insensitive" } },
+          ],
+        }
+      : {};
+
+    const [data, total] = await Promise.all([
+      prisma.cliente.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.cliente.count({ where }),
+    ]);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit) || 1,
+      },
+    };
+  },
 
   create: async ({ actorUserId, data }) => {
     if (data.email) {

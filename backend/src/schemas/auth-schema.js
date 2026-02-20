@@ -15,4 +15,11 @@ const passwordResetSchema = z.object({
   email: z.string().trim().email(),
 });
 
-module.exports = { registerSchema, loginSchema, passwordResetSchema };
+const setupAdminSchema = z.object({
+  setupKey: z.string().min(8),
+  name: z.string().trim().min(2).max(80),
+  email: z.string().trim().email(),
+  password: z.string().min(8).max(128),
+});
+
+module.exports = { registerSchema, loginSchema, passwordResetSchema, setupAdminSchema };

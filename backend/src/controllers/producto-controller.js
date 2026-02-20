@@ -1,5 +1,6 @@
 const { productoService } = require("../services/producto-service");
 const { AppError } = require("../utils/app-error");
+const { parsePagination } = require("../utils/query");
 
 const parseId = (rawId) => {
   const id = Number(rawId);
@@ -9,8 +10,12 @@ const parseId = (rawId) => {
 
 const productoController = {
   list: async (req, res) => {
-    const data = await productoService.list();
-    res.json({ data });
+    const { page, limit, skip } = parsePagination(req.query);
+    const search = req.query.search ? String(req.query.search).trim() : "";
+    const onlyActive = req.query.onlyActive === "true";
+    const lowStock = req.query.lowStock === "true";
+    const result = await productoService.list({ search, onlyActive, lowStock, page, limit, skip });
+    res.json(result);
   },
 
   create: async (req, res) => {

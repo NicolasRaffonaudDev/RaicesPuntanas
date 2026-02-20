@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import type { AuthUser } from "../types/auth";
+import type { AuthResponse, AuthUser } from "../types/auth";
 
 interface LoginForm {
   email: string;
@@ -15,6 +15,7 @@ export interface AuthContextType {
   user: AuthUser | null;
   login: (payload: LoginForm) => Promise<void>;
   register: (payload: RegisterForm) => Promise<void>;
+  establishSession: (session: AuthResponse) => void;
   logout: () => void;
 }
 
