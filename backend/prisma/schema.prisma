@@ -20,15 +20,18 @@ enum StockMovementType {
 }
 
 model User {
-  id           String               @id @default(cuid())
-  name         String
-  email        String               @unique
-  role         Role                 @default(usuario)
-  passwordHash String
-  createdAt    DateTime             @default(now())
-  audits       AuditLog[]
-  ventas       Venta[]
-  movimientos  InventarioMovimiento[]
+  id                  String               @id @default(cuid())
+  name                String
+  email               String               @unique
+  role                Role                 @default(usuario)
+  passwordHash        String
+  failedLoginAttempts Int                  @default(0)
+  lockedUntil         DateTime?
+  createdAt           DateTime             @default(now())
+  audits              AuditLog[]
+  ventas              Venta[]
+  movimientos         InventarioMovimiento[]
+  refreshTokens       RefreshToken[]
 }
 
 model Lote {
@@ -116,4 +119,17 @@ model InventarioMovimiento {
   user       User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([productoId, createdAt])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([expiresAt])
 }

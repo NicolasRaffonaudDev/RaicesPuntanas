@@ -3,7 +3,9 @@ import { io } from "socket.io-client";
 import { useAuth } from "../context/useAuth";
 import { commercialApi } from "../services/commercialApi";
 import type { SystemUser, UserRole } from "../types/auth";
+import { hasPermission } from "../utils/permissions";
 import type {
+  AuditEntry,
   Cliente,
   InventarioMovimiento,
   Pagination,
@@ -11,7 +13,7 @@ import type {
   Venta,
 } from "../types/commercial";
 
-type Tab = "clientes" | "productos" | "ventas" | "inventario" | "usuarios";
+type Tab = "clientes" | "productos" | "ventas" | "inventario" | "usuarios" | "auditoria";
 
 interface ConfirmState {
   type: "cliente" | "producto";
@@ -34,23 +36,27 @@ const GestionComercial: React.FC = () => {
   const [ventas, setVentas] = useState<Venta[]>([]);
   const [movimientos, setMovimientos] = useState<InventarioMovimiento[]>([]);
   const [users, setUsers] = useState<SystemUser[]>([]);
+  const [audits, setAudits] = useState<AuditEntry[]>([]);
 
   const [clientesPagination, setClientesPagination] = useState<Pagination>(defaultPagination);
   const [productosPagination, setProductosPagination] = useState<Pagination>(defaultPagination);
   const [ventasPagination, setVentasPagination] = useState<Pagination>(defaultPagination);
   const [movimientosPagination, setMovimientosPagination] = useState<Pagination>(defaultPagination);
   const [usersPagination, setUsersPagination] = useState<Pagination>(defaultPagination);
+  const [auditsPagination, setAuditsPagination] = useState<Pagination>(defaultPagination);
 
   const [searchCliente, setSearchCliente] = useState("");
   const [searchProducto, setSearchProducto] = useState("");
   const [searchVenta, setSearchVenta] = useState("");
   const [searchUser, setSearchUser] = useState("");
+  const [searchAudit, setSearchAudit] = useState("");
 
   const [clientePage, setClientePage] = useState(1);
   const [productoPage, setProductoPage] = useState(1);
   const [ventaPage, setVentaPage] = useState(1);
   const [movPage, setMovPage] = useState(1);
   const [userPage, setUserPage] = useState(1);
+  const [auditPage, setAuditPage] = useState(1);
 
   const [onlyActive, setOnlyActive] = useState(true);
   const [lowStock, setLowStock] = useState(false);
@@ -60,6 +66,10 @@ const GestionComercial: React.FC = () => {
   const [movFrom, setMovFrom] = useState("");
   const [movTo, setMovTo] = useState("");
   const [movTipo, setMovTipo] = useState<"" | "entrada" | "salida" | "ajuste">("");
+  const [auditFrom, setAuditFrom] = useState("");
+  const [auditTo, setAuditTo] = useState("");
+  const [auditAction, setAuditAction] = useState("");
+  const [auditUserId, setAuditUserId] = useState("");
 
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
 
@@ -75,7 +85,7 @@ const GestionComercial: React.FC = () => {
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-  const isAdmin = user?.role === "admin";
+  const can = useCallback((permission: string) => hasPermission(user?.role, permission), [user?.role]);
 
   const showToast = (message: string) => {
     setToast(message);
@@ -129,7 +139,7 @@ const GestionComercial: React.FC = () => {
   }, [token, movPage, movTipo, movFrom, movTo]);
 
   const loadUsers = useCallback(async () => {
-    if (!token || !isAdmin) return;
+    if (!token || !hasPermission(user?.role, "users.read")) return;
     const result = await commercialApi.listUsers(token, {
       page: userPage,
       limit: 10,
@@ -137,21 +147,37 @@ const GestionComercial: React.FC = () => {
     });
     setUsers(result.data);
     setUsersPagination(result.pagination);
-  }, [token, isAdmin, userPage, searchUser]);
+  }, [token, userPage, searchUser, user?.role]);
+
+  const loadAudits = useCallback(async () => {
+    if (!token || !hasPermission(user?.role, "audit.read")) return;
+    const result = await commercialApi.listAudit(token, {
+      page: auditPage,
+      limit: 10,
+      search: searchAudit,
+      action: auditAction || undefined,
+      userId: auditUserId || undefined,
+      from: auditFrom || undefined,
+      to: auditTo || undefined,
+    });
+    setAudits(result.data);
+    setAuditsPagination(result.pagination);
+  }, [token, auditPage, searchAudit, auditAction, auditUserId, auditFrom, auditTo, user?.role]);
 
   const refreshAll = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
       const tasks = [loadClientes(), loadProductos(), loadVentas(), loadMovimientos()];
-      if (isAdmin) tasks.push(loadUsers());
+      if (hasPermission(user?.role, "users.read")) tasks.push(loadUsers());
+      if (hasPermission(user?.role, "audit.read")) tasks.push(loadAudits());
       await Promise.all(tasks);
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo cargar datos");
     } finally {
       setLoading(false);
     }
-  }, [loadClientes, loadProductos, loadVentas, loadMovimientos, isAdmin, loadUsers]);
+  }, [loadClientes, loadProductos, loadVentas, loadMovimientos, loadUsers, loadAudits, user?.role]);
 
   useEffect(() => {
     void refreshAll();
@@ -314,7 +340,7 @@ const GestionComercial: React.FC = () => {
   };
 
   const handleRoleChange = async (targetUserId: string, role: UserRole) => {
-    if (!token || !isAdmin) return;
+    if (!token || !can("users.manage")) return;
 
     try {
       await commercialApi.updateUserRole(token, targetUserId, role);
@@ -323,6 +349,30 @@ const GestionComercial: React.FC = () => {
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo actualizar rol");
     }
+  };
+
+  const exportAuditCsv = () => {
+    const header = ["fecha", "accion", "usuario", "email", "rol", "meta"];
+    const rows = audits.map((entry) => [
+      new Date(entry.createdAt).toISOString(),
+      entry.action,
+      entry.user?.name || "",
+      entry.user?.email || "",
+      entry.user?.role || "",
+      entry.meta ? JSON.stringify(entry.meta).replaceAll("\"", "'") : "",
+    ]);
+
+    const csv = [header, ...rows]
+      .map((row) => row.map((field) => `"${String(field ?? "").replaceAll("\"", "\"\"")}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `auditoria-raices-${new Date().toISOString().slice(0, 10)}.csv`);
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const renderPagination = (pagination: Pagination, onPageChange: (next: number) => void) => (
@@ -359,8 +409,11 @@ const GestionComercial: React.FC = () => {
           <button className={`btn text-sm ${tab === "productos" ? "btn-primary" : "btn-outline"}`} onClick={() => setTab("productos")} type="button">Productos</button>
           <button className={`btn text-sm ${tab === "ventas" ? "btn-primary" : "btn-outline"}`} onClick={() => setTab("ventas")} type="button">Ventas</button>
           <button className={`btn text-sm ${tab === "inventario" ? "btn-primary" : "btn-outline"}`} onClick={() => setTab("inventario")} type="button">Inventario</button>
-          {isAdmin && (
+          {can("users.read") && (
             <button className={`btn text-sm ${tab === "usuarios" ? "btn-primary" : "btn-outline"}`} onClick={() => setTab("usuarios")} type="button">Usuarios</button>
+          )}
+          {can("audit.read") && (
+            <button className={`btn text-sm ${tab === "auditoria" ? "btn-primary" : "btn-outline"}`} onClick={() => setTab("auditoria")} type="button">Auditoria</button>
           )}
         </div>
 
@@ -396,7 +449,7 @@ const GestionComercial: React.FC = () => {
                       <td className="p-2">
                         <div className="flex gap-2">
                           <button className="btn btn-outline text-xs" onClick={() => { setEditingClienteId(cliente.id); setEditingClienteForm({ nombre: cliente.nombre, email: cliente.email || "", telefono: cliente.telefono || "" }); }} type="button">Editar</button>
-                          {isAdmin && <button className="btn btn-outline text-xs" onClick={() => setConfirmState({ type: "cliente", id: cliente.id, label: cliente.nombre })} type="button">Eliminar</button>}
+                          {can("clientes.delete") && <button className="btn btn-outline text-xs" onClick={() => setConfirmState({ type: "cliente", id: cliente.id, label: cliente.nombre })} type="button">Eliminar</button>}
                         </div>
                       </td>
                     </tr>
@@ -462,7 +515,7 @@ const GestionComercial: React.FC = () => {
                       <td className="p-2">
                         <div className="flex gap-2">
                           <button className="btn btn-outline text-xs" onClick={() => { setEditingProductoId(producto.id); setEditingProductoForm({ nombre: producto.nombre, precio: String(producto.precio), stock: String(producto.stock), activo: producto.activo }); }} type="button">Editar</button>
-                          {isAdmin && <button className="btn btn-outline text-xs" type="button" onClick={() => setConfirmState({ type: "producto", id: producto.id, label: producto.nombre })}>Eliminar</button>}
+                          {can("productos.delete") && <button className="btn btn-outline text-xs" type="button" onClick={() => setConfirmState({ type: "producto", id: producto.id, label: producto.nombre })}>Eliminar</button>}
                         </div>
                       </td>
                     </tr>
@@ -592,7 +645,7 @@ const GestionComercial: React.FC = () => {
           </div>
         )}
 
-        {tab === "usuarios" && isAdmin && (
+        {tab === "usuarios" && can("users.read") && (
           <div className="space-y-3">
             <div className="card grid gap-2 p-3 md:grid-cols-3">
               <input
@@ -652,6 +705,116 @@ const GestionComercial: React.FC = () => {
               </table>
             </div>
             {renderPagination(usersPagination, setUserPage)}
+          </div>
+        )}
+
+        {tab === "auditoria" && can("audit.read") && (
+          <div className="space-y-3">
+            <div className="card grid gap-2 p-3 md:grid-cols-6">
+              <input
+                className="field md:col-span-2"
+                placeholder="Buscar por accion o usuario..."
+                value={searchAudit}
+                onChange={(e) => {
+                  setSearchAudit(e.target.value);
+                  setAuditPage(1);
+                }}
+              />
+              <select
+                className="field"
+                value={auditAction}
+                onChange={(e) => {
+                  setAuditAction(e.target.value);
+                  setAuditPage(1);
+                }}
+              >
+                <option value="">Todas las acciones</option>
+                <option value="user.login">user.login</option>
+                <option value="user.register">user.register</option>
+                <option value="venta.create">venta.create</option>
+                <option value="inventario.movement">inventario.movement</option>
+                <option value="admin.user.role_update">admin.user.role_update</option>
+              </select>
+              <select
+                className="field"
+                value={auditUserId}
+                onChange={(e) => {
+                  setAuditUserId(e.target.value);
+                  setAuditPage(1);
+                }}
+              >
+                <option value="">Todos los usuarios</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name} ({u.role})
+                  </option>
+                ))}
+              </select>
+              <input
+                className="field"
+                type="date"
+                value={auditFrom}
+                onChange={(e) => {
+                  setAuditFrom(e.target.value);
+                  setAuditPage(1);
+                }}
+              />
+              <input
+                className="field"
+                type="date"
+                value={auditTo}
+                onChange={(e) => {
+                  setAuditTo(e.target.value);
+                  setAuditPage(1);
+                }}
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button className="btn btn-outline" type="button" onClick={exportAuditCsv}>
+                Exportar CSV
+              </button>
+              <button
+                className="btn btn-outline"
+                type="button"
+                onClick={() => {
+                  setSearchAudit("");
+                  setAuditAction("");
+                  setAuditUserId("");
+                  setAuditFrom("");
+                  setAuditTo("");
+                  setAuditPage(1);
+                }}
+              >
+                Limpiar filtros
+              </button>
+            </div>
+
+            <div className="card overflow-auto p-3">
+              <table className="min-w-full text-left text-sm">
+                <thead>
+                  <tr>
+                    <th className="p-2">Fecha</th>
+                    <th className="p-2">Accion</th>
+                    <th className="p-2">Usuario</th>
+                    <th className="p-2">Rol</th>
+                    <th className="p-2">Meta</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {audits.map((entry) => (
+                    <tr key={entry.id} className="border-t border-[var(--color-border)]">
+                      <td className="p-2">{new Date(entry.createdAt).toLocaleString("es-AR")}</td>
+                      <td className="p-2 font-mono text-xs">{entry.action}</td>
+                      <td className="p-2">{entry.user?.name || entry.user?.email || "-"}</td>
+                      <td className="p-2">{entry.user?.role || "-"}</td>
+                      <td className="p-2 text-xs">{entry.meta ? JSON.stringify(entry.meta) : "-"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {renderPagination(auditsPagination, setAuditPage)}
           </div>
         )}
       </div>

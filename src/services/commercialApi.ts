@@ -1,4 +1,11 @@
-import type { Cliente, InventarioMovimiento, PaginatedResult, Producto, Venta } from "../types/commercial";
+import type {
+  AuditEntry,
+  Cliente,
+  InventarioMovimiento,
+  PaginatedResult,
+  Producto,
+  Venta,
+} from "../types/commercial";
 import type { SystemUser, UserRole } from "../types/auth";
 
 const API_URL = "http://localhost:3001/api";
@@ -197,5 +204,32 @@ export const commercialApi = {
     });
     const payload = await parseResponse(res);
     return payload.data as SystemUser;
+  },
+
+  listAudit: async (
+    token: string,
+    query?: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      action?: string;
+      userId?: string;
+      from?: string;
+      to?: string;
+    },
+  ): Promise<PaginatedResult<AuditEntry>> => {
+    const params = new URLSearchParams();
+    if (query?.page) params.set("page", String(query.page));
+    if (query?.limit) params.set("limit", String(query.limit));
+    if (query?.search) params.set("search", query.search);
+    if (query?.action) params.set("action", query.action);
+    if (query?.userId) params.set("userId", query.userId);
+    if (query?.from) params.set("from", query.from);
+    if (query?.to) params.set("to", query.to);
+
+    const res = await fetch(`${API_URL}/audit?${params.toString()}`, {
+      headers: authHeaders(token),
+    });
+    return parseResponse(res);
   },
 };

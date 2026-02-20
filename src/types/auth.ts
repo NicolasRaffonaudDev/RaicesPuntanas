@@ -9,6 +9,8 @@ export interface AuthUser {
 }
 
 export interface AuthResponse {
+  accessToken: string;
+  refreshToken: string;
   token: string;
   user: AuthUser;
 }

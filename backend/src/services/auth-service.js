@@ -1,7 +1,9 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 const { AppError } = require("../utils/app-error");
 const { userRepository } = require("../repositories/user-repository");
+const { refreshTokenRepository } = require("../repositories/refresh-token-repository");
 const { env } = require("../config/env");
 const { auditService } = require("./audit-service");
 const { emailService } = require("./email-service");
@@ -14,16 +16,62 @@ const sanitizeUser = (user) => ({
   createdAt: user.createdAt,
 });
 
-const createToken = (user) =>
+const createAccessToken = (user) =>
   jwt.sign(
     {
       sub: user.id,
       role: user.role,
       email: user.email,
+      typ: "access",
     },
     env.JWT_SECRET,
-    { expiresIn: env.JWT_EXPIRES_IN },
+    { expiresIn: env.ACCESS_TOKEN_EXPIRES_IN },
   );
+
+const hashToken = (value) => crypto.createHash("sha256").update(value).digest("hex");
+
+const createSession = async (user) => {
+  const accessToken = createAccessToken(user);
+  const refreshToken = crypto.randomBytes(48).toString("hex");
+  const refreshHash = hashToken(refreshToken);
+  const expiresAt = new Date(Date.now() + env.REFRESH_TOKEN_EXPIRES_DAYS * 24 * 60 * 60 * 1000);
+
+  await refreshTokenRepository.create({
+    userId: user.id,
+    tokenHash: refreshHash,
+    expiresAt,
+  });
+
+  return {
+    token: accessToken,
+    accessToken,
+    refreshToken,
+    user: sanitizeUser(user),
+  };
+};
+
+const assertUserNotLocked = (user) => {
+  if (!user.lockedUntil) return;
+
+  if (user.lockedUntil.getTime() > Date.now()) {
+    throw new AppError(423, "Cuenta bloqueada temporalmente por intentos fallidos");
+  }
+};
+
+const registerFailedAttempt = async (user) => {
+  const next = user.failedLoginAttempts + 1;
+
+  if (next >= env.MAX_LOGIN_ATTEMPTS) {
+    const lockedUntil = new Date(Date.now() + env.LOCKOUT_MINUTES * 60 * 1000);
+    await userRepository.update(user.id, {
+      failedLoginAttempts: 0,
+      lockedUntil,
+    });
+    throw new AppError(423, "Cuenta bloqueada temporalmente por intentos fallidos");
+  }
+
+  await userRepository.increaseFailedLogin(user.id, next);
+};
 
 const authService = {
   register: async ({ name, email, password }) => {
@@ -48,7 +96,7 @@ const authService = {
       meta: { role: user.role },
     });
 
-    return { token: createToken(user), user: sanitizeUser(user) };
+    return createSession(user);
   },
 
   login: async ({ email, password }) => {
@@ -56,11 +104,42 @@ const authService = {
     const user = await userRepository.findByEmail(normalizedEmail);
     if (!user) throw new AppError(401, "Credenciales invalidas");
 
-    const isValid = await bcrypt.compare(password, user.passwordHash);
-    if (!isValid) throw new AppError(401, "Credenciales invalidas");
+    assertUserNotLocked(user);
 
+    const isValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isValid) {
+      await registerFailedAttempt(user);
+      throw new AppError(401, "Credenciales invalidas");
+    }
+
+    await userRepository.resetFailedLogin(user.id);
     await auditService.create({ userId: user.id, action: "user.login" });
-    return { token: createToken(user), user: sanitizeUser(user) };
+    return createSession(user);
+  },
+
+  refreshSession: async ({ refreshToken }) => {
+    const tokenHash = hashToken(refreshToken);
+    const tokenRecord = await refreshTokenRepository.findValidByHash(tokenHash, new Date());
+    if (!tokenRecord) throw new AppError(401, "Refresh token invalido o vencido");
+
+    await refreshTokenRepository.revokeById(tokenRecord.id);
+    return createSession(tokenRecord.user);
+  },
+
+  logout: async ({ refreshToken }) => {
+    const tokenHash = hashToken(refreshToken);
+    const tokenRecord = await refreshTokenRepository.findValidByHash(tokenHash, new Date());
+    if (!tokenRecord) return { message: "Sesion cerrada" };
+
+    await refreshTokenRepository.revokeById(tokenRecord.id);
+    await auditService.create({ userId: tokenRecord.userId, action: "user.logout" });
+    return { message: "Sesion cerrada" };
+  },
+
+  logoutAll: async ({ userId }) => {
+    await refreshTokenRepository.revokeAllByUserId(userId);
+    await auditService.create({ userId, action: "user.logout_all" });
+    return { message: "Todas las sesiones cerradas" };
   },
 
   requestPasswordReset: async ({ email }) => {
@@ -123,7 +202,7 @@ const authService = {
       meta: { email: user.email },
     });
 
-    return { token: createToken(user), user: sanitizeUser(user) };
+    return createSession(user);
   },
 };
 

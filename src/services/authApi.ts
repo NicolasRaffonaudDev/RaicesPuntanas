@@ -62,4 +62,30 @@ export const authApi = {
     });
     return parseResponse(res);
   },
+
+  refresh: async (refreshToken: string): Promise<AuthResponse> => {
+    const res = await fetch(`${API_URL}/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+    });
+    return parseResponse(res);
+  },
+
+  logout: async (refreshToken: string) => {
+    const res = await fetch(`${API_URL}/auth/logout`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+    });
+    return parseResponse(res);
+  },
+
+  logoutAll: async (token: string) => {
+    const res = await fetch(`${API_URL}/auth/logout-all`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return parseResponse(res);
+  },
 };

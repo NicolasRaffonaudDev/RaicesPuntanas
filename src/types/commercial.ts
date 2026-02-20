@@ -60,3 +60,17 @@ export interface PaginatedResult<T> {
   data: T[];
   pagination: Pagination;
 }
+
+export interface AuditEntry {
+  id: string;
+  userId: string;
+  action: string;
+  meta?: Record<string, unknown> | null;
+  createdAt: string;
+  user?: {
+    id: string;
+    name?: string | null;
+    email: string;
+    role: "admin" | "empleado" | "usuario";
+  };
+}

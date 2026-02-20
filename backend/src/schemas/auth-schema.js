@@ -22,4 +22,19 @@ const setupAdminSchema = z.object({
   password: z.string().min(8).max(128),
 });
 
-module.exports = { registerSchema, loginSchema, passwordResetSchema, setupAdminSchema };
+const refreshSchema = z.object({
+  refreshToken: z.string().min(32),
+});
+
+const logoutSchema = z.object({
+  refreshToken: z.string().min(32),
+});
+
+module.exports = {
+  registerSchema,
+  loginSchema,
+  passwordResetSchema,
+  setupAdminSchema,
+  refreshSchema,
+  logoutSchema,
+};

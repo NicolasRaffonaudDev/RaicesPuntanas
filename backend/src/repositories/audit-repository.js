@@ -6,20 +6,29 @@ const auditRepository = {
       data: { userId, action, meta },
     }),
 
-  findRecent: (limit = 200) =>
-    prisma.auditLog.findMany({
-      take: limit,
-      orderBy: { createdAt: "desc" },
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            role: true,
+  list: async ({ where, skip, take }) => {
+    const [data, total] = await Promise.all([
+      prisma.auditLog.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { createdAt: "desc" },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              role: true,
+            },
           },
         },
-      },
-    }),
+      }),
+      prisma.auditLog.count({ where }),
+    ]);
+
+    return { data, total };
+  },
 };
 
 module.exports = { auditRepository };

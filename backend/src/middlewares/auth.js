@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const { env } = require("../config/env");
 const { AppError } = require("../utils/app-error");
+const { hasPermission } = require("../config/permissions");
 
 const requireAuth = (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -12,6 +13,9 @@ const requireAuth = (req, res, next) => {
 
   try {
     const payload = jwt.verify(token, env.JWT_SECRET);
+    if (payload.typ && payload.typ !== "access") {
+      return next(new AppError(401, "Token invalido para esta operacion"));
+    }
     req.auth = payload;
     return next();
   } catch {
@@ -26,4 +30,12 @@ const requireRole = (...roles) => (req, res, next) => {
   return next();
 };
 
-module.exports = { requireAuth, requireRole };
+const requirePermission = (...permissions) => (req, res, next) => {
+  if (!req.auth?.role) return next(new AppError(401, "No autenticado"));
+
+  const allowed = permissions.every((permission) => hasPermission(req.auth.role, permission));
+  if (!allowed) return next(new AppError(403, "Permiso insuficiente"));
+  return next();
+};
+
+module.exports = { requireAuth, requireRole, requirePermission };

@@ -1,4 +1,5 @@
 const { prisma } = require("../db/prisma");
+const { getPermissionsByRole } = require("../config/permissions");
 
 const roleWidgetMap = {
   admin: ["Metricas globales", "Auditoria", "Gestion de usuarios", "Ventas e inventario"],
@@ -25,6 +26,7 @@ const dashboardService = {
     return {
       summary: `Panel para rol ${role}`,
       widgets: roleWidgetMap[role] || [],
+      permissions: getPermissionsByRole(role),
       metrics: {
         clientes,
         productosActivos: productos,

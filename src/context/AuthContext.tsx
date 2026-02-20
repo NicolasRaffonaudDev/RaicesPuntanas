@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { authApi } from "../services/authApi";
 import type { AuthResponse, AuthUser } from "../types/auth";
 import { AuthContext } from "./auth-context";
@@ -27,13 +27,23 @@ const hydrateSession = (): AuthResponse | null => {
 
 export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const currentSession = hydrateSession();
-  const [token, setToken] = useState<string | null>(currentSession?.token ?? null);
+  const [token, setToken] = useState<string | null>(currentSession?.accessToken ?? currentSession?.token ?? null);
+  const [refreshToken, setRefreshToken] = useState<string | null>(currentSession?.refreshToken ?? null);
   const [user, setUser] = useState<AuthUser | null>(currentSession?.user ?? null);
 
   const saveSession = useCallback((session: AuthResponse) => {
-    setToken(session.token);
+    const accessToken = session.accessToken || session.token;
+    setToken(accessToken);
+    setRefreshToken(session.refreshToken);
     setUser(session.user);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        ...session,
+        token: accessToken,
+        accessToken,
+      }),
+    );
   }, []);
 
   const login = useCallback(
@@ -53,14 +63,46 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   );
 
   const logout = useCallback(() => {
+    const currentRefreshToken = refreshToken;
+    if (currentRefreshToken) {
+      void authApi.logout(currentRefreshToken).catch(() => undefined);
+    }
     setToken(null);
+    setRefreshToken(null);
     setUser(null);
     localStorage.removeItem(STORAGE_KEY);
-  }, []);
+  }, [refreshToken]);
+
+  const logoutAll = useCallback(async () => {
+    if (!token) return;
+    await authApi.logoutAll(token);
+    setToken(null);
+    setRefreshToken(null);
+    setUser(null);
+    localStorage.removeItem(STORAGE_KEY);
+  }, [token]);
+
+  useEffect(() => {
+    if (!refreshToken) return;
+
+    const interval = window.setInterval(async () => {
+      try {
+        const refreshed = await authApi.refresh(refreshToken);
+        saveSession(refreshed);
+      } catch {
+        setToken(null);
+        setRefreshToken(null);
+        setUser(null);
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    }, 10 * 60 * 1000);
+
+    return () => window.clearInterval(interval);
+  }, [refreshToken, saveSession]);
 
   const value = useMemo(
-    () => ({ token, user, login, register, establishSession: saveSession, logout }),
-    [token, user, login, register, saveSession, logout],
+    () => ({ token, refreshToken, user, login, register, establishSession: saveSession, logout, logoutAll }),
+    [token, refreshToken, user, login, register, saveSession, logout, logoutAll],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
