@@ -5,7 +5,14 @@ const clienteController = {
   list: async (req, res) => {
     const { page, limit, skip } = parsePagination(req.query);
     const search = req.query.search ? String(req.query.search).trim() : "";
-    const result = await clienteService.list({ search, page, limit, skip });
+    const result = await clienteService.list({
+      actorRole: req.auth.role,
+      actorUserId: req.auth.sub,
+      search,
+      page,
+      limit,
+      skip,
+    });
     res.json(result);
   },
 
@@ -17,6 +24,7 @@ const clienteController = {
   update: async (req, res) => {
     const data = await clienteService.update({
       actorUserId: req.auth.sub,
+      actorRole: req.auth.role,
       id: req.params.id,
       data: req.body,
     });
@@ -24,7 +32,7 @@ const clienteController = {
   },
 
   remove: async (req, res) => {
-    await clienteService.remove({ actorUserId: req.auth.sub, id: req.params.id });
+    await clienteService.remove({ actorUserId: req.auth.sub, actorRole: req.auth.role, id: req.params.id });
     res.status(204).send();
   },
 };

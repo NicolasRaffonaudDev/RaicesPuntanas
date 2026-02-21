@@ -2,6 +2,7 @@ const { AppError } = require("../utils/app-error");
 const { userRepository } = require("../repositories/user-repository");
 const { auditService } = require("./audit-service");
 const { prisma } = require("../db/prisma");
+const bcrypt = require("bcryptjs");
 
 const userService = {
   list: async ({ page, limit, skip, search }) => {
@@ -71,6 +72,34 @@ const userService = {
       email: updated.email,
       role: updated.role,
       createdAt: updated.createdAt,
+    };
+  },
+
+  createByAdmin: async ({ actorUserId, data }) => {
+    const email = data.email.toLowerCase();
+    const existing = await userRepository.findByEmail(email);
+    if (existing) throw new AppError(409, "Ya existe un usuario con ese email");
+
+    const passwordHash = await bcrypt.hash(data.password, 10);
+    const created = await userRepository.create({
+      name: data.name,
+      email,
+      role: data.role,
+      passwordHash,
+    });
+
+    await auditService.create({
+      userId: actorUserId,
+      action: "admin.user.create",
+      meta: { targetUserId: created.id, role: created.role },
+    });
+
+    return {
+      id: created.id,
+      name: created.name,
+      email: created.email,
+      role: created.role,
+      createdAt: created.createdAt,
     };
   },
 };

@@ -32,6 +32,10 @@ model User {
   ventas              Venta[]
   movimientos         InventarioMovimiento[]
   refreshTokens       RefreshToken[]
+  clientesCreados     Cliente[]             @relation("ClienteCreador")
+  productosCreados    Producto[]            @relation("ProductoCreador")
+  favoritosLotes      LoteFavorito[]
+  consultas           Consulta[]
 }
 
 model Lote {
@@ -44,6 +48,8 @@ model Lote {
   lat       Float
   lng       Float
   createdAt DateTime @default(now())
+  favoritos LoteFavorito[]
+  consultas Consulta[]
 }
 
 model AuditLog {
@@ -59,27 +65,35 @@ model AuditLog {
 }
 
 model Cliente {
-  id        String   @id @default(cuid())
-  nombre    String
-  email     String?  @unique
-  telefono  String?
-  direccion String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  ventas    Venta[]
+  id              String   @id @default(cuid())
+  nombre          String
+  email           String?  @unique
+  telefono        String?
+  direccion       String?
+  createdByUserId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  ventas          Venta[]
+  createdBy       User?    @relation("ClienteCreador", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([createdByUserId, createdAt])
 }
 
 model Producto {
-  id          Int                   @id @default(autoincrement())
-  nombre      String
-  sku         String                @unique
-  precio      Int
-  stock       Int                   @default(0)
-  activo      Boolean               @default(true)
-  createdAt   DateTime              @default(now())
-  updatedAt   DateTime              @updatedAt
-  ventaItems  VentaItem[]
-  movimientos InventarioMovimiento[]
+  id              Int                   @id @default(autoincrement())
+  nombre          String
+  sku             String                @unique
+  precio          Int
+  stock           Int                   @default(0)
+  activo          Boolean               @default(true)
+  createdByUserId String?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  ventaItems      VentaItem[]
+  movimientos     InventarioMovimiento[]
+  createdBy       User?                 @relation("ProductoCreador", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([createdByUserId, createdAt])
 }
 
 model Venta {
@@ -132,4 +146,31 @@ model RefreshToken {
 
   @@index([userId, createdAt])
   @@index([expiresAt])
+}
+
+model LoteFavorito {
+  id        String   @id @default(cuid())
+  userId    String
+  loteId    Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lote      Lote     @relation(fields: [loteId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, loteId])
+  @@index([userId, createdAt])
+}
+
+model Consulta {
+  id        String   @id @default(cuid())
+  userId    String
+  loteId    Int?
+  asunto    String
+  mensaje   String
+  estado    String   @default("pendiente")
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lote      Lote?    @relation(fields: [loteId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([estado, createdAt])
 }

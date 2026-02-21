@@ -17,6 +17,14 @@ const userController = {
     });
     res.json({ data });
   },
+
+  create: async (req, res) => {
+    const data = await userService.createByAdmin({
+      actorUserId: req.auth.sub,
+      data: req.body,
+    });
+    res.status(201).json({ data });
+  },
 };
 
 module.exports = { userController };

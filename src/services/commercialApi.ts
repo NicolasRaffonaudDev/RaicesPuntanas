@@ -1,12 +1,17 @@
 import type {
   AuditEntry,
   Cliente,
+  Consulta,
+  ConsultaEstado,
+  ConsultaWithUser,
   InventarioMovimiento,
+  LoteFavorito,
   PaginatedResult,
   Producto,
   Venta,
 } from "../types/commercial";
 import type { SystemUser, UserRole } from "../types/auth";
+import type { Lote } from "../types/interfaces";
 
 const API_URL = "http://localhost:3001/api";
 
@@ -22,6 +27,12 @@ const authHeaders = (token: string) => ({
 });
 
 export const commercialApi = {
+  listLotes: async (): Promise<Lote[]> => {
+    const res = await fetch(`${API_URL}/lotes`);
+    if (!res.ok) throw new Error("No se pudo cargar el listado de lotes");
+    return res.json();
+  },
+
   listClientes: async (
     token: string,
     query?: { page?: number; limit?: number; search?: string },
@@ -206,6 +217,19 @@ export const commercialApi = {
     return payload.data as SystemUser;
   },
 
+  createUser: async (
+    token: string,
+    body: { name: string; email: string; password: string; role: UserRole },
+  ): Promise<SystemUser> => {
+    const res = await fetch(`${API_URL}/users`, {
+      method: "POST",
+      headers: authHeaders(token),
+      body: JSON.stringify(body),
+    });
+    const payload = await parseResponse(res);
+    return payload.data as SystemUser;
+  },
+
   listAudit: async (
     token: string,
     query?: {
@@ -231,5 +255,76 @@ export const commercialApi = {
       headers: authHeaders(token),
     });
     return parseResponse(res);
+  },
+
+  listFavoritos: async (token: string): Promise<LoteFavorito[]> => {
+    const res = await fetch(`${API_URL}/favoritos`, { headers: authHeaders(token) });
+    const payload = await parseResponse(res);
+    return payload.data as LoteFavorito[];
+  },
+
+  addFavorito: async (token: string, loteId: number): Promise<LoteFavorito> => {
+    const res = await fetch(`${API_URL}/favoritos/${loteId}`, {
+      method: "POST",
+      headers: authHeaders(token),
+    });
+    const payload = await parseResponse(res);
+    return payload.data as LoteFavorito;
+  },
+
+  removeFavorito: async (token: string, loteId: number): Promise<void> => {
+    const res = await fetch(`${API_URL}/favoritos/${loteId}`, {
+      method: "DELETE",
+      headers: authHeaders(token),
+    });
+    if (!res.ok) {
+      const payload = await res.json();
+      throw new Error(payload.message || "No se pudo quitar favorito");
+    }
+  },
+
+  createConsulta: async (
+    token: string,
+    body: { asunto: string; mensaje: string; loteId?: number },
+  ): Promise<Consulta> => {
+    const res = await fetch(`${API_URL}/consultas`, {
+      method: "POST",
+      headers: authHeaders(token),
+      body: JSON.stringify(body),
+    });
+    const payload = await parseResponse(res);
+    return payload.data as Consulta;
+  },
+
+  listMisConsultas: async (token: string): Promise<Consulta[]> => {
+    const res = await fetch(`${API_URL}/consultas/mine`, { headers: authHeaders(token) });
+    const payload = await parseResponse(res);
+    return payload.data as Consulta[];
+  },
+
+  listConsultas: async (
+    token: string,
+    query?: { page?: number; limit?: number; search?: string; estado?: string },
+  ): Promise<PaginatedResult<ConsultaWithUser>> => {
+    const params = new URLSearchParams();
+    if (query?.page) params.set("page", String(query.page));
+    if (query?.limit) params.set("limit", String(query.limit));
+    if (query?.search) params.set("search", query.search);
+    if (query?.estado) params.set("estado", query.estado);
+
+    const res = await fetch(`${API_URL}/consultas?${params.toString()}`, {
+      headers: authHeaders(token),
+    });
+    return parseResponse(res);
+  },
+
+  updateConsultaEstado: async (token: string, consultaId: string, estado: ConsultaEstado): Promise<ConsultaWithUser> => {
+    const res = await fetch(`${API_URL}/consultas/${consultaId}/estado`, {
+      method: "PATCH",
+      headers: authHeaders(token),
+      body: JSON.stringify({ estado }),
+    });
+    const payload = await parseResponse(res);
+    return payload.data as ConsultaWithUser;
   },
 };

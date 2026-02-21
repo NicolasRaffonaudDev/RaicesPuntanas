@@ -14,7 +14,16 @@ const productoController = {
     const search = req.query.search ? String(req.query.search).trim() : "";
     const onlyActive = req.query.onlyActive === "true";
     const lowStock = req.query.lowStock === "true";
-    const result = await productoService.list({ search, onlyActive, lowStock, page, limit, skip });
+    const result = await productoService.list({
+      actorRole: req.auth.role,
+      actorUserId: req.auth.sub,
+      search,
+      onlyActive,
+      lowStock,
+      page,
+      limit,
+      skip,
+    });
     res.json(result);
   },
 
@@ -26,6 +35,7 @@ const productoController = {
   update: async (req, res) => {
     const data = await productoService.update({
       actorUserId: req.auth.sub,
+      actorRole: req.auth.role,
       id: parseId(req.params.id),
       data: req.body,
     });
@@ -33,7 +43,11 @@ const productoController = {
   },
 
   remove: async (req, res) => {
-    await productoService.remove({ actorUserId: req.auth.sub, id: parseId(req.params.id) });
+    await productoService.remove({
+      actorUserId: req.auth.sub,
+      actorRole: req.auth.role,
+      id: parseId(req.params.id),
+    });
     res.status(204).send();
   },
 };

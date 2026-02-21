@@ -74,3 +74,46 @@ export interface AuditEntry {
     role: "admin" | "empleado" | "usuario";
   };
 }
+
+export interface LoteFavorito {
+  id: string;
+  loteId: number;
+  userId: string;
+  createdAt: string;
+  lote: {
+    id: number;
+    title: string;
+    price: number;
+    size: number;
+    amenities: string[];
+    image: string;
+    lat: number;
+    lng: number;
+    createdAt: string;
+  };
+}
+
+export type ConsultaEstado = "pendiente" | "en_revision" | "respondida" | "cerrada";
+
+export interface Consulta {
+  id: string;
+  userId: string;
+  loteId?: number | null;
+  asunto: string;
+  mensaje: string;
+  estado: ConsultaEstado | string;
+  createdAt: string;
+  lote?: {
+    id: number;
+    title: string;
+  } | null;
+}
+
+export interface ConsultaWithUser extends Consulta {
+  user?: {
+    id: string;
+    name?: string | null;
+    email: string;
+    role: "admin" | "empleado" | "usuario";
+  };
+}

@@ -8,6 +8,8 @@ const { clienteRoutes } = require("./cliente-routes");
 const { productoRoutes } = require("./producto-routes");
 const { ventaRoutes } = require("./venta-routes");
 const { inventarioRoutes } = require("./inventario-routes");
+const { favoritoRoutes } = require("./favorito-routes");
+const { consultaRoutes } = require("./consulta-routes");
 
 const apiRoutes = Router();
 
@@ -20,5 +22,7 @@ apiRoutes.use("/clientes", clienteRoutes);
 apiRoutes.use("/productos", productoRoutes);
 apiRoutes.use("/ventas", ventaRoutes);
 apiRoutes.use("/inventario", inventarioRoutes);
+apiRoutes.use("/favoritos", favoritoRoutes);
+apiRoutes.use("/consultas", consultaRoutes);
 
 module.exports = { apiRoutes };

@@ -82,6 +82,7 @@ const GestionComercial: React.FC = () => {
   const [editingClienteForm, setEditingClienteForm] = useState({ nombre: "", email: "", telefono: "" });
   const [editingProductoId, setEditingProductoId] = useState<number | null>(null);
   const [editingProductoForm, setEditingProductoForm] = useState({ nombre: "", precio: "", stock: "", activo: true });
+  const [newUserForm, setNewUserForm] = useState({ name: "", email: "", password: "", role: "usuario" as UserRole });
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
@@ -348,6 +349,20 @@ const GestionComercial: React.FC = () => {
       await loadUsers();
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo actualizar rol");
+    }
+  };
+
+  const createUserByAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token || !can("users.manage")) return;
+
+    try {
+      await commercialApi.createUser(token, newUserForm);
+      setNewUserForm({ name: "", email: "", password: "", role: "usuario" });
+      showToast("Usuario creado");
+      await loadUsers();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo crear usuario");
     }
   };
 
@@ -647,6 +662,44 @@ const GestionComercial: React.FC = () => {
 
         {tab === "usuarios" && can("users.read") && (
           <div className="space-y-3">
+            {can("users.manage") && (
+              <form className="card grid gap-2 p-3 md:grid-cols-5" onSubmit={createUserByAdmin}>
+                <input
+                  className="field"
+                  placeholder="Nombre"
+                  value={newUserForm.name}
+                  onChange={(e) => setNewUserForm((prev) => ({ ...prev, name: e.target.value }))}
+                />
+                <input
+                  className="field"
+                  type="email"
+                  placeholder="Email"
+                  value={newUserForm.email}
+                  onChange={(e) => setNewUserForm((prev) => ({ ...prev, email: e.target.value }))}
+                />
+                <input
+                  className="field"
+                  type="password"
+                  minLength={8}
+                  placeholder="Password temporal"
+                  value={newUserForm.password}
+                  onChange={(e) => setNewUserForm((prev) => ({ ...prev, password: e.target.value }))}
+                />
+                <select
+                  className="field"
+                  value={newUserForm.role}
+                  onChange={(e) => setNewUserForm((prev) => ({ ...prev, role: e.target.value as UserRole }))}
+                >
+                  <option value="usuario">usuario</option>
+                  <option value="empleado">empleado</option>
+                  <option value="admin">admin</option>
+                </select>
+                <button className="btn btn-primary" type="submit">
+                  Crear usuario
+                </button>
+              </form>
+            )}
+
             <div className="card grid gap-2 p-3 md:grid-cols-3">
               <input
                 className="field md:col-span-2"

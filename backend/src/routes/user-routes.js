@@ -3,11 +3,18 @@ const { userController } = require("../controllers/user-controller");
 const { requireAuth, requirePermission } = require("../middlewares/auth");
 const { asyncHandler } = require("../utils/async-handler");
 const { validateBody } = require("../middlewares/validate");
-const { userRoleUpdateSchema } = require("../schemas/user-schema");
+const { userRoleUpdateSchema, userCreateSchema } = require("../schemas/user-schema");
 
 const userRoutes = Router();
 
 userRoutes.get("/", requireAuth, requirePermission("users.read"), asyncHandler(userController.list));
+userRoutes.post(
+  "/",
+  requireAuth,
+  requirePermission("users.manage"),
+  validateBody(userCreateSchema),
+  asyncHandler(userController.create),
+);
 userRoutes.patch(
   "/:id/role",
   requireAuth,

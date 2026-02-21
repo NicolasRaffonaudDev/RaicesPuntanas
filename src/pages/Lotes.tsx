@@ -1,20 +1,26 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import LotCard from "../components/LotCard/LotCard";
+import { useAuth } from "../context/useAuth";
+import { commercialApi } from "../services/commercialApi";
 import type { Lote } from "../types/interfaces";
+import { hasPermission } from "../utils/permissions";
 
 const Lotes: React.FC = () => {
+  const navigate = useNavigate();
+  const { token, user } = useAuth();
   const [lotes, setLotes] = useState<Lote[]>([]);
+  const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [favoritesLoading, setFavoritesLoading] = useState(false);
   const [error, setError] = useState("");
+  const [favoriteError, setFavoriteError] = useState("");
   const [filtroPrecio, setFiltroPrecio] = useState(0);
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
 
   useEffect(() => {
-    fetch("http://localhost:3001/api/lotes")
-      .then((res) => {
-        if (!res.ok) throw new Error("No se pudo cargar el listado de lotes");
-        return res.json();
-      })
+    commercialApi
+      .listLotes()
       .then((data: Lote[]) => {
         setLotes(data);
         setLoading(false);
@@ -24,6 +30,22 @@ const Lotes: React.FC = () => {
         setLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    if (!token || !hasPermission(user?.role, "favoritos.read")) {
+      setFavoriteIds(new Set());
+      return;
+    }
+
+    setFavoritesLoading(true);
+    commercialApi
+      .listFavoritos(token)
+      .then((items) => {
+        setFavoriteIds(new Set(items.map((item) => item.loteId)));
+      })
+      .catch((err: Error) => setFavoriteError(err.message))
+      .finally(() => setFavoritesLoading(false));
+  }, [token, user?.role]);
 
   const allAmenities = useMemo(
     () => Array.from(new Set(lotes.flatMap((lote) => lote.amenities))),
@@ -42,6 +64,31 @@ const Lotes: React.FC = () => {
     setSelectedAmenities((prev) =>
       prev.includes(amenity) ? prev.filter((item) => item !== amenity) : [...prev, amenity],
     );
+  };
+
+  const canManageFavorites = !!token && hasPermission(user?.role, "favoritos.write");
+
+  const toggleFavorite = async (lote: Lote) => {
+    if (!token || !canManageFavorites) return;
+
+    setFavoriteError("");
+    const isFavorite = favoriteIds.has(lote.id);
+
+    try {
+      if (isFavorite) {
+        await commercialApi.removeFavorito(token, lote.id);
+        setFavoriteIds((prev) => {
+          const next = new Set(prev);
+          next.delete(lote.id);
+          return next;
+        });
+      } else {
+        await commercialApi.addFavorito(token, lote.id);
+        setFavoriteIds((prev) => new Set(prev).add(lote.id));
+      }
+    } catch (err) {
+      setFavoriteError(err instanceof Error ? err.message : "No se pudo actualizar favorito");
+    }
   };
 
   return (
@@ -82,6 +129,7 @@ const Lotes: React.FC = () => {
 
         {loading && <p className="text-center text-[var(--color-text-muted)]">Cargando lotes...</p>}
         {error && <p className="text-center text-red-400">{error}</p>}
+        {favoriteError && <p className="text-center text-amber-300">{favoriteError}</p>}
 
         {!loading && !error && filteredLotes.length === 0 && (
           <p className="text-center text-[var(--color-text-muted)]">No hay lotes que coincidan con los filtros.</p>
@@ -90,7 +138,26 @@ const Lotes: React.FC = () => {
         {!loading && !error && filteredLotes.length > 0 && (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredLotes.map((lote) => (
-              <LotCard key={lote.id} lote={lote} />
+              <div key={lote.id} className="space-y-2">
+                <LotCard lote={lote} />
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    className={`btn ${favoriteIds.has(lote.id) ? "btn-outline" : "btn-primary"} flex-1 text-sm`}
+                    onClick={() => void toggleFavorite(lote)}
+                    disabled={!canManageFavorites || favoritesLoading}
+                  >
+                    {favoriteIds.has(lote.id) ? "Quitar favorito" : "Guardar favorito"}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-outline flex-1 text-sm"
+                    onClick={() => navigate(`/contact?loteId=${lote.id}&asunto=${encodeURIComponent(`Consulta por ${lote.title}`)}`)}
+                  >
+                    Consultar
+                  </button>
+                </div>
+              </div>
             ))}
           </div>
         )}

@@ -4,16 +4,19 @@ const { auditService } = require("./audit-service");
 const { prisma } = require("../db/prisma");
 
 const clienteService = {
-  list: async ({ search, page, limit, skip }) => {
-    const where = search
-      ? {
-          OR: [
-            { nombre: { contains: search, mode: "insensitive" } },
-            { email: { contains: search, mode: "insensitive" } },
-            { telefono: { contains: search, mode: "insensitive" } },
-          ],
-        }
-      : {};
+  list: async ({ actorRole, actorUserId, search, page, limit, skip }) => {
+    const where = {
+      ...(search
+        ? {
+            OR: [
+              { nombre: { contains: search, mode: "insensitive" } },
+              { email: { contains: search, mode: "insensitive" } },
+              { telefono: { contains: search, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+      ...(actorRole === "empleado" ? { createdByUserId: actorUserId } : {}),
+    };
 
     const [data, total] = await Promise.all([
       prisma.cliente.findMany({
@@ -43,14 +46,20 @@ const clienteService = {
       data.email = data.email.toLowerCase();
     }
 
-    const created = await clienteRepository.create(data);
+    const created = await clienteRepository.create({
+      ...data,
+      createdByUserId: actorUserId,
+    });
     await auditService.create({ userId: actorUserId, action: "cliente.create", meta: { clienteId: created.id } });
     return created;
   },
 
-  update: async ({ actorUserId, id, data }) => {
+  update: async ({ actorUserId, actorRole, id, data }) => {
     const existing = await clienteRepository.findById(id);
     if (!existing) throw new AppError(404, "Cliente no encontrado");
+    if (actorRole === "empleado" && existing.createdByUserId !== actorUserId) {
+      throw new AppError(403, "Solo puedes editar clientes creados por tu usuario");
+    }
 
     if (data.email) {
       const email = data.email.toLowerCase();
@@ -66,9 +75,12 @@ const clienteService = {
     return updated;
   },
 
-  remove: async ({ actorUserId, id }) => {
+  remove: async ({ actorUserId, actorRole, id }) => {
     const existing = await clienteRepository.findById(id);
     if (!existing) throw new AppError(404, "Cliente no encontrado");
+    if (actorRole === "empleado" && existing.createdByUserId !== actorUserId) {
+      throw new AppError(403, "Solo puedes eliminar clientes creados por tu usuario");
+    }
 
     await clienteRepository.remove(id);
     await auditService.create({ userId: actorUserId, action: "cliente.delete", meta: { clienteId: id } });

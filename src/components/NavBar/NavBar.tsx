@@ -30,10 +30,18 @@ const NavBar: React.FC = () => {
               <Link to="/dashboard" className="hover:text-[var(--color-primary)]">
                 Dashboard
               </Link>
+              <Link to="/mi-panel" className="hover:text-[var(--color-primary)]">
+                Mi panel
+              </Link>
               {(user.role === "admin" || user.role === "empleado") && (
-                <Link to="/gestion" className="hover:text-[var(--color-primary)]">
-                  Gestion
-                </Link>
+                <>
+                  <Link to="/gestion" className="hover:text-[var(--color-primary)]">
+                    Gestion
+                  </Link>
+                  <Link to="/consultas" className="hover:text-[var(--color-primary)]">
+                    Consultas
+                  </Link>
+                </>
               )}
               <button type="button" className="btn btn-primary text-sm" onClick={logout}>
                 Cerrar sesion

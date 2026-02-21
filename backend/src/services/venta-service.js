@@ -5,7 +5,7 @@ const { auditService } = require("./audit-service");
 const ventaService = {
   list: async ({ userRole, userId, search, from, to, page, limit, skip }) => {
     const where = {
-      ...(userRole === "usuario" ? { userId } : {}),
+      ...(userRole === "usuario" || userRole === "empleado" ? { userId } : {}),
       ...(search
         ? {
             OR: [
