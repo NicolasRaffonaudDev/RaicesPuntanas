@@ -127,6 +127,29 @@ const run = async () => {
   });
   assertStatus("admin actualiza estado consulta", updateConsulta.status, 200);
 
+  const addSeguimientoInterno = await request(`/consultas/${consultaId}/seguimientos`, {
+    method: "POST",
+    headers: authHeaders(adminToken),
+    body: JSON.stringify({ mensaje: "Nota interna de prueba", esInterno: true }),
+  });
+  assertStatus("admin agrega seguimiento interno", addSeguimientoInterno.status, 201);
+
+  const addSeguimientoVisible = await request(`/consultas/${consultaId}/seguimientos`, {
+    method: "POST",
+    headers: authHeaders(adminToken),
+    body: JSON.stringify({ mensaje: "Respuesta visible al cliente", esInterno: false }),
+  });
+  assertStatus("admin agrega seguimiento visible", addSeguimientoVisible.status, 201);
+
+  const usuarioSeguimientos = await request(`/consultas/${consultaId}/seguimientos`, {
+    headers: authHeaders(usuarioToken),
+  });
+  assertStatus("usuario lista sus seguimientos", usuarioSeguimientos.status, 200);
+  if ((usuarioSeguimientos.body?.data || []).some((row) => row.esInterno)) {
+    throw new Error("usuario no deberia ver seguimientos internos");
+  }
+  console.log("OK usuario solo ve seguimientos visibles");
+
   console.log("Smoke test de roles completado.");
 };
 

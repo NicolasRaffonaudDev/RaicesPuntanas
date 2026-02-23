@@ -1,10 +1,49 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { io } from "socket.io-client";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
+import { commercialApi } from "../../services/commercialApi";
+import { hasPermission } from "../../utils/permissions";
 
 const NavBar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const [pendingConsultas, setPendingConsultas] = useState(0);
+  const { token, user, logout } = useAuth();
+
+  const canManageConsultas = hasPermission(user?.role, "consultas.manage");
+
+  const loadPendingConsultas = useCallback(async () => {
+    if (!token || !canManageConsultas) {
+      setPendingConsultas(0);
+      return;
+    }
+
+    try {
+      const count = await commercialApi.getConsultasPendientesCount(token);
+      setPendingConsultas(count);
+    } catch {
+      setPendingConsultas(0);
+    }
+  }, [token, canManageConsultas]);
+
+  useEffect(() => {
+    void loadPendingConsultas();
+  }, [loadPendingConsultas]);
+
+  useEffect(() => {
+    if (!canManageConsultas) return;
+
+    const socket = io("http://localhost:3001", { transports: ["websocket"] });
+    socket.on("audit:created", (entry: { action?: string }) => {
+      if (entry?.action?.startsWith("consulta.")) {
+        void loadPendingConsultas();
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [canManageConsultas, loadPendingConsultas]);
 
   return (
     <nav className="border-b border-[var(--color-border)] bg-black/90 px-4 py-4 text-white backdrop-blur-sm">
@@ -40,6 +79,11 @@ const NavBar: React.FC = () => {
                   </Link>
                   <Link to="/consultas" className="hover:text-[var(--color-primary)]">
                     Consultas
+                    {pendingConsultas > 0 && (
+                      <span className="ml-2 inline-flex min-w-6 items-center justify-center rounded-full bg-[var(--color-primary)] px-2 py-0.5 text-xs font-bold text-black">
+                        {pendingConsultas}
+                      </span>
+                    )}
                   </Link>
                 </>
               )}

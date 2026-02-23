@@ -107,6 +107,7 @@ export interface Consulta {
     id: number;
     title: string;
   } | null;
+  seguimientos?: ConsultaSeguimiento[];
 }
 
 export interface ConsultaWithUser extends Consulta {
@@ -116,4 +117,19 @@ export interface ConsultaWithUser extends Consulta {
     email: string;
     role: "admin" | "empleado" | "usuario";
   };
+}
+
+export interface ConsultaSeguimiento {
+  id: string;
+  consultaId: string;
+  autorId?: string | null;
+  mensaje: string;
+  esInterno: boolean;
+  createdAt: string;
+  autor?: {
+    id: string;
+    name?: string | null;
+    email: string;
+    role: "admin" | "empleado" | "usuario";
+  } | null;
 }

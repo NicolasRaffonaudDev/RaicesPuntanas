@@ -11,6 +11,11 @@ const envSchema = z.object({
   LOCKOUT_MINUTES: z.coerce.number().int().min(1).default(15),
   DATABASE_URL: z.string().min(1),
   SMTP_FROM: z.string().email().default("no-reply@raicespuntanas.local"),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().positive().optional(),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_SECURE: z.coerce.boolean().optional(),
   SETUP_ADMIN_KEY: z.string().optional(),
 });
 

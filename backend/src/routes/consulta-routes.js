@@ -2,7 +2,11 @@ const { Router } = require("express");
 const { consultaController } = require("../controllers/consulta-controller");
 const { requireAuth, requirePermission } = require("../middlewares/auth");
 const { validateBody } = require("../middlewares/validate");
-const { consultaCreateSchema, consultaUpdateSchema } = require("../schemas/consulta-schema");
+const {
+  consultaCreateSchema,
+  consultaUpdateSchema,
+  consultaSeguimientoCreateSchema,
+} = require("../schemas/consulta-schema");
 const { asyncHandler } = require("../utils/async-handler");
 
 const consultaRoutes = Router();
@@ -21,6 +25,17 @@ consultaRoutes.patch(
   requirePermission("consultas.manage"),
   validateBody(consultaUpdateSchema),
   asyncHandler(consultaController.updateEstado),
+);
+consultaRoutes.get(
+  "/:id/seguimientos",
+  requirePermission("consultas.read"),
+  asyncHandler(consultaController.listSeguimientos),
+);
+consultaRoutes.post(
+  "/:id/seguimientos",
+  requirePermission("consultas.manage"),
+  validateBody(consultaSeguimientoCreateSchema),
+  asyncHandler(consultaController.addSeguimiento),
 );
 
 module.exports = { consultaRoutes };

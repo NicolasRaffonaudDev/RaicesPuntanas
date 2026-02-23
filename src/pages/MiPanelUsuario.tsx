@@ -128,6 +128,20 @@ const MiPanelUsuario: React.FC = () => {
                         <p className="mt-2 text-xs text-[var(--color-text-muted)]">
                           {new Date(item.createdAt).toLocaleString("es-AR")}
                         </p>
+                        {item.seguimientos && item.seguimientos.length > 0 && (
+                          <div className="mt-3 space-y-2 rounded border border-[var(--color-border)] bg-black/20 p-2">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-primary)]">
+                              Respuestas del equipo
+                            </p>
+                            <ul className="space-y-1">
+                              {item.seguimientos.map((seg) => (
+                                <li key={seg.id} className="text-xs text-[var(--color-text-muted)]">
+                                  {new Date(seg.createdAt).toLocaleString("es-AR")} - {seg.mensaje}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </li>
                     ))}
                   </ul>

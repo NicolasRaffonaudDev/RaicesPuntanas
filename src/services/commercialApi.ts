@@ -3,6 +3,7 @@ import type {
   Cliente,
   Consulta,
   ConsultaEstado,
+  ConsultaSeguimiento,
   ConsultaWithUser,
   InventarioMovimiento,
   LoteFavorito,
@@ -318,6 +319,11 @@ export const commercialApi = {
     return parseResponse(res);
   },
 
+  getConsultasPendientesCount: async (token: string): Promise<number> => {
+    const result = await commercialApi.listConsultas(token, { page: 1, limit: 1, estado: "pendiente" });
+    return result.pagination.total;
+  },
+
   updateConsultaEstado: async (token: string, consultaId: string, estado: ConsultaEstado): Promise<ConsultaWithUser> => {
     const res = await fetch(`${API_URL}/consultas/${consultaId}/estado`, {
       method: "PATCH",
@@ -326,5 +332,27 @@ export const commercialApi = {
     });
     const payload = await parseResponse(res);
     return payload.data as ConsultaWithUser;
+  },
+
+  listConsultaSeguimientos: async (token: string, consultaId: string): Promise<ConsultaSeguimiento[]> => {
+    const res = await fetch(`${API_URL}/consultas/${consultaId}/seguimientos`, {
+      headers: authHeaders(token),
+    });
+    const payload = await parseResponse(res);
+    return payload.data as ConsultaSeguimiento[];
+  },
+
+  addConsultaSeguimiento: async (
+    token: string,
+    consultaId: string,
+    body: { mensaje: string; esInterno?: boolean },
+  ): Promise<ConsultaSeguimiento> => {
+    const res = await fetch(`${API_URL}/consultas/${consultaId}/seguimientos`, {
+      method: "POST",
+      headers: authHeaders(token),
+      body: JSON.stringify(body),
+    });
+    const payload = await parseResponse(res);
+    return payload.data as ConsultaSeguimiento;
   },
 };

@@ -1,6 +1,14 @@
 const { prisma } = require("../db/prisma");
 const { AppError } = require("../utils/app-error");
 const { auditService } = require("./audit-service");
+const { emailService } = require("./email-service");
+
+const seguimientoInclude = {
+  orderBy: { createdAt: "asc" },
+  include: {
+    autor: { select: { id: true, name: true, email: true, role: true } },
+  },
+};
 
 const consultaService = {
   create: async ({ userId, data }) => {
@@ -32,6 +40,10 @@ const consultaService = {
       orderBy: { createdAt: "desc" },
       include: {
         lote: true,
+        seguimientos: {
+          where: { esInterno: false },
+          ...seguimientoInclude,
+        },
       },
     }),
 
@@ -58,6 +70,7 @@ const consultaService = {
         include: {
           user: { select: { id: true, name: true, email: true, role: true } },
           lote: true,
+          seguimientos: seguimientoInclude,
         },
       }),
       prisma.consulta.count({ where }),
@@ -84,6 +97,7 @@ const consultaService = {
       include: {
         user: { select: { id: true, name: true, email: true, role: true } },
         lote: true,
+        seguimientos: seguimientoInclude,
       },
     });
 
@@ -94,6 +108,80 @@ const consultaService = {
     });
 
     return updated;
+  },
+
+  listSeguimientos: async ({ consultaId, actorUserId, actorRole }) => {
+    const consulta = await prisma.consulta.findUnique({
+      where: { id: consultaId },
+      select: { id: true, userId: true },
+    });
+    if (!consulta) throw new AppError(404, "Consulta no encontrada");
+
+    const isManager = actorRole === "admin" || actorRole === "empleado";
+    if (!isManager && consulta.userId !== actorUserId) {
+      throw new AppError(403, "No autorizado para ver seguimiento");
+    }
+
+    return prisma.consultaSeguimiento.findMany({
+      where: {
+        consultaId,
+        ...(isManager ? {} : { esInterno: false }),
+      },
+      ...seguimientoInclude,
+    });
+  },
+
+  addSeguimiento: async ({ consultaId, actorUserId, mensaje, esInterno }) => {
+    const consulta = await prisma.consulta.findUnique({
+      where: { id: consultaId },
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+      },
+    });
+    if (!consulta) throw new AppError(404, "Consulta no encontrada");
+
+    const seguimiento = await prisma.consultaSeguimiento.create({
+      data: {
+        consultaId,
+        autorId: actorUserId,
+        mensaje,
+        esInterno,
+      },
+      include: {
+        autor: { select: { id: true, name: true, email: true, role: true } },
+      },
+    });
+
+    await auditService.create({
+      userId: actorUserId,
+      action: "consulta.seguimiento.create",
+      meta: { consultaId, esInterno },
+    });
+
+    if (!esInterno) {
+      try {
+        await emailService.sendConsultaReply({
+          to: consulta.user.email,
+          clienteNombre: consulta.user.name,
+          asuntoConsulta: consulta.asunto,
+          mensajeRespuesta: mensaje,
+        });
+
+        await auditService.create({
+          userId: actorUserId,
+          action: "consulta.seguimiento.email_sent",
+          meta: { consultaId },
+        });
+      } catch (emailError) {
+        await auditService.create({
+          userId: actorUserId,
+          action: "consulta.seguimiento.email_failed",
+          meta: { consultaId, error: emailError instanceof Error ? emailError.message : "error_desconocido" },
+        });
+      }
+    }
+
+    return seguimiento;
   },
 };
 

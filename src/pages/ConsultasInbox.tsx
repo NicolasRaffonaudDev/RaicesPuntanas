@@ -1,10 +1,36 @@
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import { useAuth } from "../context/useAuth";
 import { commercialApi } from "../services/commercialApi";
-import type { ConsultaEstado, ConsultaWithUser, Pagination } from "../types/commercial";
+import type { ConsultaEstado, ConsultaSeguimiento, ConsultaWithUser, Pagination } from "../types/commercial";
 
 const defaultPagination: Pagination = { page: 1, limit: 10, total: 0, totalPages: 1 };
+
+const quickTemplates = [
+  {
+    label: "Recepcion de consulta",
+    mensaje:
+      "Gracias por tu consulta. Ya la registramos y nuestro equipo comercial te contactara en las proximas 24 horas.",
+    esInterno: false,
+  },
+  {
+    label: "Solicitud de datos",
+    mensaje:
+      "Para avanzar con tu solicitud, por favor comparte tu telefono y franja horaria preferida para coordinar una llamada.",
+    esInterno: false,
+  },
+  {
+    label: "Coordinar visita",
+    mensaje:
+      "Podemos coordinar una visita al lote esta semana. Indicanos que dia y horario te resulta mas comodo.",
+    esInterno: false,
+  },
+  {
+    label: "Nota interna comercial",
+    mensaje: "Cliente interesado. Priorizar seguimiento comercial y actualizar estado luego de llamada.",
+    esInterno: true,
+  },
+];
 
 const ConsultasInbox: React.FC = () => {
   const { token, user } = useAuth();
@@ -16,6 +42,10 @@ const ConsultasInbox: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [seguimientos, setSeguimientos] = useState<Record<string, ConsultaSeguimiento[]>>({});
+  const [newMessageByConsulta, setNewMessageByConsulta] = useState<Record<string, string>>({});
+  const [isInternalByConsulta, setIsInternalByConsulta] = useState<Record<string, boolean>>({});
 
   const loadConsultas = useCallback(async () => {
     if (!token) return;
@@ -67,6 +97,49 @@ const ConsultasInbox: React.FC = () => {
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo actualizar estado");
     }
+  };
+
+  const toggleSeguimientos = async (consultaId: string) => {
+    if (expandedId === consultaId) {
+      setExpandedId(null);
+      return;
+    }
+
+    setExpandedId(consultaId);
+    if (!token || seguimientos[consultaId]) return;
+
+    try {
+      const data = await commercialApi.listConsultaSeguimientos(token, consultaId);
+      setSeguimientos((prev) => ({ ...prev, [consultaId]: data }));
+      setIsInternalByConsulta((prev) => ({ ...prev, [consultaId]: true }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo cargar seguimiento");
+    }
+  };
+
+  const submitSeguimiento = async (consultaId: string) => {
+    if (!token) return;
+    const mensaje = (newMessageByConsulta[consultaId] || "").trim();
+    if (!mensaje) return;
+
+    try {
+      await commercialApi.addConsultaSeguimiento(token, consultaId, {
+        mensaje,
+        esInterno: isInternalByConsulta[consultaId] ?? true,
+      });
+      setNewMessageByConsulta((prev) => ({ ...prev, [consultaId]: "" }));
+      const data = await commercialApi.listConsultaSeguimientos(token, consultaId);
+      setSeguimientos((prev) => ({ ...prev, [consultaId]: data }));
+      showToast("Seguimiento agregado");
+      await loadConsultas();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo guardar seguimiento");
+    }
+  };
+
+  const applyTemplate = (consultaId: string, template: { mensaje: string; esInterno: boolean }) => {
+    setNewMessageByConsulta((prev) => ({ ...prev, [consultaId]: template.mensaje }));
+    setIsInternalByConsulta((prev) => ({ ...prev, [consultaId]: template.esInterno }));
   };
 
   return (
@@ -131,41 +204,135 @@ const ConsultasInbox: React.FC = () => {
                 <th className="p-2">Lote</th>
                 <th className="p-2">Estado</th>
                 <th className="p-2">Accion</th>
+                <th className="p-2">Seguimiento</th>
               </tr>
             </thead>
             <tbody>
-              {consultas.map((consulta) => (
-                <tr key={consulta.id} className="border-t border-[var(--color-border)]">
-                  <td className="p-2">{new Date(consulta.createdAt).toLocaleString("es-AR")}</td>
-                  <td className="p-2">
-                    <p>{consulta.user?.name || "-"}</p>
-                    <p className="text-xs text-[var(--color-text-muted)]">{consulta.user?.email || "-"}</p>
-                  </td>
-                  <td className="p-2">{consulta.asunto}</td>
-                  <td className="p-2 max-w-[300px] text-xs text-[var(--color-text-muted)]">{consulta.mensaje}</td>
-                  <td className="p-2">{consulta.lote ? `${consulta.lote.id} - ${consulta.lote.title}` : "-"}</td>
-                  <td className="p-2">
-                    <span className="rounded border border-[var(--color-primary)] px-2 py-1 text-xs uppercase text-[var(--color-primary)]">
-                      {consulta.estado}
-                    </span>
-                  </td>
-                  <td className="p-2">
-                    <select
-                      className="field min-w-[130px]"
-                      value={consulta.estado}
-                      onChange={(e) => void updateEstado(consulta.id, e.target.value as ConsultaEstado)}
-                    >
-                      <option value="pendiente">pendiente</option>
-                      <option value="en_revision">en_revision</option>
-                      <option value="respondida">respondida</option>
-                      <option value="cerrada">cerrada</option>
-                    </select>
-                  </td>
-                </tr>
-              ))}
+              {consultas.map((consulta) => {
+                const isExpanded = expandedId === consulta.id;
+                const items = seguimientos[consulta.id] || [];
+                const visibleCount = items.filter((item) => !item.esInterno).length;
+                const internoCount = items.length - visibleCount;
+
+                return (
+                  <Fragment key={consulta.id}>
+                    <tr key={consulta.id} className="border-t border-[var(--color-border)]">
+                      <td className="p-2">{new Date(consulta.createdAt).toLocaleString("es-AR")}</td>
+                      <td className="p-2">
+                        <p>{consulta.user?.name || "-"}</p>
+                        <p className="text-xs text-[var(--color-text-muted)]">{consulta.user?.email || "-"}</p>
+                      </td>
+                      <td className="p-2">{consulta.asunto}</td>
+                      <td className="p-2 max-w-[300px] text-xs text-[var(--color-text-muted)]">{consulta.mensaje}</td>
+                      <td className="p-2">{consulta.lote ? `${consulta.lote.id} - ${consulta.lote.title}` : "-"}</td>
+                      <td className="p-2">
+                        <span className="rounded border border-[var(--color-primary)] px-2 py-1 text-xs uppercase text-[var(--color-primary)]">
+                          {consulta.estado}
+                        </span>
+                      </td>
+                      <td className="p-2">
+                        <select
+                          className="field min-w-[130px]"
+                          value={consulta.estado}
+                          onChange={(e) => void updateEstado(consulta.id, e.target.value as ConsultaEstado)}
+                        >
+                          <option value="pendiente">pendiente</option>
+                          <option value="en_revision">en_revision</option>
+                          <option value="respondida">respondida</option>
+                          <option value="cerrada">cerrada</option>
+                        </select>
+                      </td>
+                      <td className="p-2">
+                        <button className="btn btn-outline text-xs" type="button" onClick={() => void toggleSeguimientos(consulta.id)}>
+                          {isExpanded ? "Ocultar" : "Gestionar"}
+                        </button>
+                      </td>
+                    </tr>
+                    {isExpanded && (
+                      <tr className="border-t border-[var(--color-border)] bg-black/20">
+                        <td className="p-3" colSpan={8}>
+                          <div className="space-y-3">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <p className="text-sm font-semibold text-[var(--color-primary)]">Historial de seguimiento</p>
+                              <p className="text-xs text-[var(--color-text-muted)]">
+                                Total: {items.length} | Visibles: {visibleCount} | Internos: {internoCount}
+                              </p>
+                            </div>
+
+                            {items.length === 0 ? (
+                              <p className="text-xs text-[var(--color-text-muted)]">No hay seguimientos aun.</p>
+                            ) : (
+                              <ul className="space-y-2">
+                                {items.map((item) => (
+                                  <li key={item.id} className="rounded border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-2">
+                                    <div className="flex flex-wrap items-center justify-between gap-2">
+                                      <span className="text-xs text-[var(--color-text-muted)]">
+                                        {item.autor?.name || item.autor?.email || "Sistema"} - {new Date(item.createdAt).toLocaleString("es-AR")}
+                                      </span>
+                                      <span
+                                        className={`rounded px-2 py-0.5 text-xs ${item.esInterno ? "bg-red-900/40 text-red-300" : "bg-emerald-900/40 text-emerald-300"}`}
+                                      >
+                                        {item.esInterno ? "Interno" : "Visible cliente"}
+                                      </span>
+                                    </div>
+                                    <p className="mt-1 text-sm text-[var(--color-text-muted)]">{item.mensaje}</p>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+
+                            <div className="grid gap-2 md:grid-cols-6">
+                              <textarea
+                                className="field md:col-span-4"
+                                rows={3}
+                                placeholder="Escribe una nota interna o respuesta al cliente..."
+                                data-testid={`seguimiento-input-${consulta.id}`}
+                                value={newMessageByConsulta[consulta.id] || ""}
+                                onChange={(e) => setNewMessageByConsulta((prev) => ({ ...prev, [consulta.id]: e.target.value }))}
+                              />
+                              <div className="space-y-2 md:col-span-2">
+                                <label className="flex items-center gap-2 text-sm">
+                                  <input
+                                    type="checkbox"
+                                    checked={isInternalByConsulta[consulta.id] ?? true}
+                                    onChange={(e) => setIsInternalByConsulta((prev) => ({ ...prev, [consulta.id]: e.target.checked }))}
+                                  />
+                                  Marcar como interno
+                                </label>
+                                <button
+                                  className="btn btn-primary w-full text-sm"
+                                  type="button"
+                                  data-testid={`seguimiento-submit-${consulta.id}`}
+                                  onClick={() => void submitSeguimiento(consulta.id)}
+                                >
+                                  Guardar seguimiento
+                                </button>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-wrap gap-2">
+                              {quickTemplates.map((template) => (
+                                <button
+                                  key={template.label}
+                                  type="button"
+                                  className="btn btn-outline text-xs"
+                                  data-testid={`template-${template.label.replaceAll(" ", "-").toLowerCase()}-${consulta.id}`}
+                                  onClick={() => applyTemplate(consulta.id, template)}
+                                >
+                                  {template.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                );
+              })}
               {!loading && consultas.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="p-3 text-center text-[var(--color-text-muted)]">
+                  <td colSpan={8} className="p-3 text-center text-[var(--color-text-muted)]">
                     No hay consultas para los filtros seleccionados.
                   </td>
                 </tr>

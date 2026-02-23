@@ -1,7 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { io } from "socket.io-client";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import { authApi } from "../services/authApi";
+import { commercialApi } from "../services/commercialApi";
+import { hasPermission } from "../utils/permissions";
 
 interface DashboardData {
   summary: string;
@@ -19,8 +22,10 @@ interface DashboardData {
 const Dashboard: React.FC = () => {
   const { token, user, logoutAll } = useAuth();
   const [data, setData] = useState<DashboardData | null>(null);
+  const [pendingConsultas, setPendingConsultas] = useState(0);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const canManageConsultas = hasPermission(user?.role, "consultas.manage");
 
   useEffect(() => {
     if (!token) return;
@@ -30,6 +35,39 @@ const Dashboard: React.FC = () => {
       .then((response) => setData(response.data))
       .catch((err: Error) => setError(err.message));
   }, [token]);
+
+  const loadPendingConsultas = useCallback(async () => {
+    if (!token || !canManageConsultas) {
+      setPendingConsultas(0);
+      return;
+    }
+
+    try {
+      const count = await commercialApi.getConsultasPendientesCount(token);
+      setPendingConsultas(count);
+    } catch {
+      setPendingConsultas(0);
+    }
+  }, [token, canManageConsultas]);
+
+  useEffect(() => {
+    void loadPendingConsultas();
+  }, [loadPendingConsultas]);
+
+  useEffect(() => {
+    if (!canManageConsultas) return;
+
+    const socket = io("http://localhost:3001", { transports: ["websocket"] });
+    socket.on("audit:created", (entry: { action?: string }) => {
+      if (entry?.action?.startsWith("consulta.")) {
+        void loadPendingConsultas();
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [canManageConsultas, loadPendingConsultas]);
 
   const kpiCards = useMemo(() => {
     if (!data?.metrics) return [];
@@ -75,6 +113,11 @@ const Dashboard: React.FC = () => {
                 </Link>
                 <Link className="btn btn-outline text-sm" to="/consultas">
                   Inbox Consultas
+                  {pendingConsultas > 0 && (
+                    <span className="ml-2 inline-flex min-w-6 items-center justify-center rounded-full bg-[var(--color-primary)] px-2 py-0.5 text-xs font-bold text-black">
+                      {pendingConsultas}
+                    </span>
+                  )}
                 </Link>
               </>
             )}
@@ -115,6 +158,13 @@ const Dashboard: React.FC = () => {
               <div className="rounded border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3 text-sm">
                 <span className="text-[var(--color-text-muted)]">Facturacion 30d:</span>{" "}
                 <strong className="text-[var(--color-primary)]">${data.metrics.facturacion30d.toLocaleString("es-AR")}</strong>
+              </div>
+            )}
+
+            {canManageConsultas && (
+              <div className="rounded border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3 text-sm">
+                <span className="text-[var(--color-text-muted)]">Consultas pendientes:</span>{" "}
+                <strong className="text-[var(--color-primary)]">{pendingConsultas}</strong>
               </div>
             )}
 
