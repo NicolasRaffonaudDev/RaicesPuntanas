@@ -16,6 +16,7 @@ const Lotes: React.FC = () => {
   const [error, setError] = useState("");
   const [favoriteError, setFavoriteError] = useState("");
   const [filtroPrecio, setFiltroPrecio] = useState(0);
+  const [orden, setOrden] = useState<"recomendado" | "precio_asc" | "precio_desc" | "tamano_desc">("recomendado");
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
 
   useEffect(() => {
@@ -52,13 +53,16 @@ const Lotes: React.FC = () => {
     [lotes],
   );
 
-  const filteredLotes = useMemo(
-    () =>
-      lotes
-        .filter((lote) => lote.price >= filtroPrecio)
-        .filter((lote) => selectedAmenities.every((amenity) => lote.amenities.includes(amenity))),
-    [lotes, filtroPrecio, selectedAmenities],
-  );
+  const filteredLotes = useMemo(() => {
+    const filtered = lotes
+      .filter((lote) => lote.price >= filtroPrecio)
+      .filter((lote) => selectedAmenities.every((amenity) => lote.amenities.includes(amenity)));
+
+    if (orden === "precio_asc") return [...filtered].sort((a, b) => a.price - b.price);
+    if (orden === "precio_desc") return [...filtered].sort((a, b) => b.price - a.price);
+    if (orden === "tamano_desc") return [...filtered].sort((a, b) => b.size - a.size);
+    return filtered;
+  }, [lotes, filtroPrecio, selectedAmenities, orden]);
 
   const handleAmenityChange = (amenity: string) => {
     setSelectedAmenities((prev) =>
@@ -124,6 +128,32 @@ const Lotes: React.FC = () => {
                 </label>
               ))}
             </div>
+          </div>
+          <div>
+            <label htmlFor="orden-lotes" className="mb-1 block text-sm text-[var(--color-text-muted)]">
+              Ordenar por
+            </label>
+            <select
+              id="orden-lotes"
+              className="field"
+              value={orden}
+              onChange={(e) => setOrden(e.target.value as "recomendado" | "precio_asc" | "precio_desc" | "tamano_desc")}
+            >
+              <option value="recomendado">Recomendado</option>
+              <option value="precio_asc">Precio: menor a mayor</option>
+              <option value="precio_desc">Precio: mayor a menor</option>
+              <option value="tamano_desc">Tamano: mayor a menor</option>
+            </select>
+          </div>
+          <div className="rounded border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3 text-sm">
+            <p className="text-[var(--color-text-muted)]">
+              Mostrando <strong className="text-[var(--color-primary)]">{filteredLotes.length}</strong> lotes.
+            </p>
+            {filteredLotes.length > 0 && (
+              <p className="mt-1 text-[var(--color-text-muted)]">
+                Desde <strong className="text-[var(--color-primary)]">${Math.min(...filteredLotes.map((l) => l.price)).toLocaleString("es-AR")}</strong> USD
+              </p>
+            )}
           </div>
         </div>
 
