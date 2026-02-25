@@ -1,6 +1,20 @@
 # Raices Puntanas
+[![CI](https://github.com/NicolasRaffonaudDev/RaicesPuntanas/actions/workflows/ci.yml/badge.svg)](https://github.com/NicolasRaffonaudDev/RaicesPuntanas/actions/workflows/ci.yml)
 
 Aplicacion full stack para gestion comercial de lotes, clientes y operaciones.
+
+## Identidad de producto (cliente)
+- Nombre comercial: `Raices Puntanas`.
+- Paleta oficial:
+  - Dorado: `#FFD700`
+  - Negro: `#000000`
+  - Blanco: `#FFFFFF`
+- Regla de UI: fondo oscuro + acentos dorados + texto claro para legibilidad.
+
+## Objetivo operativo
+- Entregar una web usable por rol (`admin`, `empleado`, `usuario`) con flujos reales de venta/consulta.
+- Mantener consistencia visual y de marca en cada pantalla nueva.
+- Priorizar confiabilidad: pruebas smoke + E2E + CI.
 
 ## Stack actual
 - Frontend: React + TypeScript + Vite.
