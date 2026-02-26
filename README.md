@@ -26,6 +26,7 @@ Aplicacion full stack para gestion comercial de lotes, clientes y operaciones.
 - Base de datos: PostgreSQL con Prisma ORM.
 - Seguridad: JWT por roles, Helmet, Rate limit, validacion con Zod.
 - Tiempo real: Socket.io para eventos de auditoria.
+- Observabilidad: Web Vitals (frontend) con ingesta en `POST /api/telemetry/web-vitals`.
 
 ## Roles implementados
 - `admin`: acceso total (usuarios + auditoria).
@@ -69,6 +70,7 @@ Aplicacion full stack para gestion comercial de lotes, clientes y operaciones.
 - `GET/POST/PUT/DELETE /api/productos` (admin/empleado, delete admin)
 - `GET/POST /api/ventas` (GET todos autenticados, POST admin/empleado)
 - `GET/POST /api/inventario/movimientos` (admin/empleado)
+- `POST /api/telemetry/web-vitals` (ingesta de metricas de performance frontend)
 
 ## Credenciales seed
 - `email`: `admin@raicespuntanas.local`

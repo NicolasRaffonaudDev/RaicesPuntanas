@@ -46,3 +46,24 @@ Formato sugerido por entrada:
   - E2E navegacion lazy OK.
 - Siguiente paso:
   - medir TTI/FCP y ajustar estrategia de preload por telemetria real.
+
+## 2026-02-26 - Web Vitals + optimizacion media/mapa
+- Scope: `feat(perf)` + `test` + `docs`
+- Cambios:
+  - captura de Web Vitals en frontend y envio a backend.
+  - endpoint backend para ingesta de metricas (`/api/telemetry/web-vitals`).
+  - imagenes de lotes con `loading/decoding/fetchPriority`.
+  - mapa con comportamiento adaptado para viewport movil.
+- Motivo tecnico:
+  - combinar medicion real con mejoras concretas de carga y UX.
+- Impacto en cliente:
+  - experiencia mas fluida en catalogo de lotes.
+  - base para monitorear performance en produccion.
+- Riesgos:
+  - telemetria excesiva si se amplian eventos sin control.
+- Validacion:
+  - build OK.
+  - E2E OK.
+  - smoke backend con prueba de endpoint telemetry.
+- Siguiente paso:
+  - persistencia agregada de metricas (almacenamiento + dashboard interno).

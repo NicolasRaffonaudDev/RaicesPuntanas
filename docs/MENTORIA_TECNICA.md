@@ -60,6 +60,7 @@ Meta del proyecto: una web comercial operativa, segura, escalable y mantenible p
 
 ### `src/components/MapView/MapView.tsx`
 - Mapa liviano por defecto + interactivo bajo demanda.
+- Logica adaptativa para viewport movil (prioriza enlace externo en lugar de widget pesado).
 - Razon: rendimiento y estabilidad (evitar cargar scripts pesados en cada card).
 
 ### `src/pages/Contact.tsx`
@@ -81,6 +82,10 @@ Meta del proyecto: una web comercial operativa, segura, escalable y mantenible p
 ### `src/services/authApi.ts` y `src/services/commercialApi.ts`
 - Capa unica de llamadas HTTP, tipada.
 - Razon: desacoplar UI de detalles API.
+
+### `src/utils/webVitals.ts`
+- Captura `CLS`, `INP`, `LCP`, `FCP`, `TTFB` y envia por `sendBeacon/fetch`.
+- Razon: medir performance real de usuario (RUM) y no solo laboratorio.
 
 ## 4) Backend por modulo (que hace y por que)
 ### Auth
@@ -106,6 +111,11 @@ Meta del proyecto: una web comercial operativa, segura, escalable y mantenible p
 - Archivos: `audit-*`.
 - Funcion: registrar acciones criticas.
 - Razon: observabilidad, soporte y control operativo.
+
+### Telemetria de performance
+- Archivos: `telemetry-routes`, `telemetry-controller`, `telemetry-service`, `telemetry-schema`.
+- Funcion: recibir metricas web-vitals desde frontend.
+- Razon: cerrar el ciclo de mejora continua (medir -> optimizar -> validar).
 
 ## 5) Modelo de datos (resumen mental)
 - `User`: identidad + rol.
