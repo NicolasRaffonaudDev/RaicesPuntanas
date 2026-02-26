@@ -3,6 +3,7 @@ import { Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
 import NavBar from "./components/NavBar/NavBar";
 import Contact from "./pages/Contact";
+import CompararLotes from "./pages/CompararLotes";
 import ConsultasInbox from "./pages/ConsultasInbox";
 import Dashboard from "./pages/Dashboard";
 import GestionComercial from "./pages/GestionComercial";
@@ -20,6 +21,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/lotes" element={<Lotes />} />
+        <Route path="/comparar" element={<CompararLotes />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

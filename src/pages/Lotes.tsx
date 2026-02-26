@@ -11,10 +11,12 @@ const Lotes: React.FC = () => {
   const { token, user } = useAuth();
   const [lotes, setLotes] = useState<Lote[]>([]);
   const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
+  const [compareIds, setCompareIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
   const [favoritesLoading, setFavoritesLoading] = useState(false);
   const [error, setError] = useState("");
   const [favoriteError, setFavoriteError] = useState("");
+  const [compareError, setCompareError] = useState("");
   const [filtroPrecio, setFiltroPrecio] = useState(0);
   const [orden, setOrden] = useState<"recomendado" | "precio_asc" | "precio_desc" | "tamano_desc">("recomendado");
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
@@ -71,6 +73,34 @@ const Lotes: React.FC = () => {
   };
 
   const canManageFavorites = !!token && hasPermission(user?.role, "favoritos.write");
+
+  const toggleCompare = (loteId: number) => {
+    setCompareError("");
+    setCompareIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(loteId)) {
+        next.delete(loteId);
+        return next;
+      }
+
+      if (next.size >= 3) {
+        setCompareError("Puedes comparar hasta 3 lotes a la vez.");
+        return prev;
+      }
+
+      next.add(loteId);
+      return next;
+    });
+  };
+
+  const goToCompare = () => {
+    if (compareIds.size < 2) {
+      setCompareError("Selecciona al menos 2 lotes para comparar.");
+      return;
+    }
+
+    navigate(`/comparar?ids=${Array.from(compareIds).join(",")}`);
+  };
 
   const toggleFavorite = async (lote: Lote) => {
     if (!token || !canManageFavorites) return;
@@ -155,11 +185,24 @@ const Lotes: React.FC = () => {
               </p>
             )}
           </div>
+          <div className="md:col-span-2">
+            <div className="rounded border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-sm text-[var(--color-text-muted)]">
+                  Comparador activo: <strong className="text-[var(--color-primary)]">{compareIds.size}</strong>/3 lotes seleccionados.
+                </p>
+                <button type="button" className="btn btn-primary text-sm" data-testid="compare-button" onClick={goToCompare}>
+                  Comparar en mapa
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         {loading && <p className="text-center text-[var(--color-text-muted)]">Cargando lotes...</p>}
         {error && <p className="text-center text-red-400">{error}</p>}
         {favoriteError && <p className="text-center text-amber-300">{favoriteError}</p>}
+        {compareError && <p className="text-center text-amber-300">{compareError}</p>}
 
         {!loading && !error && filteredLotes.length === 0 && (
           <p className="text-center text-[var(--color-text-muted)]">No hay lotes que coincidan con los filtros.</p>
@@ -171,6 +214,14 @@ const Lotes: React.FC = () => {
               <div key={lote.id} className="space-y-2">
                 <LotCard lote={lote} />
                 <div className="flex gap-2">
+                  <button
+                    type="button"
+                    className={`btn ${compareIds.has(lote.id) ? "btn-primary" : "btn-outline"} flex-1 text-sm`}
+                    data-testid={`compare-toggle-${lote.id}`}
+                    onClick={() => toggleCompare(lote.id)}
+                  >
+                    {compareIds.has(lote.id) ? "En comparador" : "Comparar"}
+                  </button>
                   <button
                     type="button"
                     className={`btn ${favoriteIds.has(lote.id) ? "btn-outline" : "btn-primary"} flex-1 text-sm`}
