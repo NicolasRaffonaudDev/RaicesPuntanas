@@ -15,5 +15,10 @@ test("lotes permite ordenar por precio y muestra CTA de mapa", async ({ page }) 
   const secondPrice = Number(await cards.nth(1).getAttribute("data-price"));
   expect(firstPrice).toBeLessThanOrEqual(secondPrice);
 
+  const firstImage = cards.nth(0).locator("img").first();
+  await expect(firstImage).toBeVisible();
+  const loadingAttr = await firstImage.getAttribute("loading");
+  expect(["eager", "lazy"]).toContain(loadingAttr);
+
   await expect(page.locator('[data-testid^="open-maps-"]').first()).toBeVisible();
 });

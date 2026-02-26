@@ -150,6 +150,21 @@ const run = async () => {
   }
   console.log("OK usuario solo ve seguimientos visibles");
 
+  const telemetryRes = await request("/telemetry/web-vitals", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: "LCP",
+      id: `smoke-${Date.now()}`,
+      value: 1200,
+      rating: "good",
+      delta: 1200,
+      navigationType: "navigate",
+      path: "/lotes",
+    }),
+  });
+  assertStatus("ingesta telemetry web-vitals", telemetryRes.status, 202);
+
   console.log("Smoke test de roles completado.");
 };
 
