@@ -10,6 +10,7 @@ const { ventaRoutes } = require("./venta-routes");
 const { inventarioRoutes } = require("./inventario-routes");
 const { favoritoRoutes } = require("./favorito-routes");
 const { consultaRoutes } = require("./consulta-routes");
+const { telemetryRoutes } = require("./telemetry-routes");
 
 const apiRoutes = Router();
 
@@ -24,5 +25,6 @@ apiRoutes.use("/ventas", ventaRoutes);
 apiRoutes.use("/inventario", inventarioRoutes);
 apiRoutes.use("/favoritos", favoritoRoutes);
 apiRoutes.use("/consultas", consultaRoutes);
+apiRoutes.use("/telemetry", telemetryRoutes);
 
 module.exports = { apiRoutes };

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 import type { Lote } from "../../types/interfaces";
 
@@ -8,6 +8,7 @@ interface MapViewProps {
 
 const MapView: React.FC<MapViewProps> = ({ lote }) => {
   const [showInteractive, setShowInteractive] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
   const hasMapsKey = Boolean(import.meta.env.VITE_GOOGLE_MAPS_API_KEY);
   const center = useMemo(() => ({ lat: lote.lat, lng: lote.lng }), [lote.lat, lote.lng]);
   const googleMapsUrl = useMemo(
@@ -15,7 +16,18 @@ const MapView: React.FC<MapViewProps> = ({ lote }) => {
     [lote.lat, lote.lng],
   );
 
-  if (!showInteractive || !hasMapsKey) {
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 768px)");
+    const updateViewport = () => setIsMobileViewport(media.matches);
+    updateViewport();
+
+    media.addEventListener("change", updateViewport);
+    return () => media.removeEventListener("change", updateViewport);
+  }, []);
+
+  const canUseInteractive = hasMapsKey && !isMobileViewport;
+
+  if (!showInteractive || !canUseInteractive) {
     return (
       <div className="h-52 w-full border-t border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3">
         <div className="flex h-full flex-col justify-between rounded border border-[var(--color-border)] bg-black/25 p-3">
@@ -36,7 +48,7 @@ const MapView: React.FC<MapViewProps> = ({ lote }) => {
             >
               Abrir en Google Maps
             </a>
-            {hasMapsKey && (
+            {canUseInteractive && (
               <button
                 type="button"
                 className="btn btn-outline text-sm"
@@ -46,6 +58,11 @@ const MapView: React.FC<MapViewProps> = ({ lote }) => {
               </button>
             )}
           </div>
+          {!canUseInteractive && hasMapsKey && (
+            <p className="text-xs text-[var(--color-text-muted)]">
+              En pantallas moviles recomendamos abrir la ubicacion en Google Maps para mejor rendimiento.
+            </p>
+          )}
         </div>
       </div>
     );

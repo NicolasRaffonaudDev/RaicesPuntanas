@@ -210,9 +210,9 @@ const Lotes: React.FC = () => {
 
         {!loading && !error && filteredLotes.length > 0 && (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredLotes.map((lote) => (
+            {filteredLotes.map((lote, index) => (
               <div key={lote.id} className="space-y-2">
-                <LotCard lote={lote} />
+                <LotCard lote={lote} prioritizeImage={index < 2} />
                 <div className="flex gap-2">
                   <button
                     type="button"
