@@ -1,20 +1,21 @@
 import "./App.css";
-import { Suspense, lazy } from "react";
+import { Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
 import NavBar from "./components/NavBar/NavBar";
-
-const Home = lazy(() => import("./pages/Home"));
-const Lotes = lazy(() => import("./pages/Lotes"));
-const CompararLotes = lazy(() => import("./pages/CompararLotes"));
-const Contact = lazy(() => import("./pages/Contact"));
-const Login = lazy(() => import("./pages/Login"));
-const Register = lazy(() => import("./pages/Register"));
-const SetupAdmin = lazy(() => import("./pages/SetupAdmin"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const MiPanelUsuario = lazy(() => import("./pages/MiPanelUsuario"));
-const GestionComercial = lazy(() => import("./pages/GestionComercial"));
-const ConsultasInbox = lazy(() => import("./pages/ConsultasInbox"));
+import {
+  CompararLotesPage,
+  ConsultasInboxPage,
+  ContactPage,
+  DashboardPage,
+  GestionComercialPage,
+  HomePage,
+  LoginPage,
+  LotesPage,
+  MiPanelUsuarioPage,
+  RegisterPage,
+  SetupAdminPage,
+} from "./routes/lazy-pages";
 
 function App() {
   return (
@@ -22,18 +23,18 @@ function App() {
       <NavBar />
       <Suspense fallback={<div className="container py-8 text-sm text-[var(--color-text-muted)]">Cargando pagina...</div>}>
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/lotes" element={<Lotes />} />
-          <Route path="/comparar" element={<CompararLotes />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/setup-admin" element={<SetupAdmin />} />
+          <Route path="/" element={<HomePage />} />
+          <Route path="/lotes" element={<LotesPage />} />
+          <Route path="/comparar" element={<CompararLotesPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/setup-admin" element={<SetupAdminPage />} />
           <Route
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <DashboardPage />
               </ProtectedRoute>
             }
           />
@@ -41,7 +42,7 @@ function App() {
             path="/mi-panel"
             element={
               <ProtectedRoute>
-                <MiPanelUsuario />
+                <MiPanelUsuarioPage />
               </ProtectedRoute>
             }
           />
@@ -49,7 +50,7 @@ function App() {
             path="/gestion"
             element={
               <ProtectedRoute allowedRoles={["admin", "empleado"]}>
-                <GestionComercial />
+                <GestionComercialPage />
               </ProtectedRoute>
             }
           />
@@ -57,7 +58,7 @@ function App() {
             path="/consultas"
             element={
               <ProtectedRoute allowedRoles={["admin", "empleado"]}>
-                <ConsultasInbox />
+                <ConsultasInboxPage />
               </ProtectedRoute>
             }
           />
@@ -65,7 +66,7 @@ function App() {
             path="/admin"
             element={
               <ProtectedRoute allowedRoles={["admin"]}>
-                <Dashboard />
+                <DashboardPage />
               </ProtectedRoute>
             }
           />
