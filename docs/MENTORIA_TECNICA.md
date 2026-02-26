@@ -35,12 +35,19 @@ Meta del proyecto: una web comercial operativa, segura, escalable y mantenible p
 - Usa `React.lazy` + `Suspense`.
 - Razon: reducir carga inicial y escalar rutas sin bloquear toda la app.
 
+### `src/routes/lazy-pages.ts` + `src/utils/lazyWithPreload.ts`
+- Centraliza paginas lazy y su metodo `preload`.
+- Razon:
+  - mantener code splitting,
+  - habilitar prefetch controlado para rutas de alto uso.
+
 ### `src/context/AuthContext.tsx`
 - Maneja sesion, login/register/logout, refresh periodico.
 - Razon: centralizar estado de autenticacion y evitar logica duplicada.
 
 ### `src/components/NavBar/NavBar.tsx`
 - Navegacion por rol + contador de consultas pendientes.
+- Prefetch de rutas criticas por `hover/focus` y en `idle`.
 - Razon: UX orientada a operacion diaria (admin/empleado).
 
 ### `src/pages/Lotes.tsx`

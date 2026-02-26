@@ -27,3 +27,22 @@ Formato sugerido por entrada:
   - build exitoso con chunks separados.
 - Siguiente paso:
   - prefetch selectivo de rutas comerciales criticas.
+
+## 2026-02-26 - Prefetch inteligente de rutas
+- Scope: `perf(frontend)` + `test(e2e)` + `docs`
+- Cambios:
+  - `lazyWithPreload` para componentes de pagina.
+  - centralizacion de paginas lazy/preload en `src/routes/lazy-pages.ts`.
+  - prefetch por `hover/focus` e `idle` en navbar para rutas clave.
+  - E2E de navegacion para verificar carga correcta de rutas lazy.
+- Motivo tecnico:
+  - mantener code splitting pero reducir latencia percibida al navegar.
+- Impacto en cliente:
+  - sitio se siente mas rapido en navegacion comercial frecuente.
+- Riesgos:
+  - prefetch excesivo en redes lentas (mitigado: rutas criticas y carga en idle).
+- Validacion:
+  - build OK.
+  - E2E navegacion lazy OK.
+- Siguiente paso:
+  - medir TTI/FCP y ajustar estrategia de preload por telemetria real.
