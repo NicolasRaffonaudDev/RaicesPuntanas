@@ -95,3 +95,19 @@ Aplicacion full stack para gestion comercial de lotes, clientes y operaciones.
 3. Seguridad API: JWT + middlewares + validacion de payload.
 4. Base de datos profesional: migraciones y seed reproducibles con Prisma.
 5. DevOps inicial: Docker para DB y luego CI/CD con GitHub Actions.
+
+## Guia operativa para el cliente
+1. Usuario final:
+- Navega `Lotes`, filtra y ordena opciones.
+- Usa `Comparar` para seleccionar hasta 3 lotes y abrir `Comparador de Lotes`.
+- Desde comparador puede ir a `Consultar este lote` con asunto precompletado.
+- Revisa estado/respuestas en `Mi panel`.
+
+2. Empleado:
+- Gestiona consultas en `/consultas`.
+- Usa plantillas rapidas para respuestas visibles al cliente o notas internas.
+- Actualiza estado de consulta (`pendiente`, `en_revision`, `respondida`, `cerrada`).
+
+3. Admin:
+- Todo lo de empleado.
+- Gestiona usuarios, roles, auditoria y panel comercial completo.
