@@ -16,6 +16,10 @@ Aplicacion full stack para gestion comercial de lotes, clientes y operaciones.
 - Mantener consistencia visual y de marca en cada pantalla nueva.
 - Priorizar confiabilidad: pruebas smoke + E2E + CI.
 
+## Documentacion de aprendizaje (mentoria)
+- Guia tecnica completa: `docs/MENTORIA_TECNICA.md`
+- Bitacora incremental de cambios: `docs/BITACORA_DESARROLLO.md`
+
 ## Stack actual
 - Frontend: React + TypeScript + Vite.
 - Backend: Node.js + Express por capas (`routes`, `controllers`, `services`, `repositories`).
