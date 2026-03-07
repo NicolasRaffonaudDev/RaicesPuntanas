@@ -4,6 +4,8 @@ const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
   admin: [
     "dashboard.view",
     "lotes.read",
+    "lotes.write",
+    "lotes.delete",
     "favoritos.read",
     "favoritos.write",
     "consultas.read",

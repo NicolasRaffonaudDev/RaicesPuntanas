@@ -33,6 +33,62 @@ export const commercialApi = {
     return res.json();
   },
 
+  createLote: async (
+    token: string,
+    body: {
+      title: string;
+      price: number;
+      size: number;
+      amenities: string[];
+      image: string;
+      lat: number;
+      lng: number;
+      description?: string;
+    },
+  ): Promise<Lote> => {
+    const res = await apiRequest("/lotes", {
+      method: "POST",
+      headers: authHeaders(token),
+      body: JSON.stringify(body),
+    });
+    const payload = await parseResponse(res);
+    return payload.data as Lote;
+  },
+
+  updateLote: async (
+    token: string,
+    id: number,
+    body: Partial<{
+      title: string;
+      price: number;
+      size: number;
+      amenities: string[];
+      image: string;
+      lat: number;
+      lng: number;
+      description?: string;
+    }>,
+  ): Promise<Lote> => {
+    const res = await apiRequest(`/lotes/${id}`, {
+      method: "PUT",
+      headers: authHeaders(token),
+      body: JSON.stringify(body),
+    });
+    const payload = await parseResponse(res);
+    return payload.data as Lote;
+  },
+
+  deleteLote: async (token: string, id: number) => {
+    const res = await apiRequest(`/lotes/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      const payload = await res.json();
+      throw new Error(payload.message || "No se pudo eliminar lote");
+    }
+  },
+
   listClientes: async (
     token: string,
     query?: { page?: number; limit?: number; search?: string },

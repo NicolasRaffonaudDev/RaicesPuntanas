@@ -7,6 +7,28 @@ import { commercialApi } from "../services/commercialApi";
 import type { Lote } from "../types/interfaces";
 import { hasPermission } from "../utils/permissions";
 
+interface LoteFormState {
+  title: string;
+  price: string;
+  size: string;
+  description: string;
+  amenities: string;
+  image: string;
+  lat: string;
+  lng: string;
+}
+
+const emptyLoteForm: LoteFormState = {
+  title: "",
+  price: "",
+  size: "",
+  description: "",
+  amenities: "",
+  image: "",
+  lat: "",
+  lng: "",
+};
+
 const Lotes: React.FC = () => {
   const navigate = useNavigate();
   const { token, user } = useAuth();
@@ -18,21 +40,30 @@ const Lotes: React.FC = () => {
   const [error, setError] = useState("");
   const [favoriteError, setFavoriteError] = useState("");
   const [compareError, setCompareError] = useState("");
+  const [mutationError, setMutationError] = useState("");
   const [filtroPrecio, setFiltroPrecio] = useState(0);
   const [orden, setOrden] = useState<"recomendado" | "precio_asc" | "precio_desc" | "tamano_desc">("recomendado");
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingLoteId, setEditingLoteId] = useState<number | null>(null);
+  const [formState, setFormState] = useState<LoteFormState>(emptyLoteForm);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const loadLotes = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const data = await commercialApi.listLotes();
+      setLotes(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo cargar lotes");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    commercialApi
-      .listLotes()
-      .then((data: Lote[]) => {
-        setLotes(data);
-        setLoading(false);
-      })
-      .catch((err: Error) => {
-        setError(err.message);
-        setLoading(false);
-      });
+    void loadLotes();
   }, []);
 
   useEffect(() => {
@@ -80,6 +111,8 @@ const Lotes: React.FC = () => {
   };
 
   const canManageFavorites = !!token && hasPermission(user?.role, "favoritos.write");
+  const canManageLotes = !!token && hasPermission(user?.role, "lotes.write");
+  const canDeleteLotes = !!token && hasPermission(user?.role, "lotes.delete");
 
   const toggleCompare = (loteId: number) => {
     setCompareError("");
@@ -132,10 +165,97 @@ const Lotes: React.FC = () => {
     }
   };
 
+  const openCreateModal = () => {
+    setEditingLoteId(null);
+    setFormState(emptyLoteForm);
+    setMutationError("");
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (lote: Lote) => {
+    setEditingLoteId(lote.id);
+    setFormState({
+      title: lote.title,
+      price: String(lote.price),
+      size: String(lote.size),
+      description: lote.description || "",
+      amenities: lote.amenities.join(", "),
+      image: lote.image,
+      lat: String(lote.lat),
+      lng: String(lote.lng),
+    });
+    setMutationError("");
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingLoteId(null);
+    setFormState(emptyLoteForm);
+    setMutationError("");
+  };
+
+  const submitLote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token || !canManageLotes) return;
+
+    setIsSaving(true);
+    setMutationError("");
+
+    const payload = {
+      title: formState.title.trim(),
+      price: Number(formState.price),
+      size: Number(formState.size),
+      description: formState.description.trim() || undefined,
+      amenities: formState.amenities
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean),
+      image: formState.image.trim(),
+      lat: Number(formState.lat),
+      lng: Number(formState.lng),
+    };
+
+    try {
+      if (editingLoteId === null) {
+        await commercialApi.createLote(token, payload);
+      } else {
+        await commercialApi.updateLote(token, editingLoteId, payload);
+      }
+      await loadLotes();
+      closeModal();
+    } catch (err) {
+      setMutationError(err instanceof Error ? err.message : "No se pudo guardar el lote");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const removeLote = async (loteId: number) => {
+    if (!token || !canDeleteLotes) return;
+    const confirmed = window.confirm("Se eliminara el lote seleccionado. Esta accion no se puede deshacer.");
+    if (!confirmed) return;
+
+    setMutationError("");
+    try {
+      await commercialApi.deleteLote(token, loteId);
+      await loadLotes();
+    } catch (err) {
+      setMutationError(err instanceof Error ? err.message : "No se pudo eliminar el lote");
+    }
+  };
+
   return (
     <section className="page">
       <div className="container space-y-5">
-        <h1 className="text-center text-3xl font-bold text-[var(--color-primary)]">Lotes Disponibles</h1>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className="text-3xl font-bold text-[var(--color-primary)]">Lotes Disponibles</h1>
+          {canManageLotes && (
+            <button type="button" className="btn btn-primary text-sm" onClick={openCreateModal}>
+              Nuevo lote
+            </button>
+          )}
+        </div>
 
         <div className="card grid gap-4 p-4 md:grid-cols-2">
           <div>
@@ -218,6 +338,7 @@ const Lotes: React.FC = () => {
             message={error}
           />
         )}
+        {mutationError && <p className="text-center text-red-300">{mutationError}</p>}
         {favoriteError && <p className="text-center text-amber-300">{favoriteError}</p>}
         {compareError && <p className="text-center text-amber-300">{compareError}</p>}
 
@@ -263,11 +384,118 @@ const Lotes: React.FC = () => {
                     Consultar
                   </button>
                 </div>
+                {canManageLotes && (
+                  <div className="flex gap-2">
+                    <button type="button" className="btn btn-outline flex-1 text-sm" onClick={() => openEditModal(lote)}>
+                      Editar
+                    </button>
+                    {canDeleteLotes && (
+                      <button type="button" className="btn btn-outline flex-1 text-sm" onClick={() => void removeLote(lote.id)}>
+                        Eliminar
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4">
+          <div className="card w-full max-w-3xl p-5">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">Catalogo admin</p>
+                <h2 className="mt-1 text-2xl font-semibold text-white">
+                  {editingLoteId === null ? "Nuevo lote" : "Editar lote"}
+                </h2>
+              </div>
+              <button type="button" className="btn btn-outline text-sm" onClick={closeModal}>
+                Cerrar
+              </button>
+            </div>
+
+            <form className="grid gap-3 md:grid-cols-2" onSubmit={submitLote}>
+              <input
+                className="field"
+                placeholder="Nombre del lote"
+                value={formState.title}
+                onChange={(e) => setFormState((prev) => ({ ...prev, title: e.target.value }))}
+                required
+              />
+              <input
+                className="field"
+                type="number"
+                min={1}
+                placeholder="Precio"
+                value={formState.price}
+                onChange={(e) => setFormState((prev) => ({ ...prev, price: e.target.value }))}
+                required
+              />
+              <input
+                className="field"
+                type="number"
+                min={1}
+                placeholder="Superficie"
+                value={formState.size}
+                onChange={(e) => setFormState((prev) => ({ ...prev, size: e.target.value }))}
+                required
+              />
+              <input
+                className="field"
+                placeholder="Amenities separadas por coma"
+                value={formState.amenities}
+                onChange={(e) => setFormState((prev) => ({ ...prev, amenities: e.target.value }))}
+              />
+              <input
+                className="field md:col-span-2"
+                placeholder="Imagen (URL)"
+                value={formState.image}
+                onChange={(e) => setFormState((prev) => ({ ...prev, image: e.target.value }))}
+                required
+              />
+              <textarea
+                className="field md:col-span-2"
+                rows={4}
+                placeholder="Descripcion"
+                value={formState.description}
+                onChange={(e) => setFormState((prev) => ({ ...prev, description: e.target.value }))}
+              />
+              <input
+                className="field"
+                type="number"
+                step="any"
+                placeholder="Latitud"
+                value={formState.lat}
+                onChange={(e) => setFormState((prev) => ({ ...prev, lat: e.target.value }))}
+                required
+              />
+              <input
+                className="field"
+                type="number"
+                step="any"
+                placeholder="Longitud"
+                value={formState.lng}
+                onChange={(e) => setFormState((prev) => ({ ...prev, lng: e.target.value }))}
+                required
+              />
+
+              {mutationError && <p className="text-sm text-red-300 md:col-span-2">{mutationError}</p>}
+
+              <div className="flex gap-2 md:col-span-2 md:justify-end">
+                <button type="button" className="btn btn-outline" onClick={closeModal}>
+                  Cancelar
+                </button>
+                <button type="submit" className="btn btn-primary" disabled={isSaving}>
+                  {isSaving ? "Guardando..." : editingLoteId === null ? "Crear lote" : "Guardar cambios"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

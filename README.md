@@ -65,6 +65,12 @@ Aplicacion full stack para gestion comercial de lotes, clientes y operaciones.
 - Panel de usuario
 - Configuracion
 
+### Gestion administrativa de lotes
+- Alta, edicion y eliminacion de lotes disponibles solo para `admin`.
+- `empleado` y `usuario` mantienen acceso de lectura al catalogo.
+- Primera version con formulario simple y una unica imagen por URL/path.
+- El modelo `Lote` ya soporta `description` opcional.
+
 ## Estado actual del proyecto
 - Navegacion por roles consolidada en el portal autenticado
 - Workspace SaaS con sidebar, area de trabajo comun y layout compartido
@@ -99,6 +105,9 @@ Aplicacion full stack para gestion comercial de lotes, clientes y operaciones.
 ## Endpoints principales
 - `GET /health`
 - `GET /api/lotes`
+- `POST /api/lotes` (admin)
+- `PUT /api/lotes/:id` (admin)
+- `DELETE /api/lotes/:id` (admin)
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 - `POST /api/auth/refresh`
@@ -130,6 +139,18 @@ Aplicacion full stack para gestion comercial de lotes, clientes y operaciones.
 - Refresh token rotativo con revocacion en base de datos.
 - Lockout por intentos fallidos (`MAX_LOGIN_ATTEMPTS`, `LOCKOUT_MINUTES`).
 - Rate limit especifico para `/api/auth/login`, `/api/auth/refresh` y `/api/auth/setup-admin`.
+- Frontend con refresh automatico y retry de requests protegidas tras `401`.
+
+## Permisos destacados por rol
+- `admin`:
+  - acceso total de gestion
+  - CRUD de lotes (`lotes.read`, `lotes.write`, `lotes.delete`)
+- `empleado`:
+  - lectura de lotes y operacion comercial
+  - sin modificacion de catalogo de lotes
+- `usuario`:
+  - lectura publica/comercial de lotes
+  - sin acceso a modificacion de catalogo
 
 ## Migraciones nuevas
 - `20260220113000_comercial_core` agrega:

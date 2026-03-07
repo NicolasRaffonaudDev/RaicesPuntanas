@@ -2,6 +2,8 @@ const ROLE_PERMISSIONS = {
   admin: [
     "dashboard.view",
     "lotes.read",
+    "lotes.write",
+    "lotes.delete",
     "clientes.read",
     "clientes.write",
     "clientes.delete",
