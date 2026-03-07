@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { SectionEmpty, SectionError, SectionLoading } from "../components/Feedback";
+import { PageHeader } from "../components/PageHeader";
 import { useAuth } from "../context/useAuth";
 import { commercialApi } from "../services/commercialApi";
 import type { Consulta, LoteFavorito } from "../types/commercial";
@@ -50,28 +52,42 @@ const MiPanelUsuario: React.FC = () => {
   return (
     <section className="page">
       <div className="container space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-3xl font-bold text-[var(--color-primary)]">Mi Panel</h1>
-          <div className="flex gap-2">
-            {canWriteConsultas && (
-              <Link to="/contact" className="btn btn-primary text-sm">
-                Nueva consulta
+        <PageHeader
+          compact
+          eyebrow="Panel de usuario"
+          title="Mi Panel"
+          description="Resumen personal de tus lotes guardados, consultas realizadas y respuestas visibles del equipo comercial."
+          meta={(
+            <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-[rgba(212,175,55,0.18)] bg-black/25 px-3 py-1.5">
+              <span className="font-medium text-white">{user?.name}</span>
+              <span className="text-[rgba(255,255,255,0.28)]">/</span>
+              <span className="capitalize text-[var(--color-primary)]">{user?.role}</span>
+            </div>
+          )}
+          actions={(
+            <>
+              {canWriteConsultas && (
+                <Link to="/contact" className="btn btn-primary text-sm">
+                  Nueva consulta
+                </Link>
+              )}
+              <Link to="/lotes" className="btn btn-outline text-sm">
+                Ver lotes
               </Link>
-            )}
-            <Link to="/lotes" className="btn btn-outline text-sm">
-              Ver lotes
-            </Link>
-          </div>
-        </div>
-
-        <p className="text-[var(--color-text-muted)]">
-          Usuario: {user?.name} ({user?.role})
-        </p>
-
-        {error && <p className="rounded border border-red-700 bg-red-900/30 p-2 text-sm text-red-300">{error}</p>}
+            </>
+          )}
+        />
 
         {loading ? (
-          <p className="text-[var(--color-text-muted)]">Cargando datos del panel...</p>
+          <SectionLoading
+            title="Cargando tu panel"
+            message="Estamos reuniendo tus favoritos, consultas y actividad reciente para mostrarte un resumen actualizado."
+          />
+        ) : error ? (
+          <SectionError
+            title="No pudimos cargar tu panel"
+            message={error}
+          />
         ) : (
           <>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -93,9 +109,16 @@ const MiPanelUsuario: React.FC = () => {
               <article className="card space-y-3 p-4">
                 <h2 className="text-lg font-semibold text-[var(--color-primary)]">Lotes favoritos</h2>
                 {favoritos.length === 0 ? (
-                  <p className="text-sm text-[var(--color-text-muted)]">
-                    Aun no tienes favoritos. Desde <Link to="/lotes" className="underline">Lotes</Link> puedes guardar los que te interesen.
-                  </p>
+                  <SectionEmpty
+                    compact
+                    title="Sin favoritos guardados"
+                    message="Aun no tienes lotes favoritos. Puedes explorar el catalogo y guardar los que quieras seguir de cerca."
+                    action={(
+                      <Link to="/lotes" className="btn btn-outline text-sm">
+                        Ver lotes
+                      </Link>
+                    )}
+                  />
                 ) : (
                   <ul className="space-y-2">
                     {favoritos.map((item) => (
@@ -113,7 +136,16 @@ const MiPanelUsuario: React.FC = () => {
               <article className="card space-y-3 p-4">
                 <h2 className="text-lg font-semibold text-[var(--color-primary)]">Mis consultas</h2>
                 {consultas.length === 0 ? (
-                  <p className="text-sm text-[var(--color-text-muted)]">No registras consultas todavia.</p>
+                  <SectionEmpty
+                    compact
+                    title="Sin consultas registradas"
+                    message="Todavia no tienes consultas enviadas. Cuando necesites informacion sobre un lote, podras iniciarla desde contacto."
+                    action={canWriteConsultas ? (
+                      <Link to="/contact" className="btn btn-outline text-sm">
+                        Nueva consulta
+                      </Link>
+                    ) : undefined}
+                  />
                 ) : (
                   <ul className="space-y-2">
                     {consultas.map((item) => (

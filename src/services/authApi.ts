@@ -1,6 +1,5 @@
+import { apiRequest } from "./apiClient";
 import type { AuthResponse } from "../types/auth";
-
-const API_URL = "http://localhost:3001/api";
 
 interface RegisterPayload {
   name: string;
@@ -30,59 +29,66 @@ const parseResponse = async (res: Response) => {
 
 export const authApi = {
   login: async (body: LoginPayload): Promise<AuthResponse> => {
-    const res = await fetch(`${API_URL}/auth/login`, {
+    const res = await apiRequest("/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
+      skipAuth: true,
     });
     return parseResponse(res);
   },
 
   register: async (body: RegisterPayload): Promise<AuthResponse> => {
-    const res = await fetch(`${API_URL}/auth/register`, {
+    const res = await apiRequest("/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
+      skipAuth: true,
     });
     return parseResponse(res);
   },
 
   dashboard: async (token: string) => {
-    const res = await fetch(`${API_URL}/dashboard/me`, {
+    const res = await apiRequest("/dashboard/me", {
       headers: { Authorization: `Bearer ${token}` },
     });
     return parseResponse(res);
   },
 
   setupAdmin: async (body: SetupAdminPayload): Promise<AuthResponse> => {
-    const res = await fetch(`${API_URL}/auth/setup-admin`, {
+    const res = await apiRequest("/auth/setup-admin", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
+      skipAuth: true,
     });
     return parseResponse(res);
   },
 
   refresh: async (refreshToken: string): Promise<AuthResponse> => {
-    const res = await fetch(`${API_URL}/auth/refresh`, {
+    const res = await apiRequest("/auth/refresh", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refreshToken }),
+      skipAuth: true,
+      retryOn401: false,
     });
     return parseResponse(res);
   },
 
   logout: async (refreshToken: string) => {
-    const res = await fetch(`${API_URL}/auth/logout`, {
+    const res = await apiRequest("/auth/logout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refreshToken }),
+      skipAuth: true,
+      retryOn401: false,
     });
     return parseResponse(res);
   },
 
   logoutAll: async (token: string) => {
-    const res = await fetch(`${API_URL}/auth/logout-all`, {
+    const res = await apiRequest("/auth/logout-all", {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });

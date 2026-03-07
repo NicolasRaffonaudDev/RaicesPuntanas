@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { io } from "socket.io-client";
+import { PageHeader } from "../components/PageHeader";
 import { useAuth } from "../context/useAuth";
 import { commercialApi } from "../services/commercialApi";
 import type { SystemUser, UserRole } from "../types/auth";
@@ -23,10 +25,20 @@ interface ConfirmState {
 
 const defaultPagination: Pagination = { page: 1, limit: 10, total: 0, totalPages: 1 };
 
+const validTabs: Tab[] = ["clientes", "productos", "ventas", "inventario", "usuarios", "auditoria"];
+
+const resolveTab = (value: string | null): Tab => {
+  if (value && validTabs.includes(value as Tab)) {
+    return value as Tab;
+  }
+  return "clientes";
+};
+
 const GestionComercial: React.FC = () => {
   const { token, user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [tab, setTab] = useState<Tab>("clientes");
+  const [tab, setTab] = useState<Tab>(() => resolveTab(searchParams.get("tab")));
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
   const [loading, setLoading] = useState(false);
@@ -87,6 +99,19 @@ const GestionComercial: React.FC = () => {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   const can = useCallback((permission: string) => hasPermission(user?.role, permission), [user?.role]);
+
+  useEffect(() => {
+    const nextTab = resolveTab(searchParams.get("tab"));
+    setTab((prev) => (prev === nextTab ? prev : nextTab));
+  }, [searchParams]);
+
+  useEffect(() => {
+    const current = searchParams.get("tab");
+    if (current === tab) return;
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set("tab", tab);
+    setSearchParams(nextParams, { replace: true });
+  }, [tab, searchParams, setSearchParams]);
 
   const showToast = (message: string) => {
     setToast(message);
@@ -403,10 +428,20 @@ const GestionComercial: React.FC = () => {
   return (
     <section className="page">
       <div className="container space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-3xl font-bold text-[var(--color-primary)]">Gestion Comercial Pro</h1>
-          <span className="text-sm text-[var(--color-text-muted)]">Rol: {user?.role}</span>
-        </div>
+        <PageHeader
+          compact
+          eyebrow="Modulo de gestion"
+          title="Gestion Comercial Pro"
+          description="Centro operativo para administrar clientes, productos, ventas, inventario y vistas avanzadas de gestion segun el rol activo."
+          meta={(
+            <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-[rgba(212,175,55,0.18)] bg-black/25 px-3 py-1.5">
+              <span className="text-[var(--color-text-muted)]">Rol activo</span>
+              <span className="capitalize font-medium text-[var(--color-primary)]">{user?.role}</span>
+              <span className="text-[rgba(255,255,255,0.28)]">/</span>
+              <span className="text-white">Vista multipanel</span>
+            </div>
+          )}
+        />
 
         {loading && <p className="text-sm text-[var(--color-text-muted)]">Actualizando datos...</p>}
         {error && <p className="rounded border border-red-700 bg-red-900/25 p-2 text-sm text-red-300">{error}</p>}

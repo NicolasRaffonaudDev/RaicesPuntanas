@@ -14,6 +14,7 @@ export interface AuthContextType {
   token: string | null;
   refreshToken: string | null;
   user: AuthUser | null;
+  authReady: boolean;
   login: (payload: LoginForm) => Promise<void>;
   register: (payload: RegisterForm) => Promise<void>;
   establishSession: (session: AuthResponse) => void;

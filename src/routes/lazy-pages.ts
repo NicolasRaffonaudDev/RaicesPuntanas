@@ -11,6 +11,7 @@ export const DashboardPage = lazyWithPreload(() => import("../pages/Dashboard"))
 export const MiPanelUsuarioPage = lazyWithPreload(() => import("../pages/MiPanelUsuario"));
 export const GestionComercialPage = lazyWithPreload(() => import("../pages/GestionComercial"));
 export const ConsultasInboxPage = lazyWithPreload(() => import("../pages/ConsultasInbox"));
+export const SettingsModulePage = lazyWithPreload(() => import("../pages/SettingsModule"));
 
 export const preloaders = {
   home: HomePage.preload,
@@ -24,4 +25,5 @@ export const preloaders = {
   miPanel: MiPanelUsuarioPage.preload,
   gestion: GestionComercialPage.preload,
   consultas: ConsultasInboxPage.preload,
+  settingsModule: SettingsModulePage.preload,
 };

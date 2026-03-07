@@ -13,8 +13,7 @@ import type {
 } from "../types/commercial";
 import type { SystemUser, UserRole } from "../types/auth";
 import type { Lote } from "../types/interfaces";
-
-const API_URL = "http://localhost:3001/api";
+import { apiRequest } from "./apiClient";
 
 const parseResponse = async (res: Response) => {
   const payload = await res.json();
@@ -29,7 +28,7 @@ const authHeaders = (token: string) => ({
 
 export const commercialApi = {
   listLotes: async (): Promise<Lote[]> => {
-    const res = await fetch(`${API_URL}/lotes`);
+    const res = await apiRequest("/lotes", { skipAuth: true });
     if (!res.ok) throw new Error("No se pudo cargar el listado de lotes");
     return res.json();
   },
@@ -43,12 +42,12 @@ export const commercialApi = {
     if (query?.limit) params.set("limit", String(query.limit));
     if (query?.search) params.set("search", query.search);
 
-    const res = await fetch(`${API_URL}/clientes?${params.toString()}`, { headers: authHeaders(token) });
+    const res = await apiRequest(`/clientes?${params.toString()}`, { headers: authHeaders(token) });
     return parseResponse(res);
   },
 
   createCliente: async (token: string, body: { nombre: string; email?: string; telefono?: string }) => {
-    const res = await fetch(`${API_URL}/clientes`, {
+    const res = await apiRequest("/clientes", {
       method: "POST",
       headers: authHeaders(token),
       body: JSON.stringify(body),
@@ -62,7 +61,7 @@ export const commercialApi = {
     id: string,
     body: { nombre?: string; email?: string; telefono?: string; direccion?: string },
   ) => {
-    const res = await fetch(`${API_URL}/clientes/${id}`, {
+    const res = await apiRequest(`/clientes/${id}`, {
       method: "PUT",
       headers: authHeaders(token),
       body: JSON.stringify(body),
@@ -72,7 +71,7 @@ export const commercialApi = {
   },
 
   deleteCliente: async (token: string, id: string) => {
-    const res = await fetch(`${API_URL}/clientes/${id}`, {
+    const res = await apiRequest(`/clientes/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -93,7 +92,7 @@ export const commercialApi = {
     if (query?.onlyActive) params.set("onlyActive", "true");
     if (query?.lowStock) params.set("lowStock", "true");
 
-    const res = await fetch(`${API_URL}/productos?${params.toString()}`, { headers: authHeaders(token) });
+    const res = await apiRequest(`/productos?${params.toString()}`, { headers: authHeaders(token) });
     return parseResponse(res);
   },
 
@@ -101,7 +100,7 @@ export const commercialApi = {
     token: string,
     body: { nombre: string; sku: string; precio: number; stock: number },
   ) => {
-    const res = await fetch(`${API_URL}/productos`, {
+    const res = await apiRequest("/productos", {
       method: "POST",
       headers: authHeaders(token),
       body: JSON.stringify(body),
@@ -115,7 +114,7 @@ export const commercialApi = {
     id: number,
     body: { nombre?: string; precio?: number; stock?: number; activo?: boolean },
   ) => {
-    const res = await fetch(`${API_URL}/productos/${id}`, {
+    const res = await apiRequest(`/productos/${id}`, {
       method: "PUT",
       headers: authHeaders(token),
       body: JSON.stringify(body),
@@ -125,7 +124,7 @@ export const commercialApi = {
   },
 
   deleteProducto: async (token: string, id: number) => {
-    const res = await fetch(`${API_URL}/productos/${id}`, {
+    const res = await apiRequest(`/productos/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -146,7 +145,7 @@ export const commercialApi = {
     if (query?.from) params.set("from", query.from);
     if (query?.to) params.set("to", query.to);
 
-    const res = await fetch(`${API_URL}/ventas?${params.toString()}`, { headers: authHeaders(token) });
+    const res = await apiRequest(`/ventas?${params.toString()}`, { headers: authHeaders(token) });
     return parseResponse(res);
   },
 
@@ -154,7 +153,7 @@ export const commercialApi = {
     token: string,
     body: { clienteId?: string; items: Array<{ productoId: number; cantidad: number }> },
   ) => {
-    const res = await fetch(`${API_URL}/ventas`, {
+    const res = await apiRequest("/ventas", {
       method: "POST",
       headers: authHeaders(token),
       body: JSON.stringify(body),
@@ -174,7 +173,7 @@ export const commercialApi = {
     if (query?.from) params.set("from", query.from);
     if (query?.to) params.set("to", query.to);
 
-    const res = await fetch(`${API_URL}/inventario/movimientos?${params.toString()}`, {
+    const res = await apiRequest(`/inventario/movimientos?${params.toString()}`, {
       headers: authHeaders(token),
     });
     return parseResponse(res);
@@ -184,7 +183,7 @@ export const commercialApi = {
     token: string,
     body: { productoId: number; tipo: "entrada" | "salida" | "ajuste"; cantidad: number; motivo?: string },
   ) => {
-    const res = await fetch(`${API_URL}/inventario/movimientos`, {
+    const res = await apiRequest("/inventario/movimientos", {
       method: "POST",
       headers: authHeaders(token),
       body: JSON.stringify(body),
@@ -202,14 +201,14 @@ export const commercialApi = {
     if (query?.limit) params.set("limit", String(query.limit));
     if (query?.search) params.set("search", query.search);
 
-    const res = await fetch(`${API_URL}/users?${params.toString()}`, {
+    const res = await apiRequest(`/users?${params.toString()}`, {
       headers: authHeaders(token),
     });
     return parseResponse(res);
   },
 
   updateUserRole: async (token: string, userId: string, role: UserRole): Promise<SystemUser> => {
-    const res = await fetch(`${API_URL}/users/${userId}/role`, {
+    const res = await apiRequest(`/users/${userId}/role`, {
       method: "PATCH",
       headers: authHeaders(token),
       body: JSON.stringify({ role }),
@@ -222,7 +221,7 @@ export const commercialApi = {
     token: string,
     body: { name: string; email: string; password: string; role: UserRole },
   ): Promise<SystemUser> => {
-    const res = await fetch(`${API_URL}/users`, {
+    const res = await apiRequest("/users", {
       method: "POST",
       headers: authHeaders(token),
       body: JSON.stringify(body),
@@ -252,20 +251,20 @@ export const commercialApi = {
     if (query?.from) params.set("from", query.from);
     if (query?.to) params.set("to", query.to);
 
-    const res = await fetch(`${API_URL}/audit?${params.toString()}`, {
+    const res = await apiRequest(`/audit?${params.toString()}`, {
       headers: authHeaders(token),
     });
     return parseResponse(res);
   },
 
   listFavoritos: async (token: string): Promise<LoteFavorito[]> => {
-    const res = await fetch(`${API_URL}/favoritos`, { headers: authHeaders(token) });
+    const res = await apiRequest("/favoritos", { headers: authHeaders(token) });
     const payload = await parseResponse(res);
     return payload.data as LoteFavorito[];
   },
 
   addFavorito: async (token: string, loteId: number): Promise<LoteFavorito> => {
-    const res = await fetch(`${API_URL}/favoritos/${loteId}`, {
+    const res = await apiRequest(`/favoritos/${loteId}`, {
       method: "POST",
       headers: authHeaders(token),
     });
@@ -274,7 +273,7 @@ export const commercialApi = {
   },
 
   removeFavorito: async (token: string, loteId: number): Promise<void> => {
-    const res = await fetch(`${API_URL}/favoritos/${loteId}`, {
+    const res = await apiRequest(`/favoritos/${loteId}`, {
       method: "DELETE",
       headers: authHeaders(token),
     });
@@ -288,7 +287,7 @@ export const commercialApi = {
     token: string,
     body: { asunto: string; mensaje: string; loteId?: number },
   ): Promise<Consulta> => {
-    const res = await fetch(`${API_URL}/consultas`, {
+    const res = await apiRequest("/consultas", {
       method: "POST",
       headers: authHeaders(token),
       body: JSON.stringify(body),
@@ -298,7 +297,7 @@ export const commercialApi = {
   },
 
   listMisConsultas: async (token: string): Promise<Consulta[]> => {
-    const res = await fetch(`${API_URL}/consultas/mine`, { headers: authHeaders(token) });
+    const res = await apiRequest("/consultas/mine", { headers: authHeaders(token) });
     const payload = await parseResponse(res);
     return payload.data as Consulta[];
   },
@@ -313,7 +312,7 @@ export const commercialApi = {
     if (query?.search) params.set("search", query.search);
     if (query?.estado) params.set("estado", query.estado);
 
-    const res = await fetch(`${API_URL}/consultas?${params.toString()}`, {
+    const res = await apiRequest(`/consultas?${params.toString()}`, {
       headers: authHeaders(token),
     });
     return parseResponse(res);
@@ -325,7 +324,7 @@ export const commercialApi = {
   },
 
   updateConsultaEstado: async (token: string, consultaId: string, estado: ConsultaEstado): Promise<ConsultaWithUser> => {
-    const res = await fetch(`${API_URL}/consultas/${consultaId}/estado`, {
+    const res = await apiRequest(`/consultas/${consultaId}/estado`, {
       method: "PATCH",
       headers: authHeaders(token),
       body: JSON.stringify({ estado }),
@@ -335,7 +334,7 @@ export const commercialApi = {
   },
 
   listConsultaSeguimientos: async (token: string, consultaId: string): Promise<ConsultaSeguimiento[]> => {
-    const res = await fetch(`${API_URL}/consultas/${consultaId}/seguimientos`, {
+    const res = await apiRequest(`/consultas/${consultaId}/seguimientos`, {
       headers: authHeaders(token),
     });
     const payload = await parseResponse(res);
@@ -347,7 +346,7 @@ export const commercialApi = {
     consultaId: string,
     body: { mensaje: string; esInterno?: boolean },
   ): Promise<ConsultaSeguimiento> => {
-    const res = await fetch(`${API_URL}/consultas/${consultaId}/seguimientos`, {
+    const res = await apiRequest(`/consultas/${consultaId}/seguimientos`, {
       method: "POST",
       headers: authHeaders(token),
       body: JSON.stringify(body),

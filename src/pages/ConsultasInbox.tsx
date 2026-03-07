@@ -1,5 +1,7 @@
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { io } from "socket.io-client";
+import { SectionEmpty, SectionError, SectionLoading } from "../components/Feedback";
+import { PageHeader } from "../components/PageHeader";
 import { useAuth } from "../context/useAuth";
 import { commercialApi } from "../services/commercialApi";
 import type { ConsultaEstado, ConsultaSeguimiento, ConsultaWithUser, Pagination } from "../types/commercial";
@@ -46,6 +48,7 @@ const ConsultasInbox: React.FC = () => {
   const [seguimientos, setSeguimientos] = useState<Record<string, ConsultaSeguimiento[]>>({});
   const [newMessageByConsulta, setNewMessageByConsulta] = useState<Record<string, string>>({});
   const [isInternalByConsulta, setIsInternalByConsulta] = useState<Record<string, boolean>>({});
+  const hasActiveFilters = search.trim().length > 0 || estado.trim().length > 0;
 
   const loadConsultas = useCallback(async () => {
     if (!token) return;
@@ -145,16 +148,35 @@ const ConsultasInbox: React.FC = () => {
   return (
     <section className="page">
       <div className="container space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-3xl font-bold text-[var(--color-primary)]">Inbox de Consultas</h1>
-          <span className="text-sm text-[var(--color-text-muted)]">
-            Operador: {user?.name} ({user?.role})
-          </span>
-        </div>
+        <PageHeader
+          compact
+          eyebrow="Modulo comercial"
+          title="Inbox de Consultas"
+          description="Bandeja operativa para revisar consultas entrantes, actualizar estados y registrar seguimiento visible o interno."
+          meta={(
+            <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-[rgba(212,175,55,0.18)] bg-black/25 px-3 py-1.5">
+              <span className="text-[var(--color-text-muted)]">Operador</span>
+              <span className="font-medium text-white">{user?.name}</span>
+              <span className="text-[rgba(255,255,255,0.28)]">/</span>
+              <span className="capitalize text-[var(--color-primary)]">{user?.role}</span>
+            </div>
+          )}
+        />
 
-        {loading && <p className="text-sm text-[var(--color-text-muted)]">Actualizando consultas...</p>}
-        {error && <p className="rounded border border-red-700 bg-red-900/25 p-2 text-sm text-red-300">{error}</p>}
         {toast && <p className="rounded border border-emerald-700 bg-emerald-900/25 p-2 text-sm text-emerald-300">{toast}</p>}
+
+        {loading && (
+          <SectionLoading
+            title="Actualizando inbox"
+            message="Estamos cargando consultas, estados y seguimiento comercial para mostrarte la bandeja actual."
+          />
+        )}
+        {!loading && error && (
+          <SectionError
+            title="No pudimos cargar el inbox"
+            message={error}
+          />
+        )}
 
         <div className="card grid gap-2 p-3 md:grid-cols-4">
           <input
@@ -194,151 +216,169 @@ const ConsultasInbox: React.FC = () => {
         </div>
 
         <div className="card overflow-auto p-3">
-          <table className="min-w-full text-left text-sm">
-            <thead>
-              <tr>
-                <th className="p-2">Fecha</th>
-                <th className="p-2">Usuario</th>
-                <th className="p-2">Asunto</th>
-                <th className="p-2">Mensaje</th>
-                <th className="p-2">Lote</th>
-                <th className="p-2">Estado</th>
-                <th className="p-2">Accion</th>
-                <th className="p-2">Seguimiento</th>
-              </tr>
-            </thead>
-            <tbody>
-              {consultas.map((consulta) => {
-                const isExpanded = expandedId === consulta.id;
-                const items = seguimientos[consulta.id] || [];
-                const visibleCount = items.filter((item) => !item.esInterno).length;
-                const internoCount = items.length - visibleCount;
+          {!loading && !error && consultas.length === 0 ? (
+            <SectionEmpty
+              compact
+              title={hasActiveFilters ? "No encontramos consultas para esos filtros" : "Todavia no hay consultas registradas"}
+              message={
+                hasActiveFilters
+                  ? "Prueba ajustar la busqueda o limpiar los filtros para volver a ver el listado completo."
+                  : "Cuando ingresen nuevas consultas del sitio, apareceran aqui para su gestion y seguimiento."
+              }
+              action={hasActiveFilters ? (
+                <button
+                  className="btn btn-outline text-sm"
+                  type="button"
+                  onClick={() => {
+                    setSearch("");
+                    setEstado("");
+                    setPage(1);
+                  }}
+                >
+                  Limpiar filtros
+                </button>
+              ) : undefined}
+            />
+          ) : (
+            <table className="min-w-full text-left text-sm">
+              <thead>
+                <tr>
+                  <th className="p-2">Fecha</th>
+                  <th className="p-2">Usuario</th>
+                  <th className="p-2">Asunto</th>
+                  <th className="p-2">Mensaje</th>
+                  <th className="p-2">Lote</th>
+                  <th className="p-2">Estado</th>
+                  <th className="p-2">Accion</th>
+                  <th className="p-2">Seguimiento</th>
+                </tr>
+              </thead>
+              <tbody>
+                {consultas.map((consulta) => {
+                  const isExpanded = expandedId === consulta.id;
+                  const items = seguimientos[consulta.id] || [];
+                  const visibleCount = items.filter((item) => !item.esInterno).length;
+                  const internoCount = items.length - visibleCount;
 
-                return (
-                  <Fragment key={consulta.id}>
-                    <tr key={consulta.id} className="border-t border-[var(--color-border)]">
-                      <td className="p-2">{new Date(consulta.createdAt).toLocaleString("es-AR")}</td>
-                      <td className="p-2">
-                        <p>{consulta.user?.name || "-"}</p>
-                        <p className="text-xs text-[var(--color-text-muted)]">{consulta.user?.email || "-"}</p>
-                      </td>
-                      <td className="p-2">{consulta.asunto}</td>
-                      <td className="p-2 max-w-[300px] text-xs text-[var(--color-text-muted)]">{consulta.mensaje}</td>
-                      <td className="p-2">{consulta.lote ? `${consulta.lote.id} - ${consulta.lote.title}` : "-"}</td>
-                      <td className="p-2">
-                        <span className="rounded border border-[var(--color-primary)] px-2 py-1 text-xs uppercase text-[var(--color-primary)]">
-                          {consulta.estado}
-                        </span>
-                      </td>
-                      <td className="p-2">
-                        <select
-                          className="field min-w-[130px]"
-                          value={consulta.estado}
-                          onChange={(e) => void updateEstado(consulta.id, e.target.value as ConsultaEstado)}
-                        >
-                          <option value="pendiente">pendiente</option>
-                          <option value="en_revision">en_revision</option>
-                          <option value="respondida">respondida</option>
-                          <option value="cerrada">cerrada</option>
-                        </select>
-                      </td>
-                      <td className="p-2">
-                        <button className="btn btn-outline text-xs" type="button" onClick={() => void toggleSeguimientos(consulta.id)}>
-                          {isExpanded ? "Ocultar" : "Gestionar"}
-                        </button>
-                      </td>
-                    </tr>
-                    {isExpanded && (
-                      <tr className="border-t border-[var(--color-border)] bg-black/20">
-                        <td className="p-3" colSpan={8}>
-                          <div className="space-y-3">
-                            <div className="flex flex-wrap items-center justify-between gap-2">
-                              <p className="text-sm font-semibold text-[var(--color-primary)]">Historial de seguimiento</p>
-                              <p className="text-xs text-[var(--color-text-muted)]">
-                                Total: {items.length} | Visibles: {visibleCount} | Internos: {internoCount}
-                              </p>
-                            </div>
-
-                            {items.length === 0 ? (
-                              <p className="text-xs text-[var(--color-text-muted)]">No hay seguimientos aun.</p>
-                            ) : (
-                              <ul className="space-y-2">
-                                {items.map((item) => (
-                                  <li key={item.id} className="rounded border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-2">
-                                    <div className="flex flex-wrap items-center justify-between gap-2">
-                                      <span className="text-xs text-[var(--color-text-muted)]">
-                                        {item.autor?.name || item.autor?.email || "Sistema"} - {new Date(item.createdAt).toLocaleString("es-AR")}
-                                      </span>
-                                      <span
-                                        className={`rounded px-2 py-0.5 text-xs ${item.esInterno ? "bg-red-900/40 text-red-300" : "bg-emerald-900/40 text-emerald-300"}`}
-                                      >
-                                        {item.esInterno ? "Interno" : "Visible cliente"}
-                                      </span>
-                                    </div>
-                                    <p className="mt-1 text-sm text-[var(--color-text-muted)]">{item.mensaje}</p>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-
-                            <div className="grid gap-2 md:grid-cols-6">
-                              <textarea
-                                className="field md:col-span-4"
-                                rows={3}
-                                placeholder="Escribe una nota interna o respuesta al cliente..."
-                                data-testid={`seguimiento-input-${consulta.id}`}
-                                value={newMessageByConsulta[consulta.id] || ""}
-                                onChange={(e) => setNewMessageByConsulta((prev) => ({ ...prev, [consulta.id]: e.target.value }))}
-                              />
-                              <div className="space-y-2 md:col-span-2">
-                                <label className="flex items-center gap-2 text-sm">
-                                  <input
-                                    type="checkbox"
-                                    checked={isInternalByConsulta[consulta.id] ?? true}
-                                    onChange={(e) => setIsInternalByConsulta((prev) => ({ ...prev, [consulta.id]: e.target.checked }))}
-                                  />
-                                  Marcar como interno
-                                </label>
-                                <button
-                                  className="btn btn-primary w-full text-sm"
-                                  type="button"
-                                  data-testid={`seguimiento-submit-${consulta.id}`}
-                                  onClick={() => void submitSeguimiento(consulta.id)}
-                                >
-                                  Guardar seguimiento
-                                </button>
-                              </div>
-                            </div>
-
-                            <div className="flex flex-wrap gap-2">
-                              {quickTemplates.map((template) => (
-                                <button
-                                  key={template.label}
-                                  type="button"
-                                  className="btn btn-outline text-xs"
-                                  data-testid={`template-${template.label.replaceAll(" ", "-").toLowerCase()}-${consulta.id}`}
-                                  onClick={() => applyTemplate(consulta.id, template)}
-                                >
-                                  {template.label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
+                  return (
+                    <Fragment key={consulta.id}>
+                      <tr key={consulta.id} className="border-t border-[var(--color-border)]">
+                        <td className="p-2">{new Date(consulta.createdAt).toLocaleString("es-AR")}</td>
+                        <td className="p-2">
+                          <p>{consulta.user?.name || "-"}</p>
+                          <p className="text-xs text-[var(--color-text-muted)]">{consulta.user?.email || "-"}</p>
+                        </td>
+                        <td className="p-2">{consulta.asunto}</td>
+                        <td className="p-2 max-w-[300px] text-xs text-[var(--color-text-muted)]">{consulta.mensaje}</td>
+                        <td className="p-2">{consulta.lote ? `${consulta.lote.id} - ${consulta.lote.title}` : "-"}</td>
+                        <td className="p-2">
+                          <span className="rounded border border-[var(--color-primary)] px-2 py-1 text-xs uppercase text-[var(--color-primary)]">
+                            {consulta.estado}
+                          </span>
+                        </td>
+                        <td className="p-2">
+                          <select
+                            className="field min-w-[130px]"
+                            value={consulta.estado}
+                            onChange={(e) => void updateEstado(consulta.id, e.target.value as ConsultaEstado)}
+                          >
+                            <option value="pendiente">pendiente</option>
+                            <option value="en_revision">en_revision</option>
+                            <option value="respondida">respondida</option>
+                            <option value="cerrada">cerrada</option>
+                          </select>
+                        </td>
+                        <td className="p-2">
+                          <button className="btn btn-outline text-xs" type="button" onClick={() => void toggleSeguimientos(consulta.id)}>
+                            {isExpanded ? "Ocultar" : "Gestionar"}
+                          </button>
                         </td>
                       </tr>
-                    )}
-                  </Fragment>
-                );
-              })}
-              {!loading && consultas.length === 0 && (
-                <tr>
-                  <td colSpan={8} className="p-3 text-center text-[var(--color-text-muted)]">
-                    No hay consultas para los filtros seleccionados.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                      {isExpanded && (
+                        <tr className="border-t border-[var(--color-border)] bg-black/20">
+                          <td className="p-3" colSpan={8}>
+                            <div className="space-y-3">
+                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                <p className="text-sm font-semibold text-[var(--color-primary)]">Historial de seguimiento</p>
+                                <p className="text-xs text-[var(--color-text-muted)]">
+                                  Total: {items.length} | Visibles: {visibleCount} | Internos: {internoCount}
+                                </p>
+                              </div>
+
+                              {items.length === 0 ? (
+                                <p className="text-xs text-[var(--color-text-muted)]">No hay seguimientos aun.</p>
+                              ) : (
+                                <ul className="space-y-2">
+                                  {items.map((item) => (
+                                    <li key={item.id} className="rounded border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-2">
+                                      <div className="flex flex-wrap items-center justify-between gap-2">
+                                        <span className="text-xs text-[var(--color-text-muted)]">
+                                          {item.autor?.name || item.autor?.email || "Sistema"} - {new Date(item.createdAt).toLocaleString("es-AR")}
+                                        </span>
+                                        <span
+                                          className={`rounded px-2 py-0.5 text-xs ${item.esInterno ? "bg-red-900/40 text-red-300" : "bg-emerald-900/40 text-emerald-300"}`}
+                                        >
+                                          {item.esInterno ? "Interno" : "Visible cliente"}
+                                        </span>
+                                      </div>
+                                      <p className="mt-1 text-sm text-[var(--color-text-muted)]">{item.mensaje}</p>
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+
+                              <div className="grid gap-2 md:grid-cols-6">
+                                <textarea
+                                  className="field md:col-span-4"
+                                  rows={3}
+                                  placeholder="Escribe una nota interna o respuesta al cliente..."
+                                  data-testid={`seguimiento-input-${consulta.id}`}
+                                  value={newMessageByConsulta[consulta.id] || ""}
+                                  onChange={(e) => setNewMessageByConsulta((prev) => ({ ...prev, [consulta.id]: e.target.value }))}
+                                />
+                                <div className="space-y-2 md:col-span-2">
+                                  <label className="flex items-center gap-2 text-sm">
+                                    <input
+                                      type="checkbox"
+                                      checked={isInternalByConsulta[consulta.id] ?? true}
+                                      onChange={(e) => setIsInternalByConsulta((prev) => ({ ...prev, [consulta.id]: e.target.checked }))}
+                                    />
+                                    Marcar como interno
+                                  </label>
+                                  <button
+                                    className="btn btn-primary w-full text-sm"
+                                    type="button"
+                                    data-testid={`seguimiento-submit-${consulta.id}`}
+                                    onClick={() => void submitSeguimiento(consulta.id)}
+                                  >
+                                    Guardar seguimiento
+                                  </button>
+                                </div>
+                              </div>
+
+                              <div className="flex flex-wrap gap-2">
+                                {quickTemplates.map((template) => (
+                                  <button
+                                    key={template.label}
+                                    type="button"
+                                    className="btn btn-outline text-xs"
+                                    data-testid={`template-${template.label.replaceAll(" ", "-").toLowerCase()}-${consulta.id}`}
+                                    onClick={() => applyTemplate(consulta.id, template)}
+                                  >
+                                    {template.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
 
         <div className="flex items-center justify-end gap-2 text-sm">

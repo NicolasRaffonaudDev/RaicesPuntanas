@@ -102,93 +102,159 @@ const Dashboard: React.FC = () => {
 
   return (
     <section className="page">
-      <div className="container space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-3xl font-bold text-[var(--color-primary)]">Dashboard</h1>
-          <div className="flex gap-2">
-            {(user?.role === "admin" || user?.role === "empleado") && (
-              <>
-                <Link className="btn btn-outline text-sm" to="/gestion">
-                  Ir a Gestion
-                </Link>
-                <Link className="btn btn-outline text-sm" to="/consultas">
-                  Inbox Consultas
-                  {pendingConsultas > 0 && (
-                    <span className="ml-2 inline-flex min-w-6 items-center justify-center rounded-full bg-[var(--color-primary)] px-2 py-0.5 text-xs font-bold text-black">
-                      {pendingConsultas}
-                    </span>
-                  )}
-                </Link>
-              </>
-            )}
-            <button className="btn btn-outline text-sm" type="button" onClick={() => void handleLogoutAll()}>
-              Cerrar todas las sesiones
-            </button>
-          </div>
-        </div>
+      <div className="container">
+        <div className="max-w-5xl space-y-6">
+          <header className="rounded-[1rem] border border-[rgba(212,175,55,0.22)] bg-[linear-gradient(135deg,rgba(212,175,55,0.12),rgba(18,18,18,0.96)_45%,rgba(18,18,18,0.98)_100%)] p-6 shadow-[0_18px_45px_rgba(0,0,0,0.32)]">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+              <div className="max-w-2xl space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--color-primary)]">Panel principal</p>
+                <div className="space-y-2">
+                  <h1 className="text-4xl font-semibold tracking-tight text-white">Panel</h1>
+                  <p className="text-sm leading-6 text-[var(--color-text-muted)]">
+                    {data?.summary || "Resumen ejecutivo de tu operacion comercial y acceso rapido a los modulos habilitados."}
+                  </p>
+                </div>
+                <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-[rgba(212,175,55,0.2)] bg-black/35 px-3 py-2 text-sm text-[var(--color-text-muted)]">
+                  <span className="font-medium text-white">{user?.name}</span>
+                  <span className="text-[rgba(255,255,255,0.28)]">/</span>
+                  <span className="capitalize text-[var(--color-primary)]">{user?.role}</span>
+                </div>
+              </div>
 
-        <p className="text-[var(--color-text-muted)]">
-          Usuario: {user?.name} ({user?.role})
-        </p>
+              <div className="grid w-full gap-2 sm:grid-cols-2 lg:w-[24rem]">
+                {(user?.role === "admin" || user?.role === "empleado") && (
+                  <>
+                    <Link
+                      className="rounded-[0.9rem] border border-[rgba(212,175,55,0.24)] bg-[rgba(212,175,55,0.06)] px-4 py-3 text-sm font-medium text-[rgba(255,255,255,0.94)] transition-[border-color,background-color,color,transform,box-shadow] duration-180 hover:border-[rgba(212,175,55,0.4)] hover:bg-[rgba(212,175,55,0.12)] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(212,175,55,0.34)] focus-visible:ring-offset-2 focus-visible:ring-offset-black active:translate-y-[1px] active:border-[rgba(191,154,47,0.42)] active:bg-[rgba(191,154,47,0.14)]"
+                      to="/gestion"
+                    >
+                      Ir a Gestion
+                    </Link>
+                    <Link
+                      className="flex items-center justify-between gap-3 rounded-[0.9rem] border border-[rgba(212,175,55,0.28)] bg-[linear-gradient(180deg,rgba(212,175,55,0.12),rgba(212,175,55,0.08))] px-4 py-3 text-sm font-medium text-white shadow-[0_10px_22px_rgba(0,0,0,0.16)] transition-[border-color,background-color,color,transform,box-shadow] duration-180 hover:border-[rgba(212,175,55,0.46)] hover:bg-[linear-gradient(180deg,rgba(212,175,55,0.16),rgba(212,175,55,0.11))] hover:shadow-[0_14px_28px_rgba(0,0,0,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(212,175,55,0.38)] focus-visible:ring-offset-2 focus-visible:ring-offset-black active:translate-y-[1px] active:border-[rgba(191,154,47,0.48)] active:bg-[linear-gradient(180deg,rgba(191,154,47,0.18),rgba(191,154,47,0.12))]"
+                      to="/consultas"
+                    >
+                      <span>Consultas en la bandeja de entrada</span>
+                      {pendingConsultas > 0 && (
+                        <span className="inline-flex min-w-7 items-center justify-center rounded-full border border-[rgba(212,175,55,0.3)] bg-[rgba(0,0,0,0.22)] px-2 py-0.5 text-xs font-semibold text-[var(--color-primary)]">
+                          {pendingConsultas}
+                        </span>
+                      )}
+                    </Link>
+                  </>
+                )}
+                <button
+                  className="rounded-[0.9rem] border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.025)] px-4 py-3 text-left text-sm font-medium text-[rgba(255,255,255,0.9)] transition-[border-color,background-color,color,transform,box-shadow] duration-180 hover:border-[rgba(212,175,55,0.26)] hover:bg-[rgba(212,175,55,0.06)] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(212,175,55,0.28)] focus-visible:ring-offset-2 focus-visible:ring-offset-black active:translate-y-[1px] active:border-[rgba(191,154,47,0.3)] active:bg-[rgba(191,154,47,0.08)]"
+                  type="button"
+                  onClick={() => void handleLogoutAll()}
+                >
+                  Cerrar todas las sesiones
+                </button>
+              </div>
+            </div>
+          </header>
 
-        {error && <p className="rounded border border-red-700 bg-red-900/30 p-2 text-sm text-red-300">{error}</p>}
-        {message && <p className="rounded border border-emerald-700 bg-emerald-900/30 p-2 text-sm text-emerald-300">{message}</p>}
+          {error && <p className="rounded-xl border border-red-800 bg-red-950/30 p-3 text-sm text-red-200">{error}</p>}
+          {message && <p className="rounded-xl border border-emerald-800 bg-emerald-950/30 p-3 text-sm text-emerald-200">{message}</p>}
 
-        {data && (
-          <div className="card space-y-4 p-5">
-            <p className="text-sm text-[var(--color-text-muted)]">{data.summary}</p>
-
-            {kpiCards.length > 0 && (
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {kpiCards.map((item) => (
-                  <div key={item.label} className="rounded border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs uppercase tracking-wide text-[var(--color-text-muted)]">{item.label}</span>
-                      <span className="text-lg font-bold text-[var(--color-primary)]">{item.value}</span>
-                    </div>
-                    <div className="mt-2 h-2 rounded bg-black/50">
-                      <div className="h-2 rounded bg-[var(--color-primary)]" style={{ width: `${item.ratio}%` }} />
-                    </div>
+          {data && (
+            <div className="space-y-6">
+              {kpiCards.length > 0 && (
+                <section className="space-y-3">
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">Indicadores clave</p>
+                    <h2 className="text-xl font-semibold text-white">Vista rapida del panel</h2>
                   </div>
-                ))}
-              </div>
-            )}
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    {kpiCards.map((item) => (
+                      <article
+                        key={item.label}
+                        className="rounded-[0.95rem] border border-[rgba(212,175,55,0.18)] bg-[linear-gradient(180deg,rgba(255,255,255,0.025),rgba(29,29,29,0.96))] p-4 shadow-[0_14px_30px_rgba(0,0,0,0.22)]"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">{item.label}</span>
+                          <span className="text-2xl font-semibold text-[var(--color-primary)]">{item.value}</span>
+                        </div>
+                        <div className="mt-4 h-2 rounded-full bg-[rgba(255,255,255,0.07)]">
+                          <div
+                            className="h-2 rounded-full bg-[linear-gradient(90deg,rgba(191,154,47,0.9),rgba(212,175,55,1))]"
+                            style={{ width: `${item.ratio}%` }}
+                          />
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </section>
+              )}
 
-            {data.metrics && (
-              <div className="rounded border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3 text-sm">
-                <span className="text-[var(--color-text-muted)]">Facturacion 30d:</span>{" "}
-                <strong className="text-[var(--color-primary)]">${data.metrics.facturacion30d.toLocaleString("es-AR")}</strong>
-              </div>
-            )}
+              <section className="space-y-3">
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">Operacion</p>
+                  <h2 className="text-xl font-semibold text-white">Actividad comercial</h2>
+                </div>
+                <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                  {data.metrics && (
+                    <article className="rounded-[0.95rem] border border-[rgba(212,175,55,0.18)] bg-[linear-gradient(180deg,rgba(212,175,55,0.06),rgba(18,18,18,0.96))] p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Facturacion 30d</p>
+                      <p className="mt-3 text-3xl font-semibold text-white">
+                        <span className="text-[var(--color-primary)]">$</span>
+                        {data.metrics.facturacion30d.toLocaleString("es-AR")}
+                      </p>
+                      <p className="mt-2 text-sm text-[var(--color-text-muted)]">Total facturado en la ventana operativa reciente.</p>
+                    </article>
+                  )}
 
-            {canManageConsultas && (
-              <div className="rounded border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3 text-sm">
-                <span className="text-[var(--color-text-muted)]">Consultas pendientes:</span>{" "}
-                <strong className="text-[var(--color-primary)]">{pendingConsultas}</strong>
-              </div>
-            )}
+                  {canManageConsultas && (
+                    <article className="rounded-[0.95rem] border border-[rgba(212,175,55,0.18)] bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(18,18,18,0.96))] p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Consultas pendientes</p>
+                      <div className="mt-3 flex items-end justify-between gap-3">
+                        <p className="text-3xl font-semibold text-white">{pendingConsultas}</p>
+                        <span className="rounded-full border border-[rgba(212,175,55,0.24)] bg-[rgba(212,175,55,0.1)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-primary)]">
+                          Prioridad comercial
+                        </span>
+                      </div>
+                      <p className="mt-2 text-sm text-[var(--color-text-muted)]">Seguimiento en tiempo real para el inbox operativo del equipo.</p>
+                    </article>
+                  )}
+                </div>
+              </section>
 
-            <div>
-              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-[var(--color-text-muted)]">Permisos del rol</h2>
-              <div className="flex flex-wrap gap-2">
-                {(data.permissions || []).map((permission) => (
-                  <span key={permission} className="rounded border border-[var(--color-border)] bg-black/40 px-2 py-1 text-xs text-[var(--color-text-muted)]">
-                    {permission}
-                  </span>
-                ))}
-              </div>
+              <section className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+                <article className="rounded-[0.95rem] border border-[rgba(255,255,255,0.08)] bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(18,18,18,0.96))] p-5">
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">Permisos</p>
+                    <h2 className="text-xl font-semibold text-white">Permisos del rol</h2>
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {(data.permissions || []).map((permission) => (
+                      <span
+                        key={permission}
+                        className="rounded-full border border-[rgba(212,175,55,0.18)] bg-[rgba(255,255,255,0.03)] px-3 py-1.5 text-xs font-medium text-[var(--color-text-muted)]"
+                      >
+                        {permission}
+                      </span>
+                    ))}
+                  </div>
+                </article>
+
+                <article className="rounded-[0.95rem] border border-[rgba(255,255,255,0.08)] bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(18,18,18,0.96))] p-5">
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">Configuracion</p>
+                    <h2 className="text-xl font-semibold text-white">Widgets habilitados</h2>
+                  </div>
+                  <ul className="mt-4 space-y-2 text-sm text-[var(--color-text-muted)]">
+                    {data.widgets.map((widget) => (
+                      <li key={widget} className="flex items-start gap-3">
+                        <span className="mt-1 h-2 w-2 rounded-full bg-[var(--color-primary)]" />
+                        <span>{widget}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+              </section>
             </div>
-
-            <div>
-              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-[var(--color-text-muted)]">Widgets habilitados</h2>
-              <ul className="list-disc space-y-1 pl-5 text-[var(--color-text-muted)]">
-                {data.widgets.map((widget) => (
-                  <li key={widget}>{widget}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </section>
   );

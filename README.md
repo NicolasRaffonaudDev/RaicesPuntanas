@@ -28,6 +28,50 @@ Aplicacion full stack para gestion comercial de lotes, clientes y operaciones.
 - Tiempo real: Socket.io para eventos de auditoria.
 - Observabilidad: Web Vitals (frontend) con ingesta en `POST /api/telemetry/web-vitals`.
 
+## Arquitectura actual del proyecto
+### Frontend
+- React
+- TypeScript
+- Vite
+- Workspace SaaS con sidebar por roles
+
+### Backend
+- Node.js
+- Express
+- PostgreSQL
+- Prisma
+
+### Auth
+- JWT access token corto
+- Refresh token rotativo
+- Interceptor de requests en frontend
+- Retry automatico tras `401`
+- Validacion de sesion al iniciar la app
+
+### UI System
+- Sidebar por roles
+- `AuthenticatedLayout` con workspace compartido
+- `PageHeader` reusable para modulos internos
+- Feedback components:
+  - `SectionLoading`
+  - `SectionError`
+  - `SectionEmpty`
+
+### Modulos actuales
+- Dashboard
+- Lotes
+- Consultas
+- Gestion comercial
+- Panel de usuario
+- Configuracion
+
+## Estado actual del proyecto
+- Navegacion por roles consolidada en el portal autenticado
+- Workspace SaaS con sidebar, area de trabajo comun y layout compartido
+- Manejo robusto de sesion con refresh automatico y reintento de requests protegidas
+- Base visual premium negro + dorado aplicada a dashboard, sidebar y encabezados internos
+- Arquitectura preparada para crecer por modulos sin romper contratos existentes
+
 ## Roles implementados
 - `admin`: acceso total (usuarios + auditoria).
 - `empleado`: gestion operativa limitada.

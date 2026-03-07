@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { SectionEmpty, SectionError, SectionLoading } from "../components/Feedback";
 import LotCard from "../components/LotCard/LotCard";
 import { useAuth } from "../context/useAuth";
 import { commercialApi } from "../services/commercialApi";
@@ -70,6 +71,12 @@ const Lotes: React.FC = () => {
     setSelectedAmenities((prev) =>
       prev.includes(amenity) ? prev.filter((item) => item !== amenity) : [...prev, amenity],
     );
+  };
+
+  const resetFilters = () => {
+    setFiltroPrecio(0);
+    setSelectedAmenities([]);
+    setOrden("recomendado");
   };
 
   const canManageFavorites = !!token && hasPermission(user?.role, "favoritos.write");
@@ -199,13 +206,31 @@ const Lotes: React.FC = () => {
           </div>
         </div>
 
-        {loading && <p className="text-center text-[var(--color-text-muted)]">Cargando lotes...</p>}
-        {error && <p className="text-center text-red-400">{error}</p>}
+        {loading && (
+          <SectionLoading
+            title="Cargando lotes"
+            message="Estamos consultando el listado disponible para mostrarte las opciones activas."
+          />
+        )}
+        {!loading && error && (
+          <SectionError
+            title="No pudimos cargar los lotes"
+            message={error}
+          />
+        )}
         {favoriteError && <p className="text-center text-amber-300">{favoriteError}</p>}
         {compareError && <p className="text-center text-amber-300">{compareError}</p>}
 
         {!loading && !error && filteredLotes.length === 0 && (
-          <p className="text-center text-[var(--color-text-muted)]">No hay lotes que coincidan con los filtros.</p>
+          <SectionEmpty
+            title="No encontramos lotes con esos filtros"
+            message="Prueba limpiar los filtros actuales o ajustar el rango de precio y amenities para ampliar los resultados."
+            action={(
+              <button type="button" className="btn btn-outline text-sm" onClick={resetFilters}>
+                Limpiar filtros
+              </button>
+            )}
+          />
         )}
 
         {!loading && !error && filteredLotes.length > 0 && (
