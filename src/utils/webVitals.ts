@@ -1,6 +1,7 @@
 import { onCLS, onFCP, onINP, onLCP, onTTFB, type Metric } from "web-vitals";
+import { API_URL } from "../services/apiClient";
 
-const endpoint = import.meta.env.VITE_WEB_VITALS_ENDPOINT || "http://localhost:3001/api/telemetry/web-vitals";
+const endpoint = import.meta.env.VITE_WEB_VITALS_ENDPOINT || `${API_URL}/telemetry/web-vitals`;
 
 const sendMetric = (metric: Metric) => {
   const payload = JSON.stringify({

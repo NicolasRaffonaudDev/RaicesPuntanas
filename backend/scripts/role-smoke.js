@@ -1,9 +1,11 @@
 require("dotenv").config();
 
-const API_BASE = process.env.API_BASE_URL || "http://localhost:3001/api";
-const ADMIN_EMAIL = process.env.SMOKE_ADMIN_EMAIL || "admin@raicespuntanas.local";
-const ADMIN_PASSWORD = process.env.SMOKE_ADMIN_PASSWORD || "admin1234";
-const TEST_PASSWORD = process.env.SMOKE_TEST_PASSWORD || "User12345!";
+const { env } = require("../src/config");
+
+const API_BASE = env.API_BASE_URL || "http://localhost:3001/api";
+const ADMIN_EMAIL = env.SMOKE_ADMIN_EMAIL || "admin@raicespuntanas.local";
+const ADMIN_PASSWORD = env.SMOKE_ADMIN_PASSWORD || "admin1234";
+const TEST_PASSWORD = env.SMOKE_TEST_PASSWORD || "User12345!";
 
 const request = async (path, options = {}) => {
   const response = await fetch(`${API_BASE}${path}`, options);

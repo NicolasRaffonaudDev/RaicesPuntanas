@@ -4,7 +4,7 @@ const crypto = require("crypto");
 const { AppError } = require("../utils/app-error");
 const { userRepository } = require("../repositories/user-repository");
 const { refreshTokenRepository } = require("../repositories/refresh-token-repository");
-const { env } = require("../config/env");
+const { env } = require("../config");
 const { auditService } = require("./audit-service");
 const { emailService } = require("./email-service");
 

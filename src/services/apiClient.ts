@@ -1,4 +1,10 @@
-const API_URL = "http://localhost:3001/api";
+const rawApiUrl = import.meta.env.VITE_API_URL;
+if (!rawApiUrl) {
+  throw new Error("VITE_API_URL no esta definida. Configura tu .env con la base de la API.");
+}
+
+const API_URL = rawApiUrl.replace(/\/+$/, "");
+const API_ORIGIN = new URL(API_URL).origin;
 
 interface AuthHandlers {
   getAccessToken: () => string | null;
@@ -81,4 +87,4 @@ export const apiRequest = async (path: string, options: RequestOptions = {}): Pr
   return response;
 };
 
-export { API_URL };
+export { API_URL, API_ORIGIN };

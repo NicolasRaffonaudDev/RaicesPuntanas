@@ -2,7 +2,7 @@ require("dotenv").config();
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 const { app } = require("./app");
-const { env } = require("./config/env");
+const { env } = require("./config");
 const { setIO } = require("./config/socket");
 const { prisma } = require("./db/prisma");
 

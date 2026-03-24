@@ -4,6 +4,7 @@ import { io } from "socket.io-client";
 import { PageHeader } from "../components/PageHeader";
 import { useAuth } from "../context/useAuth";
 import { commercialApi } from "../services/commercialApi";
+import { API_ORIGIN } from "../services/apiClient";
 import type { SystemUser, UserRole } from "../types/auth";
 import { hasPermission } from "../utils/permissions";
 import type {
@@ -210,7 +211,7 @@ const GestionComercial: React.FC = () => {
   }, [refreshAll]);
 
   useEffect(() => {
-    const socket = io("http://localhost:3001", { transports: ["websocket"] });
+    const socket = io(API_ORIGIN, { transports: ["websocket"] });
 
     socket.on("audit:created", () => {
       void refreshAll();

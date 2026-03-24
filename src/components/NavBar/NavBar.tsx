@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 import { preloaders } from "../../routes/lazy-pages";
 import { commercialApi } from "../../services/commercialApi";
+import { API_ORIGIN } from "../../services/apiClient";
 import { hasPermission } from "../../utils/permissions";
 
 const NavBar: React.FC = () => {
@@ -34,7 +35,7 @@ const NavBar: React.FC = () => {
   useEffect(() => {
     if (!canManageConsultas) return;
 
-    const socket = io("http://localhost:3001", { transports: ["websocket"] });
+    const socket = io(API_ORIGIN, { transports: ["websocket"] });
     socket.on("audit:created", (entry: { action?: string }) => {
       if (entry?.action?.startsWith("consulta.")) {
         void loadPendingConsultas();

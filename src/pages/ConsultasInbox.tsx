@@ -4,6 +4,7 @@ import { SectionEmpty, SectionError, SectionLoading } from "../components/Feedba
 import { PageHeader } from "../components/PageHeader";
 import { useAuth } from "../context/useAuth";
 import { commercialApi } from "../services/commercialApi";
+import { API_ORIGIN } from "../services/apiClient";
 import type { ConsultaEstado, ConsultaSeguimiento, ConsultaWithUser, Pagination } from "../types/commercial";
 
 const defaultPagination: Pagination = { page: 1, limit: 10, total: 0, totalPages: 1 };
@@ -75,7 +76,7 @@ const ConsultasInbox: React.FC = () => {
   }, [loadConsultas]);
 
   useEffect(() => {
-    const socket = io("http://localhost:3001", { transports: ["websocket"] });
+    const socket = io(API_ORIGIN, { transports: ["websocket"] });
     socket.on("audit:created", (entry: { action?: string }) => {
       if (entry?.action?.startsWith("consulta.")) {
         void loadConsultas();

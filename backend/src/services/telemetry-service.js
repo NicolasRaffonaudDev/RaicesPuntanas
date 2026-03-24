@@ -1,3 +1,5 @@
+const { env } = require("../config");
+
 const telemetryService = {
   ingestWebVital: async ({ payload }) => {
     const event = {
@@ -6,7 +8,7 @@ const telemetryService = {
       ...payload,
     };
 
-    if (process.env.NODE_ENV !== "production") {
+    if (env.NODE_ENV !== "production") {
       console.info("[telemetry:web-vitals]", JSON.stringify(event));
     }
 

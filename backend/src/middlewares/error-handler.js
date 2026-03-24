@@ -1,4 +1,5 @@
 const { ZodError } = require("zod");
+const { env } = require("../config");
 
 const errorHandler = (err, req, res, next) => {
   if (res.headersSent) return next(err);
@@ -16,7 +17,7 @@ const errorHandler = (err, req, res, next) => {
   };
 
   if (err.details) body.details = err.details;
-  if (process.env.NODE_ENV !== "production") body.stack = err.stack;
+  if (env.NODE_ENV !== "production") body.stack = err.stack;
 
   return res.status(statusCode).json(body);
 };
