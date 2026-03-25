@@ -7,6 +7,7 @@ const { asyncHandler } = require("../utils/async-handler");
 
 const loteRoutes = Router();
 
+loteRoutes.get("/by-ids", asyncHandler(loteController.getByIds));
 loteRoutes.get("/", asyncHandler(loteController.getAll));
 loteRoutes.post(
   "/",

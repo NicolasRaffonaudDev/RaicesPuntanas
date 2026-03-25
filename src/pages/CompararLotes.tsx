@@ -22,11 +22,15 @@ const CompararLotes: React.FC = () => {
   const hasMapsKey = Boolean(import.meta.env.VITE_GOOGLE_MAPS_API_KEY);
 
   useEffect(() => {
+    if (selectedIds.length === 0) {
+      setLotes([]);
+      setLoading(false);
+      return;
+    }
+
     commercialApi
-      .listLotes()
-      .then((data) => {
-        setLotes(data.filter((lote) => selectedIds.includes(lote.id)));
-      })
+      .getLotesByIds(selectedIds)
+      .then(setLotes)
       .catch((err: Error) => setError(err.message))
       .finally(() => setLoading(false));
   }, [selectedIds]);

@@ -6,6 +6,21 @@ const loteRepository = {
       orderBy: { createdAt: "desc" },
     }),
 
+  findPaged: ({ where, orderBy, skip, take }) =>
+    prisma.lote.findMany({
+      where,
+      orderBy,
+      skip,
+      take,
+    }),
+
+  count: (where) => prisma.lote.count({ where }),
+
+  findByIds: (ids) =>
+    prisma.lote.findMany({
+      where: { id: { in: ids } },
+    }),
+
   findById: (id) => prisma.lote.findUnique({ where: { id } }),
 
   create: (data) => prisma.lote.create({ data }),

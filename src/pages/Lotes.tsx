@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SectionEmpty, SectionError, SectionLoading } from "../components/Feedback";
 import LotCard from "../components/LotCard/LotCard";
@@ -33,6 +33,7 @@ const Lotes: React.FC = () => {
   const navigate = useNavigate();
   const { token, user } = useAuth();
   const [lotes, setLotes] = useState<Lote[]>([]);
+  const [meta, setMeta] = useState({ page: 1, limit: 10, total: 0, totalPages: 1 });
   const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
   const [compareIds, setCompareIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -44,27 +45,36 @@ const Lotes: React.FC = () => {
   const [filtroPrecio, setFiltroPrecio] = useState(0);
   const [orden, setOrden] = useState<"recomendado" | "precio_asc" | "precio_desc" | "tamano_desc">("recomendado");
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLoteId, setEditingLoteId] = useState<number | null>(null);
   const [formState, setFormState] = useState<LoteFormState>(emptyLoteForm);
   const [isSaving, setIsSaving] = useState(false);
 
-  const loadLotes = async () => {
+  const loadLotes = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const data = await commercialApi.listLotes();
-      setLotes(data);
+      const result = await commercialApi.listLotes({
+        page,
+        limit,
+        minPrice: filtroPrecio > 0 ? filtroPrecio : undefined,
+        amenities: selectedAmenities.length > 0 ? selectedAmenities : undefined,
+        sort: orden === "recomendado" ? undefined : (orden as "price_asc" | "price_desc" | "size_desc"),
+      });
+      setLotes(result.data);
+      setMeta(result.meta);
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo cargar lotes");
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, limit, filtroPrecio, selectedAmenities, orden]);
 
   useEffect(() => {
     void loadLotes();
-  }, []);
+  }, [loadLotes]);
 
   useEffect(() => {
     if (!token || !hasPermission(user?.role, "favoritos.read")) {
@@ -82,32 +92,20 @@ const Lotes: React.FC = () => {
       .finally(() => setFavoritesLoading(false));
   }, [token, user?.role]);
 
-  const allAmenities = useMemo(
-    () => Array.from(new Set(lotes.flatMap((lote) => lote.amenities))),
-    [lotes],
-  );
-
-  const filteredLotes = useMemo(() => {
-    const filtered = lotes
-      .filter((lote) => lote.price >= filtroPrecio)
-      .filter((lote) => selectedAmenities.every((amenity) => lote.amenities.includes(amenity)));
-
-    if (orden === "precio_asc") return [...filtered].sort((a, b) => a.price - b.price);
-    if (orden === "precio_desc") return [...filtered].sort((a, b) => b.price - a.price);
-    if (orden === "tamano_desc") return [...filtered].sort((a, b) => b.size - a.size);
-    return filtered;
-  }, [lotes, filtroPrecio, selectedAmenities, orden]);
+  const allAmenities = useMemo(() => Array.from(new Set(lotes.flatMap((lote) => lote.amenities))), [lotes]);
 
   const handleAmenityChange = (amenity: string) => {
     setSelectedAmenities((prev) =>
       prev.includes(amenity) ? prev.filter((item) => item !== amenity) : [...prev, amenity],
     );
+    setPage(1);
   };
 
   const resetFilters = () => {
     setFiltroPrecio(0);
     setSelectedAmenities([]);
     setOrden("recomendado");
+    setPage(1);
   };
 
   const canManageFavorites = !!token && hasPermission(user?.role, "favoritos.write");
@@ -266,7 +264,10 @@ const Lotes: React.FC = () => {
               id="precio-min"
               type="number"
               value={filtroPrecio}
-              onChange={(e) => setFiltroPrecio(Number(e.target.value) || 0)}
+              onChange={(e) => {
+                setFiltroPrecio(Number(e.target.value) || 0);
+                setPage(1);
+              }}
               placeholder="Ej: 40000"
               className="field"
             />
@@ -294,7 +295,10 @@ const Lotes: React.FC = () => {
               id="orden-lotes"
               className="field"
               value={orden}
-              onChange={(e) => setOrden(e.target.value as "recomendado" | "precio_asc" | "precio_desc" | "tamano_desc")}
+              onChange={(e) => {
+                setOrden(e.target.value as "recomendado" | "precio_asc" | "precio_desc" | "tamano_desc");
+                setPage(1);
+              }}
             >
               <option value="recomendado">Recomendado</option>
               <option value="precio_asc">Precio: menor a mayor</option>
@@ -304,11 +308,11 @@ const Lotes: React.FC = () => {
           </div>
           <div className="rounded border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3 text-sm">
             <p className="text-[var(--color-text-muted)]">
-              Mostrando <strong className="text-[var(--color-primary)]">{filteredLotes.length}</strong> lotes.
+              Mostrando <strong className="text-[var(--color-primary)]">{meta.total || lotes.length}</strong> lotes.
             </p>
-            {filteredLotes.length > 0 && (
+            {lotes.length > 0 && (
               <p className="mt-1 text-[var(--color-text-muted)]">
-                Desde <strong className="text-[var(--color-primary)]">${Math.min(...filteredLotes.map((l) => l.price)).toLocaleString("es-AR")}</strong> USD
+                Desde <strong className="text-[var(--color-primary)]">${Math.min(...lotes.map((l) => l.price)).toLocaleString("es-AR")}</strong> USD
               </p>
             )}
           </div>
@@ -342,7 +346,7 @@ const Lotes: React.FC = () => {
         {favoriteError && <p className="text-center text-amber-300">{favoriteError}</p>}
         {compareError && <p className="text-center text-amber-300">{compareError}</p>}
 
-        {!loading && !error && filteredLotes.length === 0 && (
+        {!loading && !error && lotes.length === 0 && (
           <SectionEmpty
             title="No encontramos lotes con esos filtros"
             message="Prueba limpiar los filtros actuales o ajustar el rango de precio y amenities para ampliar los resultados."
@@ -354,9 +358,9 @@ const Lotes: React.FC = () => {
           />
         )}
 
-        {!loading && !error && filteredLotes.length > 0 && (
+        {!loading && !error && lotes.length > 0 && (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredLotes.map((lote, index) => (
+            {lotes.map((lote, index) => (
               <div key={lote.id} className="space-y-2">
                 <LotCard lote={lote} prioritizeImage={index < 2} />
                 <div className="flex gap-2">

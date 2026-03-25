@@ -8,6 +8,7 @@ import type {
   InventarioMovimiento,
   LoteFavorito,
   PaginatedResult,
+  Pagination,
   Producto,
   Venta,
 } from "../types/commercial";
@@ -26,10 +27,40 @@ const authHeaders = (token: string) => ({
   Authorization: `Bearer ${token}`,
 });
 
+interface LotesQuery {
+  page?: number;
+  limit?: number;
+  minPrice?: number;
+  amenities?: string[];
+  sort?: "price_asc" | "price_desc" | "size_desc";
+}
+
+interface LotesResponse {
+  data: Lote[];
+  meta: Pagination;
+}
+
 export const commercialApi = {
-  listLotes: async (): Promise<Lote[]> => {
-    const res = await apiRequest("/lotes", { skipAuth: true });
+  listLotes: async (query: LotesQuery = {}): Promise<LotesResponse> => {
+    const params = new URLSearchParams();
+    if (query.page) params.set("page", String(query.page));
+    if (query.limit) params.set("limit", String(query.limit));
+    if (typeof query.minPrice === "number") params.set("minPrice", String(query.minPrice));
+    if (query.amenities && query.amenities.length > 0) params.set("amenities", query.amenities.join(","));
+    if (query.sort) params.set("sort", query.sort);
+
+    const queryString = params.toString();
+    const res = await apiRequest(queryString ? `/lotes?${queryString}` : "/lotes", { skipAuth: true });
     if (!res.ok) throw new Error("No se pudo cargar el listado de lotes");
+    return res.json();
+  },
+
+  getLotesByIds: async (ids: number[]): Promise<Lote[]> => {
+    if (!ids || ids.length === 0) return [];
+    const params = new URLSearchParams();
+    params.set("ids", ids.join(","));
+    const res = await apiRequest(`/lotes/by-ids?${params.toString()}`, { skipAuth: true });
+    if (!res.ok) throw new Error("No se pudieron cargar los lotes seleccionados");
     return res.json();
   },
 
