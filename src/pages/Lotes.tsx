@@ -249,6 +249,22 @@ const Lotes: React.FC = () => {
     }
   };
 
+  const buildPageItems = (current: number, total: number) => {
+    if (total <= 7) return Array.from({ length: total }, (_, idx) => idx + 1);
+    const safeCurrent = Math.max(1, Math.min(current, total));
+    const candidates = new Set([1, total, safeCurrent - 1, safeCurrent, safeCurrent + 1]);
+    const pages = Array.from(candidates).filter((n) => n >= 1 && n <= total).sort((a, b) => a - b);
+
+    const items: Array<number | "ellipsis"> = [];
+    let prev = 0;
+    for (const pageNum of pages) {
+      if (prev && pageNum - prev > 1) items.push("ellipsis");
+      items.push(pageNum);
+      prev = pageNum;
+    }
+    return items;
+  };
+
   return (
     <section className="page">
       <div className="container space-y-5">
@@ -408,6 +424,44 @@ const Lotes: React.FC = () => {
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {meta.totalPages > 1 && (
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <button
+              type="button"
+              className="btn btn-outline"
+              disabled={page === 1}
+              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+            >
+              Anterior
+            </button>
+            {buildPageItems(page, meta.totalPages).map((item, index) =>
+              item === "ellipsis" ? (
+                <span key={`ellipsis-${index}`} className="px-2 text-sm text-[var(--color-text-muted)]">
+                  ...
+                </span>
+              ) : (
+                <button
+                  key={`page-${item}`}
+                  type="button"
+                  className={`btn ${item === page ? "btn-primary" : "btn-outline"}`}
+                  aria-current={item === page ? "page" : undefined}
+                  onClick={() => setPage(item)}
+                >
+                  {item}
+                </button>
+              ),
+            )}
+            <button
+              type="button"
+              className="btn btn-outline"
+              disabled={page === meta.totalPages}
+              onClick={() => setPage((prev) => Math.min(meta.totalPages, prev + 1))}
+            >
+              Siguiente
+            </button>
           </div>
         )}
       </div>
