@@ -76,7 +76,7 @@ const ConsultasInbox: React.FC = () => {
   }, [loadConsultas]);
 
   useEffect(() => {
-    const socket = io(API_ORIGIN, { transports: ["websocket"] });
+    const socket = io(API_ORIGIN, { transports: ["polling"] });
     socket.on("audit:created", (entry: { action?: string }) => {
       if (entry?.action?.startsWith("consulta.")) {
         void loadConsultas();

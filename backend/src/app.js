@@ -34,6 +34,7 @@ const setupAdminLimiter = rateLimit({
 app.use(
   cors({
     origin: env.FRONTEND_ORIGIN,
+    credentials: true,
   }),
 );
 

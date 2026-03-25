@@ -211,7 +211,7 @@ const GestionComercial: React.FC = () => {
   }, [refreshAll]);
 
   useEffect(() => {
-    const socket = io(API_ORIGIN, { transports: ["websocket"] });
+    const socket = io(API_ORIGIN, { transports: ["polling"] });
 
     socket.on("audit:created", () => {
       void refreshAll();

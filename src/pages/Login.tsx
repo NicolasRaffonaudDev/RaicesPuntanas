@@ -1,13 +1,26 @@
-import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/useAuth";
+import { authApi } from "../services/authApi";
 
 const Login: React.FC = () => {
-  const { login } = useAuth();
+  const { establishSession, user, token } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [redirectPending, setRedirectPending] = useState(false);
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const redirectTarget = useMemo(() => {
+    const state = location.state as { from?: Location } | null;
+    return state?.from?.pathname || "/dashboard";
+  }, [location.state]);
+
+  useEffect(() => {
+    if (!redirectPending) return;
+    if (!user || !token) return;
+    navigate(redirectTarget, { replace: true });
+  }, [redirectPending, user, token, navigate, redirectTarget]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -15,8 +28,9 @@ const Login: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      await login(form);
-      navigate("/dashboard");
+      const session = await authApi.login(form);
+      establishSession(session);
+      setRedirectPending(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : "No fue posible iniciar sesion";
       setError(message);
@@ -48,7 +62,7 @@ const Login: React.FC = () => {
             onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
           />
           {error && <p className="text-sm text-red-400">{error}</p>}
-          <button className="btn btn-primary w-full" disabled={isSubmitting}>
+          <button type="submit" className="btn btn-primary w-full" disabled={isSubmitting}>
             {isSubmitting ? "Validando..." : "Entrar"}
           </button>
           <p className="text-center text-xs text-[var(--color-text-muted)]">

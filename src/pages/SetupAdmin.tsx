@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import { authApi } from "../services/authApi";
 
 const SetupAdmin: React.FC = () => {
   const navigate = useNavigate();
-  const { establishSession } = useAuth();
+  const { establishSession, user, token } = useAuth();
+  const [redirectPending, setRedirectPending] = useState(false);
 
   const [form, setForm] = useState({
     setupKey: "",
@@ -16,6 +17,12 @@ const SetupAdmin: React.FC = () => {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (!redirectPending) return;
+    if (!user || !token) return;
+    navigate("/gestion", { replace: true });
+  }, [redirectPending, user, token, navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -24,7 +31,7 @@ const SetupAdmin: React.FC = () => {
     try {
       const session = await authApi.setupAdmin(form);
       establishSession(session);
-      navigate("/gestion");
+      setRedirectPending(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo crear admin");
     } finally {

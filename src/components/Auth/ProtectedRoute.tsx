@@ -8,10 +8,10 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
-  const { user, authReady } = useAuth();
+  const { user, authReady, token } = useAuth();
   const location = useLocation();
 
-  if (!authReady) {
+  if (!authReady || (token && !user)) {
     return <div className="container py-8 text-sm text-[var(--color-text-muted)]">Validando sesion...</div>;
   }
 

@@ -58,7 +58,7 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     if (!canManageConsultas) return;
 
-    const socket = io(API_ORIGIN, { transports: ["websocket"] });
+    const socket = io(API_ORIGIN, { transports: ["polling"] });
     socket.on("audit:created", (entry: { action?: string }) => {
       if (entry?.action?.startsWith("consulta.")) {
         void loadPendingConsultas();

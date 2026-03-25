@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { authApi } from "../services/authApi";
 import { clearApiClientAuth, configureApiClientAuth } from "../services/apiClient";
 import type { AuthResponse, AuthUser } from "../types/auth";
@@ -32,12 +32,32 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   const [refreshToken, setRefreshToken] = useState<string | null>(hydratedSession?.refreshToken ?? null);
   const [user, setUser] = useState<AuthUser | null>(hydratedSession?.user ?? null);
   const [authReady, setAuthReady] = useState(false);
+  const latestSessionRef = useRef({ token, refreshToken, user });
+  const sessionVersionRef = useRef(0);
 
-  const clearSession = useCallback(() => {
+  useEffect(() => {
+    latestSessionRef.current = { token, refreshToken, user };
+  }, [token, refreshToken, user]);
+
+  const clearSession = useCallback((expectedRefreshToken?: string | null) => {
+    if (expectedRefreshToken) {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        try {
+          const current = JSON.parse(raw) as AuthResponse;
+          if (current.refreshToken && current.refreshToken !== expectedRefreshToken) {
+            return;
+          }
+        } catch {
+          // ignore storage parse errors
+        }
+      }
+    }
     setToken(null);
     setRefreshToken(null);
     setUser(null);
     localStorage.removeItem(STORAGE_KEY);
+    sessionVersionRef.current += 1;
   }, []);
 
   const saveSession = useCallback((session: AuthResponse) => {
@@ -45,6 +65,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     setToken(accessToken);
     setRefreshToken(session.refreshToken);
     setUser(session.user);
+    sessionVersionRef.current += 1;
     localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({
@@ -57,7 +78,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
 
   const refreshSession = useCallback(async () => {
     if (!refreshToken) {
-      clearSession();
+      clearSession(refreshToken);
       return null;
     }
 
@@ -66,7 +87,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
       saveSession(refreshed);
       return refreshed.accessToken || refreshed.token;
     } catch {
-      clearSession();
+      clearSession(refreshToken);
       return null;
     }
   }, [refreshToken, clearSession, saveSession]);
@@ -118,7 +139,16 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     let cancelled = false;
 
     const bootstrapAuth = async () => {
+      const bootstrapVersion = sessionVersionRef.current;
       if (!hydratedSession?.user || !hydratedSession?.refreshToken) {
+        if (localStorage.getItem(STORAGE_KEY)) {
+          if (!cancelled) setAuthReady(true);
+          return;
+        }
+        if (sessionVersionRef.current !== bootstrapVersion) {
+          if (!cancelled) setAuthReady(true);
+          return;
+        }
         clearSession();
         if (!cancelled) setAuthReady(true);
         return;
@@ -126,6 +156,14 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
 
       const currentAccessToken = hydratedSession.accessToken || hydratedSession.token;
       if (!currentAccessToken) {
+        if (localStorage.getItem(STORAGE_KEY)) {
+          if (!cancelled) setAuthReady(true);
+          return;
+        }
+        if (sessionVersionRef.current !== bootstrapVersion) {
+          if (!cancelled) setAuthReady(true);
+          return;
+        }
         clearSession();
         if (!cancelled) setAuthReady(true);
         return;
@@ -136,7 +174,17 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
       } catch {
         const refreshed = await refreshSession();
         if (!refreshed) {
-          clearSession();
+          if (sessionVersionRef.current !== bootstrapVersion) {
+            if (!cancelled) setAuthReady(true);
+            return;
+          }
+          const latest = latestSessionRef.current;
+          const sessionChanged =
+            (latest.refreshToken && latest.refreshToken !== hydratedSession.refreshToken) ||
+            (latest.user && latest.user.id !== hydratedSession.user.id);
+          if (!sessionChanged) {
+            clearSession(hydratedSession.refreshToken);
+          }
         }
       } finally {
         if (!cancelled) setAuthReady(true);
@@ -157,7 +205,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
       try {
         await refreshSession();
       } catch {
-        clearSession();
+        clearSession(refreshToken);
       }
     }, 10 * 60 * 1000);
 

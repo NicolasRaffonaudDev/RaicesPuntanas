@@ -1,13 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 
 const Register: React.FC = () => {
-  const { register } = useAuth();
+  const { register, user, token } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [redirectPending, setRedirectPending] = useState(false);
+
+  useEffect(() => {
+    if (!redirectPending) return;
+    if (!user || !token) return;
+    navigate("/dashboard", { replace: true });
+  }, [redirectPending, user, token, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,7 +23,7 @@ const Register: React.FC = () => {
 
     try {
       await register(form);
-      navigate("/dashboard");
+      setRedirectPending(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : "No fue posible crear la cuenta";
       setError(message);
