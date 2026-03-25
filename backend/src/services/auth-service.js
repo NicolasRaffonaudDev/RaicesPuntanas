@@ -156,7 +156,11 @@ const authService = {
     await emailService.sendPasswordReset({ to: user.email, resetToken });
     await auditService.create({ userId: user.id, action: "user.password_reset_requested" });
 
-    return { message: "Reset solicitado", resetTokenPreview: resetToken };
+    const isDev = env.NODE_ENV === "development";
+    return {
+      message: "Reset solicitado",
+      ...(isDev ? { resetTokenPreview: resetToken } : {}),
+    };
   },
 
   setupAdmin: async ({ setupKey, name, email, password }) => {
