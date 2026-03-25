@@ -64,6 +64,12 @@ export const commercialApi = {
     return res.json();
   },
 
+  getLoteFilters: async (): Promise<{ amenities: string[] }> => {
+    const res = await apiRequest("/lotes/filters", { skipAuth: true });
+    if (!res.ok) throw new Error("No se pudieron cargar los filtros");
+    return res.json();
+  },
+
   createLote: async (
     token: string,
     body: {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SectionEmpty, SectionError, SectionLoading } from "../components/Feedback";
 import LotCard from "../components/LotCard/LotCard";
@@ -34,6 +34,7 @@ const Lotes: React.FC = () => {
   const { token, user } = useAuth();
   const [lotes, setLotes] = useState<Lote[]>([]);
   const [meta, setMeta] = useState({ page: 1, limit: 10, total: 0, totalPages: 1 });
+  const [allAmenities, setAllAmenities] = useState<string[]>([]);
   const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
   const [compareIds, setCompareIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -92,7 +93,12 @@ const Lotes: React.FC = () => {
       .finally(() => setFavoritesLoading(false));
   }, [token, user?.role]);
 
-  const allAmenities = useMemo(() => Array.from(new Set(lotes.flatMap((lote) => lote.amenities))), [lotes]);
+  useEffect(() => {
+    commercialApi
+      .getLoteFilters()
+      .then((data) => setAllAmenities(data.amenities))
+      .catch(() => setAllAmenities([]));
+  }, []);
 
   const handleAmenityChange = (amenity: string) => {
     setSelectedAmenities((prev) =>

@@ -47,6 +47,11 @@ const loteService = {
     return loteRepository.findByIds(ids);
   },
 
+  getFilters: async () => {
+    const amenities = await loteRepository.getAllAmenities();
+    return { amenities };
+  },
+
   create: async ({ actorUserId, data }) => {
     const created = await loteRepository.create(normalizePayload(data));
     await auditService.create({ userId: actorUserId, action: "lote.create", meta: { loteId: created.id } });

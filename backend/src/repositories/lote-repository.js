@@ -21,6 +21,19 @@ const loteRepository = {
       where: { id: { in: ids } },
     }),
 
+  getAllAmenities: async () => {
+    const result = await prisma.lote.findMany({
+      select: { amenities: true },
+    });
+
+    const set = new Set();
+    result.forEach((item) => {
+      item.amenities.forEach((amenity) => set.add(amenity));
+    });
+
+    return Array.from(set);
+  },
+
   findById: (id) => prisma.lote.findUnique({ where: { id } }),
 
   create: (data) => prisma.lote.create({ data }),

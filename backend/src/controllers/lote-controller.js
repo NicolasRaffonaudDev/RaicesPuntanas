@@ -54,6 +54,11 @@ const loteController = {
     res.json(data);
   },
 
+  getFilters: async (req, res) => {
+    const data = await loteService.getFilters();
+    res.json(data);
+  },
+
   create: async (req, res) => {
     const data = await loteService.create({ actorUserId: req.auth.sub, data: req.body });
     res.status(201).json({ data });
