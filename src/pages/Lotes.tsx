@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { SectionEmpty, SectionError, SectionLoading } from "../components/Feedback";
 import LotCard from "../components/LotCard/LotCard";
@@ -50,7 +50,6 @@ const Lotes: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLoteId, setEditingLoteId] = useState<number | null>(null);
   const [formState, setFormState] = useState<LoteFormState>(emptyLoteForm);
-  const [isSaving, setIsSaving] = useState(false);
 
   const {
     data: lotesResponse,
@@ -92,6 +91,65 @@ const Lotes: React.FC = () => {
       .then((data) => setAllAmenities(data.amenities))
       .catch(() => setAllAmenities([]));
   }, []);
+
+  const createLoteMutation = useMutation({
+    mutationFn: (data: {
+      title: string;
+      price: number;
+      size: number;
+      amenities: string[];
+      image: string;
+      lat: number;
+      lng: number;
+      description?: string;
+    }) => {
+      if (!token) throw new Error("No autenticado");
+      return commercialApi.createLote(token, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["lotes"] });
+    },
+    onError: (err) => {
+      setMutationError(err instanceof Error ? err.message : "Error inesperado");
+    },
+  });
+
+  const updateLoteMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<{
+      title: string;
+      price: number;
+      size: number;
+      amenities: string[];
+      image: string;
+      lat: number;
+      lng: number;
+      description?: string;
+    }> }) => {
+      if (!token) throw new Error("No autenticado");
+      return commercialApi.updateLote(token, id, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["lotes"] });
+    },
+    onError: (err) => {
+      setMutationError(err instanceof Error ? err.message : "Error inesperado");
+    },
+  });
+
+  const deleteLoteMutation = useMutation({
+    mutationFn: (id: number) => {
+      if (!token) throw new Error("No autenticado");
+      return commercialApi.deleteLote(token, id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["lotes"] });
+    },
+    onError: (err) => {
+      setMutationError(err instanceof Error ? err.message : "Error inesperado");
+    },
+  });
+
+  const isSaving = createLoteMutation.isPending || updateLoteMutation.isPending;
 
   useEffect(() => {
     if (!lotesResponse?.meta) return;
@@ -201,7 +259,6 @@ const Lotes: React.FC = () => {
     e.preventDefault();
     if (!token || !canManageLotes) return;
 
-    setIsSaving(true);
     setMutationError("");
 
     const payload = {
@@ -218,19 +275,12 @@ const Lotes: React.FC = () => {
       lng: Number(formState.lng),
     };
 
-    try {
-      if (editingLoteId === null) {
-        await commercialApi.createLote(token, payload);
-      } else {
-        await commercialApi.updateLote(token, editingLoteId, payload);
-      }
-      await queryClient.invalidateQueries({ queryKey: ["lotes"] });
-      closeModal();
-    } catch (err) {
-      setMutationError(err instanceof Error ? err.message : "No se pudo guardar el lote");
-    } finally {
-      setIsSaving(false);
+    if (editingLoteId === null) {
+      await createLoteMutation.mutateAsync(payload);
+    } else {
+      await updateLoteMutation.mutateAsync({ id: editingLoteId, data: payload });
     }
+    closeModal();
   };
 
   const removeLote = async (loteId: number) => {
@@ -239,12 +289,7 @@ const Lotes: React.FC = () => {
     if (!confirmed) return;
 
     setMutationError("");
-    try {
-      await commercialApi.deleteLote(token, loteId);
-      await queryClient.invalidateQueries({ queryKey: ["lotes"] });
-    } catch (err) {
-      setMutationError(err instanceof Error ? err.message : "No se pudo eliminar el lote");
-    }
+    await deleteLoteMutation.mutateAsync(loteId);
   };
 
   const buildPageItems = (current: number, total: number) => {
