@@ -33,6 +33,13 @@ const MapView: React.FC<MapViewProps> = ({ lote }) => {
     return () => media.removeEventListener("change", updateViewport);
   }, []);
 
+  useEffect(() => {
+    console.log("ENV DEBUG", {
+      raw: import.meta.env,
+      mapsKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+    });
+  }, []);
+
   const canUseInteractive = hasMapsKey && !isMobileViewport;
 
   useEffect(() => {
