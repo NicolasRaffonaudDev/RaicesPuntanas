@@ -37,7 +37,7 @@ const MapView: React.FC<MapViewProps> = ({ lote }) => {
 
   useEffect(() => {
     console.log("Map render", { lat, lng, hasValidCoords, isLoaded, hasMapsKey });
-    if (!hasMapsKey) {
+    if (import.meta.env.DEV && !hasMapsKey) {
       console.warn("Google Maps API key missing (VITE_GOOGLE_MAPS_API_KEY)");
     }
   }, [lat, lng, hasValidCoords, isLoaded, hasMapsKey]);

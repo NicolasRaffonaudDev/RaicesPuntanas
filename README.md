@@ -102,6 +102,26 @@ Aplicacion full stack para gestion comercial de lotes, clientes y operaciones.
    - `npm install`
    - `npm run dev`
 
+## Variables de entorno
+### Frontend
+- `VITE_API_URL`: URL del backend.
+- `VITE_GOOGLE_MAPS_API_KEY`: API key de Google Maps (requerida para mapa interactivo).
+
+### Backend
+- `NODE_ENV`: entorno de ejecucion.
+- `PORT`: puerto del servidor.
+- `DATABASE_URL`: conexion PostgreSQL.
+- `JWT_SECRET`: secreto para firmar JWT.
+- `ACCESS_TOKEN_EXPIRES_IN`: expiracion access token.
+- `REFRESH_TOKEN_EXPIRES_DAYS`: expiracion refresh token (dias).
+- `MAX_LOGIN_ATTEMPTS`: intentos maximos antes de lockout.
+- `LOCKOUT_MINUTES`: minutos de bloqueo.
+- `FRONTEND_ORIGIN`: origen permitido para CORS.
+- `SMTP_FROM`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_SECURE`: configuracion de email.
+- `SETUP_ADMIN_KEY`: clave para bootstrap admin.
+- `API_BASE_URL`: URL base usada en smoke tests.
+- `SMOKE_ADMIN_EMAIL`, `SMOKE_ADMIN_PASSWORD`, `SMOKE_TEST_PASSWORD`: credenciales para smoke tests.
+
 ## Endpoints principales
 - `GET /health`
 - `GET /api/lotes`
