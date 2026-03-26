@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { SectionEmpty, SectionError, SectionLoading } from "../components/Feedback";
 import LotCard from "../components/LotCard/LotCard";
@@ -32,14 +33,12 @@ const emptyLoteForm: LoteFormState = {
 const Lotes: React.FC = () => {
   const navigate = useNavigate();
   const { token, user } = useAuth();
-  const [lotes, setLotes] = useState<Lote[]>([]);
+  const queryClient = useQueryClient();
   const [meta, setMeta] = useState({ page: 1, limit: 10, total: 0, totalPages: 1 });
   const [allAmenities, setAllAmenities] = useState<string[]>([]);
   const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
   const [compareIds, setCompareIds] = useState<Set<number>>(new Set());
-  const [loading, setLoading] = useState(true);
   const [favoritesLoading, setFavoritesLoading] = useState(false);
-  const [error, setError] = useState("");
   const [favoriteError, setFavoriteError] = useState("");
   const [compareError, setCompareError] = useState("");
   const [mutationError, setMutationError] = useState("");
@@ -53,29 +52,23 @@ const Lotes: React.FC = () => {
   const [formState, setFormState] = useState<LoteFormState>(emptyLoteForm);
   const [isSaving, setIsSaving] = useState(false);
 
-  const loadLotes = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const result = await commercialApi.listLotes({
+  const {
+    data: lotesResponse,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["lotes", { page, limit, filtroPrecio, selectedAmenities, orden }],
+    queryFn: () =>
+      commercialApi.listLotes({
         page,
         limit,
         minPrice: filtroPrecio > 0 ? filtroPrecio : undefined,
         amenities: selectedAmenities.length > 0 ? selectedAmenities : undefined,
         sort: orden === "recomendado" ? undefined : (orden as "price_asc" | "price_desc" | "size_desc"),
-      });
-      setLotes(result.data);
-      setMeta(result.meta);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo cargar lotes");
-    } finally {
-      setLoading(false);
-    }
-  }, [page, limit, filtroPrecio, selectedAmenities, orden]);
+      }),
+  });
 
-  useEffect(() => {
-    void loadLotes();
-  }, [loadLotes]);
+  const lotes = lotesResponse?.data ?? [];
 
   useEffect(() => {
     if (!token || !hasPermission(user?.role, "favoritos.read")) {
@@ -99,6 +92,11 @@ const Lotes: React.FC = () => {
       .then((data) => setAllAmenities(data.amenities))
       .catch(() => setAllAmenities([]));
   }, []);
+
+  useEffect(() => {
+    if (!lotesResponse?.meta) return;
+    setMeta(lotesResponse.meta);
+  }, [lotesResponse?.meta]);
 
   const handleAmenityChange = (amenity: string) => {
     setSelectedAmenities((prev) =>
@@ -226,7 +224,7 @@ const Lotes: React.FC = () => {
       } else {
         await commercialApi.updateLote(token, editingLoteId, payload);
       }
-      await loadLotes();
+      await queryClient.invalidateQueries({ queryKey: ["lotes"] });
       closeModal();
     } catch (err) {
       setMutationError(err instanceof Error ? err.message : "No se pudo guardar el lote");
@@ -243,7 +241,7 @@ const Lotes: React.FC = () => {
     setMutationError("");
     try {
       await commercialApi.deleteLote(token, loteId);
-      await loadLotes();
+      await queryClient.invalidateQueries({ queryKey: ["lotes"] });
     } catch (err) {
       setMutationError(err instanceof Error ? err.message : "No se pudo eliminar el lote");
     }
@@ -352,23 +350,23 @@ const Lotes: React.FC = () => {
           </div>
         </div>
 
-        {loading && (
+        {isLoading && (
           <SectionLoading
             title="Cargando lotes"
             message="Estamos consultando el listado disponible para mostrarte las opciones activas."
           />
         )}
-        {!loading && error && (
+        {!isLoading && error && (
           <SectionError
             title="No pudimos cargar los lotes"
-            message={error}
+            message={error instanceof Error ? error.message : "No se pudo cargar lotes"}
           />
         )}
         {mutationError && <p className="text-center text-red-300">{mutationError}</p>}
         {favoriteError && <p className="text-center text-amber-300">{favoriteError}</p>}
         {compareError && <p className="text-center text-amber-300">{compareError}</p>}
 
-        {!loading && !error && lotes.length === 0 && (
+        {!isLoading && !error && lotes.length === 0 && (
           <SectionEmpty
             title="No encontramos lotes con esos filtros"
             message="Prueba limpiar los filtros actuales o ajustar el rango de precio y amenities para ampliar los resultados."
@@ -380,7 +378,7 @@ const Lotes: React.FC = () => {
           />
         )}
 
-        {!loading && !error && lotes.length > 0 && (
+        {!isLoading && !error && lotes.length > 0 && (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {lotes.map((lote, index) => (
               <div key={lote.id} className="space-y-2">
