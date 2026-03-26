@@ -106,11 +106,20 @@ const Lotes: React.FC = () => {
       if (!token) throw new Error("No autenticado");
       return commercialApi.createLote(token, data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["lotes"] });
+    onSuccess: (newLote) => {
+      queryClient.setQueriesData({ queryKey: ["lotes"] }, (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          data: [newLote, ...old.data],
+        };
+      });
     },
     onError: (err) => {
       setMutationError(err instanceof Error ? err.message : "Error inesperado");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["lotes"] });
     },
   });
 
@@ -128,11 +137,20 @@ const Lotes: React.FC = () => {
       if (!token) throw new Error("No autenticado");
       return commercialApi.updateLote(token, id, data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["lotes"] });
+    onSuccess: (updatedLote) => {
+      queryClient.setQueriesData({ queryKey: ["lotes"] }, (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          data: old.data.map((l: any) => (l.id === updatedLote.id ? updatedLote : l)),
+        };
+      });
     },
     onError: (err) => {
       setMutationError(err instanceof Error ? err.message : "Error inesperado");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["lotes"] });
     },
   });
 
@@ -141,11 +159,30 @@ const Lotes: React.FC = () => {
       if (!token) throw new Error("No autenticado");
       return commercialApi.deleteLote(token, id);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["lotes"] });
+    onMutate: async (loteId) => {
+      await queryClient.cancelQueries({ queryKey: ["lotes"] });
+      const previousData = queryClient.getQueriesData({ queryKey: ["lotes"] });
+
+      queryClient.setQueriesData({ queryKey: ["lotes"] }, (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          data: old.data.filter((l: any) => l.id !== loteId),
+        };
+      });
+
+      return { previousData };
     },
-    onError: (err) => {
+    onError: (err, _loteId, context) => {
+      if (context?.previousData) {
+        context.previousData.forEach(([key, value]: [unknown, unknown]) => {
+          queryClient.setQueryData(key, value);
+        });
+      }
       setMutationError(err instanceof Error ? err.message : "Error inesperado");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["lotes"] });
     },
   });
 
