@@ -356,6 +356,11 @@ export const commercialApi = {
     return payload.data as LoteFavorito[];
   },
 
+  getFavoritos: async (token: string): Promise<number[]> => {
+    const items = await commercialApi.listFavoritos(token);
+    return items.map((item) => item.loteId);
+  },
+
   addFavorito: async (token: string, loteId: number): Promise<LoteFavorito> => {
     const res = await apiRequest(`/favoritos/${loteId}`, {
       method: "POST",

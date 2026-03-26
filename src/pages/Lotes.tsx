@@ -36,9 +36,7 @@ const Lotes: React.FC = () => {
   const queryClient = useQueryClient();
   const [meta, setMeta] = useState({ page: 1, limit: 10, total: 0, totalPages: 1 });
   const [allAmenities, setAllAmenities] = useState<string[]>([]);
-  const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
   const [compareIds, setCompareIds] = useState<Set<number>>(new Set());
-  const [favoritesLoading, setFavoritesLoading] = useState(false);
   const [favoriteError, setFavoriteError] = useState("");
   const [compareError, setCompareError] = useState("");
   const [mutationError, setMutationError] = useState("");
@@ -69,21 +67,23 @@ const Lotes: React.FC = () => {
 
   const lotes = lotesResponse?.data ?? [];
 
-  useEffect(() => {
-    if (!token || !hasPermission(user?.role, "favoritos.read")) {
-      setFavoriteIds(new Set());
-      return;
-    }
+  const canReadFavoritos = hasPermission(user?.role, "favoritos.read");
+  const {
+    data: favoriteIds = [],
+    isLoading: favoritesLoading,
+  } = useQuery({
+    queryKey: ["favoritos"],
+    enabled: !!token && canReadFavoritos,
+    queryFn: () => {
+      if (!token) throw new Error("No autenticado");
+      return commercialApi.getFavoritos(token);
+    },
+    onError: (err) => {
+      setFavoriteError(err instanceof Error ? err.message : "No se pudo cargar favoritos");
+    },
+  });
 
-    setFavoritesLoading(true);
-    commercialApi
-      .listFavoritos(token)
-      .then((items) => {
-        setFavoriteIds(new Set(items.map((item) => item.loteId)));
-      })
-      .catch((err: Error) => setFavoriteError(err.message))
-      .finally(() => setFavoritesLoading(false));
-  }, [token, user?.role]);
+  const favoriteSet = new Set(favoriteIds);
 
   useEffect(() => {
     commercialApi
@@ -186,6 +186,39 @@ const Lotes: React.FC = () => {
     },
   });
 
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: async ({ loteId, action }: { loteId: number; action: "add" | "remove" }) => {
+      if (!token) throw new Error("No autenticado");
+      if (action === "add") {
+        return commercialApi.addFavorito(token, loteId);
+      }
+      await commercialApi.removeFavorito(token, loteId);
+      return null;
+    },
+    onMutate: async ({ loteId, action }) => {
+      await queryClient.cancelQueries({ queryKey: ["favoritos"] });
+      const previous = queryClient.getQueryData<number[]>(["favoritos"]);
+
+      queryClient.setQueryData<number[]>(["favoritos"], (old = []) => {
+        if (action === "remove") {
+          return old.filter((id) => id !== loteId);
+        }
+        return old.includes(loteId) ? old : [...old, loteId];
+      });
+
+      return { previous };
+    },
+    onError: (err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["favoritos"], context.previous);
+      }
+      setFavoriteError(err instanceof Error ? err.message : "No se pudo actualizar favoritos");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["favoritos"] });
+    },
+  });
+
   const isSaving = createLoteMutation.isPending || updateLoteMutation.isPending;
 
   useEffect(() => {
@@ -243,23 +276,8 @@ const Lotes: React.FC = () => {
     if (!token || !canManageFavorites) return;
 
     setFavoriteError("");
-    const isFavorite = favoriteIds.has(lote.id);
-
-    try {
-      if (isFavorite) {
-        await commercialApi.removeFavorito(token, lote.id);
-        setFavoriteIds((prev) => {
-          const next = new Set(prev);
-          next.delete(lote.id);
-          return next;
-        });
-      } else {
-        await commercialApi.addFavorito(token, lote.id);
-        setFavoriteIds((prev) => new Set(prev).add(lote.id));
-      }
-    } catch (err) {
-      setFavoriteError(err instanceof Error ? err.message : "No se pudo actualizar favorito");
-    }
+    const action = favoriteSet.has(lote.id) ? "remove" : "add";
+    toggleFavoriteMutation.mutate({ loteId: lote.id, action });
   };
 
   const openCreateModal = () => {
@@ -476,11 +494,11 @@ const Lotes: React.FC = () => {
                   </button>
                   <button
                     type="button"
-                    className={`btn ${favoriteIds.has(lote.id) ? "btn-outline" : "btn-primary"} flex-1 text-sm`}
+                    className={`btn ${favoriteSet.has(lote.id) ? "btn-outline" : "btn-primary"} flex-1 text-sm`}
                     onClick={() => void toggleFavorite(lote)}
-                    disabled={!canManageFavorites || favoritesLoading}
+                    disabled={!canManageFavorites || favoritesLoading || toggleFavoriteMutation.isPending}
                   >
-                    {favoriteIds.has(lote.id) ? "Quitar favorito" : "Guardar favorito"}
+                    {favoriteSet.has(lote.id) ? "Quitar favorito" : "Guardar favorito"}
                   </button>
                   <button
                     type="button"
