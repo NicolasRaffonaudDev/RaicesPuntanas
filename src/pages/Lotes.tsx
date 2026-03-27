@@ -71,11 +71,15 @@ const Lotes: React.FC = () => {
 
   const lotes = lotesResponse?.data ?? [];
 
-  const { data: loteFilters } = useQuery({
+  const {
+    data: loteFilters,
+    isLoading: filtersLoading,
+    error: filtersError,
+  } = useQuery({
     queryKey: ["lote-filters"],
     queryFn: () => commercialApi.getLoteFilters(),
   });
-  const allAmenities = loteFilters?.amenities ?? [];
+  const allAmenities = (loteFilters?.amenities ?? []).filter(Boolean);
 
   const canReadFavoritos = hasPermission(user?.role, "favoritos.read");
   const {
@@ -713,11 +717,19 @@ const Lotes: React.FC = () => {
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
                   Caracteristicas
                 </p>
-                <AmenitiesSelector
-                  options={allAmenities}
-                  value={formState.amenities}
-                  onChange={(amenities) => setFormState((prev) => ({ ...prev, amenities }))}
-                />
+                {filtersLoading && (
+                  <p className="text-sm text-[var(--color-text-muted)]">Cargando amenities...</p>
+                )}
+                {filtersError && (
+                  <p className="text-sm text-red-300">No se pudieron cargar las amenities.</p>
+                )}
+                {!filtersLoading && !filtersError && (
+                  <AmenitiesSelector
+                    options={allAmenities}
+                    value={formState.amenities}
+                    onChange={(amenities) => setFormState((prev) => ({ ...prev, amenities }))}
+                  />
+                )}
               </section>
 
               {mutationError && <p className="text-sm text-red-300">{mutationError}</p>}
