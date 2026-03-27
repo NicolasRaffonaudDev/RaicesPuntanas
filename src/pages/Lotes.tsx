@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import AddressAutocomplete from "../components/AddressAutocomplete";
 import { SectionEmpty, SectionError, SectionLoading } from "../components/Feedback";
 import LotCard from "../components/LotCard/LotCard";
 import { useAuth } from "../context/useAuth";
@@ -15,6 +16,7 @@ interface LoteFormState {
   description: string;
   amenities: string;
   image: string;
+  address: string;
   lat: string;
   lng: string;
 }
@@ -26,6 +28,7 @@ const emptyLoteForm: LoteFormState = {
   description: "",
   amenities: "",
   image: "",
+  address: "",
   lat: "",
   lng: "",
 };
@@ -296,6 +299,7 @@ const Lotes: React.FC = () => {
       description: lote.description || "",
       amenities: lote.amenities.join(", "),
       image: lote.image,
+      address: lote.address || "",
       lat: String(lote.lat),
       lng: String(lote.lng),
     });
@@ -316,6 +320,14 @@ const Lotes: React.FC = () => {
 
     setMutationError("");
 
+    const latValue = Number(formState.lat);
+    const lngValue = Number(formState.lng);
+
+    if (!Number.isFinite(latValue) || !Number.isFinite(lngValue)) {
+      setMutationError("Selecciona una direccion valida para el lote.");
+      return;
+    }
+
     const payload = {
       title: formState.title.trim(),
       price: Number(formState.price),
@@ -326,8 +338,9 @@ const Lotes: React.FC = () => {
         .map((item) => item.trim())
         .filter(Boolean),
       image: formState.image.trim(),
-      lat: Number(formState.lat),
-      lng: Number(formState.lng),
+      address: formState.address.trim() || undefined,
+      lat: latValue,
+      lng: lngValue,
     };
 
     if (editingLoteId === null) {
@@ -625,24 +638,20 @@ const Lotes: React.FC = () => {
                 value={formState.description}
                 onChange={(e) => setFormState((prev) => ({ ...prev, description: e.target.value }))}
               />
-              <input
-                className="field"
-                type="number"
-                step="any"
-                placeholder="Latitud"
-                value={formState.lat}
-                onChange={(e) => setFormState((prev) => ({ ...prev, lat: e.target.value }))}
-                required
-              />
-              <input
-                className="field"
-                type="number"
-                step="any"
-                placeholder="Longitud"
-                value={formState.lng}
-                onChange={(e) => setFormState((prev) => ({ ...prev, lng: e.target.value }))}
-                required
-              />
+              <div className="md:col-span-2">
+                <AddressAutocomplete
+                  value={formState.address}
+                  onChange={(value) => setFormState((prev) => ({ ...prev, address: value }))}
+                  onSelect={({ address, lat, lng }) =>
+                    setFormState((prev) => ({
+                      ...prev,
+                      address,
+                      lat: String(lat),
+                      lng: String(lng),
+                    }))
+                  }
+                />
+              </div>
 
               {mutationError && <p className="text-sm text-red-300 md:col-span-2">{mutationError}</p>}
 

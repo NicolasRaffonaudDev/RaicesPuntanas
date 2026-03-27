@@ -7,5 +7,6 @@ export interface Lote {
     image: string;
     lat: number;
     lng: number;
+    address?: string | null;
     description?: string | null;
 }

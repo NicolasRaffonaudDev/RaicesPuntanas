@@ -5,6 +5,7 @@ const { auditService } = require("./audit-service");
 const normalizePayload = (data) => ({
   ...data,
   amenities: data.amenities ?? [],
+  address: data.address || null,
   description: data.description || null,
 });
 

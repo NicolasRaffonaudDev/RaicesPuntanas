@@ -14,7 +14,7 @@ const MapView: React.FC<MapViewProps> = ({ lote }) => {
   const hasValidCoords = Number.isFinite(lat) && Number.isFinite(lng);
   const center = useMemo(() => ({ lat, lng }), [lat, lng]);
   const googleMapsUrl = useMemo(
-    () => `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`,
+    () => `https://www.google.com/maps?q=${lat},${lng}`,
     [lat, lng],
   );
   const { isLoaded, loadError } = useLoadScript({
@@ -36,7 +36,7 @@ const MapView: React.FC<MapViewProps> = ({ lote }) => {
     return (
       <div className="h-72 w-full border-t border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3">
         <div className="flex h-full items-center justify-center rounded border border-dashed border-[var(--color-border)] bg-black/25 p-3 text-sm text-[var(--color-text-muted)]">
-          Ingresá coordenadas para ver el mapa
+          Ingresa coordenadas para ver el mapa
         </div>
       </div>
     );
@@ -46,7 +46,7 @@ const MapView: React.FC<MapViewProps> = ({ lote }) => {
     return (
       <div className="h-72 w-full border-t border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3">
         <div className="flex h-full items-center justify-center rounded border border-dashed border-[var(--color-border)] bg-black/25 p-3 text-sm text-[var(--color-text-muted)]">
-          Configurá `VITE_GOOGLE_MAPS_API_KEY` para ver el mapa
+          Configura VITE_GOOGLE_MAPS_API_KEY para ver el mapa
         </div>
       </div>
     );
@@ -96,6 +96,11 @@ const MapView: React.FC<MapViewProps> = ({ lote }) => {
       >
         <Marker position={center} title={lote.title} />
       </GoogleMap>
+      {lote.address && (
+        <div className="pointer-events-none absolute left-3 top-3 rounded-full border border-white/30 bg-black/55 px-3 py-1 text-xs text-white">
+          {lote.address}
+        </div>
+      )}
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
         <span className="rounded-full border border-white/40 bg-black/50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-white">
           Ver en Google Maps
@@ -106,3 +111,5 @@ const MapView: React.FC<MapViewProps> = ({ lote }) => {
 };
 
 export default MapView;
+
+

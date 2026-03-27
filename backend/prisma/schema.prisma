@@ -46,6 +46,7 @@ model Lote {
   size      Int
   amenities String[]
   image     String
+  address   String?
   lat       Float
   lng       Float
   description String?
