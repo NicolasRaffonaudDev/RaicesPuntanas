@@ -23,17 +23,30 @@ interface LoteFormState {
   lng: string;
 }
 
-const parseAmenityParams = (raw: string | null) => {
+const parseNumberParam = (raw: string | null, fallback: number, options?: { min?: number; max?: number }) => {
+  if (!raw) return fallback;
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed)) return fallback;
+  const min = options?.min;
+  const max = options?.max;
+  let value = parsed;
+  if (typeof min === "number") value = Math.max(min, value);
+  if (typeof max === "number") value = Math.min(max, value);
+  return value;
+};
+
+const parseStringParam = (raw: string | null, fallback: string) => {
+  if (!raw) return fallback;
+  const trimmed = raw.trim();
+  return trimmed ? trimmed : fallback;
+};
+
+const parseArrayParam = (raw: string | null) => {
   if (!raw) return [];
   return raw
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
-};
-
-const areSameIds = (left: string[], right: string[]) => {
-  if (left.length !== right.length) return false;
-  return left.every((id, index) => id === right[index]);
 };
 
 const normalizeAmenityIds = (ids: string[]) => Array.from(new Set(ids));
@@ -60,28 +73,44 @@ const Lotes: React.FC = () => {
   const [favoriteError, setFavoriteError] = useState("");
   const [compareError, setCompareError] = useState("");
   const [mutationError, setMutationError] = useState("");
-  const [filtroPrecio, setFiltroPrecio] = useState(0);
-  const [orden, setOrden] = useState<"recomendado" | "precio_asc" | "precio_desc" | "tamano_desc">("recomendado");
-  const [filters, setFilters] = useState({ amenities: [] as string[] });
-  const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLoteId, setEditingLoteId] = useState<number | null>(null);
   const [formState, setFormState] = useState<LoteFormState>(emptyLoteForm);
+
+  const amenitiesFromUrl = useMemo(
+    () => normalizeAmenityIds(parseArrayParam(searchParams.get("amenities"))),
+    [searchParams],
+  );
+  const page = useMemo(
+    () => Math.max(1, Math.floor(parseNumberParam(searchParams.get("page"), 1, { min: 1 }))),
+    [searchParams],
+  );
+  const minPrice = useMemo(() => Math.max(0, parseNumberParam(searchParams.get("minPrice"), 0, { min: 0 })), [searchParams]);
+  const sort = useMemo(() => {
+    const raw = parseStringParam(searchParams.get("sort"), "recomendado");
+    return raw === "price_asc" || raw === "price_desc" || raw === "size_desc" ? raw : "recomendado";
+  }, [searchParams]);
+
+  const updateSearchParams = (updater: (params: URLSearchParams) => void) => {
+    const nextParams = new URLSearchParams(searchParams);
+    updater(nextParams);
+    setSearchParams(nextParams, { replace: true });
+  };
 
   const {
     data: lotesResponse,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["lotes", { page, limit, filtroPrecio, orden, amenities: filters.amenities }],
+    queryKey: ["lotes", { page, limit, minPrice, sort, amenities: amenitiesFromUrl }],
     queryFn: () =>
       commercialApi.listLotes({
         page,
         limit,
-        minPrice: filtroPrecio > 0 ? filtroPrecio : undefined,
-        amenities: filters.amenities.length > 0 ? filters.amenities : undefined,
-        sort: orden === "recomendado" ? undefined : (orden as "price_asc" | "price_desc" | "size_desc"),
+        minPrice: minPrice > 0 ? minPrice : undefined,
+        amenities: amenitiesFromUrl.length > 0 ? amenitiesFromUrl : undefined,
+        sort: sort === "recomendado" ? undefined : sort,
       }),
     placeholderData: keepPreviousData,
   });
@@ -97,28 +126,6 @@ const Lotes: React.FC = () => {
     queryFn: () => commercialApi.getLoteFilters(),
   });
   const allAmenities = (loteFilters?.amenities ?? []).filter((item): item is Amenity => Boolean(item?.id));
-  const urlAmenityIds = useMemo(
-    () => normalizeAmenityIds(parseAmenityParams(searchParams.get("amenities"))),
-    [searchParams],
-  );
-
-  useEffect(() => {
-    setFilters((prev) => (areSameIds(prev.amenities, urlAmenityIds) ? prev : { ...prev, amenities: urlAmenityIds }));
-  }, [urlAmenityIds]);
-
-  useEffect(() => {
-    const current = searchParams.get("amenities") || "";
-    const nextValue = filters.amenities.join(",");
-    if (current === nextValue) return;
-
-    const nextParams = new URLSearchParams(searchParams);
-    if (nextValue) {
-      nextParams.set("amenities", nextValue);
-    } else {
-      nextParams.delete("amenities");
-    }
-    setSearchParams(nextParams, { replace: true });
-  }, [filters.amenities, searchParams, setSearchParams]);
 
   const canReadFavoritos = hasPermission(user?.role, "favoritos.read");
   const {
@@ -275,10 +282,12 @@ const Lotes: React.FC = () => {
   }, [lotesResponse?.meta]);
 
   const resetFilters = () => {
-    setFiltroPrecio(0);
-    setFilters({ amenities: [] });
-    setOrden("recomendado");
-    setPage(1);
+    updateSearchParams((params) => {
+      params.delete("minPrice");
+      params.delete("sort");
+      params.delete("amenities");
+      params.delete("page");
+    });
   };
 
   const canManageFavorites = !!token && hasPermission(user?.role, "favoritos.write");
@@ -447,10 +456,17 @@ const Lotes: React.FC = () => {
               <input
                 id="precio-min"
                 type="number"
-                value={filtroPrecio}
+                value={minPrice}
                 onChange={(e) => {
-                  setFiltroPrecio(Number(e.target.value) || 0);
-                  setPage(1);
+                  const nextValue = Number(e.target.value);
+                  updateSearchParams((params) => {
+                    if (!Number.isFinite(nextValue) || nextValue <= 0) {
+                      params.delete("minPrice");
+                    } else {
+                      params.set("minPrice", String(nextValue));
+                    }
+                    params.delete("page");
+                  });
                 }}
                 placeholder="Ej: 40000"
                 className="field"
@@ -463,16 +479,23 @@ const Lotes: React.FC = () => {
               <select
                 id="orden-lotes"
                 className="field"
-                value={orden}
+                value={sort}
                 onChange={(e) => {
-                  setOrden(e.target.value as "recomendado" | "precio_asc" | "precio_desc" | "tamano_desc");
-                  setPage(1);
+                  const nextValue = e.target.value;
+                  updateSearchParams((params) => {
+                    if (nextValue === "recomendado") {
+                      params.delete("sort");
+                    } else {
+                      params.set("sort", nextValue);
+                    }
+                    params.delete("page");
+                  });
                 }}
               >
                 <option value="recomendado">Recomendado</option>
-                <option value="precio_asc">Precio: menor a mayor</option>
-                <option value="precio_desc">Precio: mayor a menor</option>
-                <option value="tamano_desc">Tamano: mayor a menor</option>
+                <option value="price_asc">Precio: menor a mayor</option>
+                <option value="price_desc">Precio: mayor a menor</option>
+                <option value="size_desc">Tamano: mayor a menor</option>
               </select>
             </div>
             <div className="md:col-span-2 space-y-2">
@@ -486,10 +509,17 @@ const Lotes: React.FC = () => {
               {!filtersLoading && !filtersError && (
                 <AmenitiesSelector
                   options={allAmenities}
-                  value={filters.amenities}
+                  value={amenitiesFromUrl}
                   onChange={(amenities) => {
-                    setFilters({ amenities: normalizeAmenityIds(amenities) });
-                    setPage(1);
+                    const nextAmenities = normalizeAmenityIds(amenities);
+                    updateSearchParams((params) => {
+                      if (nextAmenities.length > 0) {
+                        params.set("amenities", nextAmenities.join(","));
+                      } else {
+                        params.delete("amenities");
+                      }
+                      params.delete("page");
+                    });
                   }}
                 />
               )}
@@ -599,7 +629,16 @@ const Lotes: React.FC = () => {
               type="button"
               className="btn btn-outline"
               disabled={page === 1}
-              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              onClick={() =>
+                updateSearchParams((params) => {
+                  const nextPage = Math.max(1, page - 1);
+                  if (nextPage <= 1) {
+                    params.delete("page");
+                  } else {
+                    params.set("page", String(nextPage));
+                  }
+                })
+              }
             >
               Anterior
             </button>
@@ -614,7 +653,15 @@ const Lotes: React.FC = () => {
                   type="button"
                   className={`btn ${item === page ? "btn-primary" : "btn-outline"}`}
                   aria-current={item === page ? "page" : undefined}
-                  onClick={() => setPage(item)}
+                  onClick={() =>
+                    updateSearchParams((params) => {
+                      if (item <= 1) {
+                        params.delete("page");
+                      } else {
+                        params.set("page", String(item));
+                      }
+                    })
+                  }
                 >
                   {item}
                 </button>
@@ -624,7 +671,16 @@ const Lotes: React.FC = () => {
               type="button"
               className="btn btn-outline"
               disabled={page === meta.totalPages}
-              onClick={() => setPage((prev) => Math.min(meta.totalPages, prev + 1))}
+              onClick={() =>
+                updateSearchParams((params) => {
+                  const nextPage = Math.min(meta.totalPages, page + 1);
+                  if (nextPage <= 1) {
+                    params.delete("page");
+                  } else {
+                    params.set("page", String(nextPage));
+                  }
+                })
+              }
             >
               Siguiente
             </button>
