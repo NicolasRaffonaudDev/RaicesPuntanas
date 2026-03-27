@@ -44,7 +44,7 @@ model Lote {
   title     String
   price     Int
   size      Int
-  amenities String[]
+  amenities Amenity[]
   image     String
   address   String?
   lat       Float
@@ -53,6 +53,12 @@ model Lote {
   createdAt DateTime @default(now())
   favoritos LoteFavorito[]
   consultas Consulta[]
+}
+
+model Amenity {
+  id    String @id @default(uuid()) @db.Uuid
+  name  String @unique
+  lotes Lote[]
 }
 
 model AuditLog {

@@ -23,7 +23,7 @@ const LotCard: React.FC<LotCardProps> = ({ lote, prioritizeImage = false }) => {
         <p className="text-[var(--color-text-muted)]">Tamano: {lote.size} m2</p>
         <ul className="list-disc space-y-1 pl-5 text-sm text-[var(--color-text-muted)]">
           {lote.amenities.map((amenity) => (
-            <li key={amenity}>{amenity}</li>
+            <li key={amenity.id}>{amenity.name}</li>
           ))}
         </ul>
       </div>

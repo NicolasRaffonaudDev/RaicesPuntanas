@@ -1,9 +1,12 @@
 const { prisma } = require("../db/prisma");
 
+const loteInclude = { amenities: true };
+
 const loteRepository = {
   findAll: () =>
     prisma.lote.findMany({
       orderBy: { createdAt: "desc" },
+      include: loteInclude,
     }),
 
   findPaged: ({ where, orderBy, skip, take }) =>
@@ -12,6 +15,7 @@ const loteRepository = {
       orderBy,
       skip,
       take,
+      include: loteInclude,
     }),
 
   count: (where) => prisma.lote.count({ where }),
@@ -19,26 +23,20 @@ const loteRepository = {
   findByIds: (ids) =>
     prisma.lote.findMany({
       where: { id: { in: ids } },
+      include: loteInclude,
     }),
 
-  getAllAmenities: async () => {
-    const result = await prisma.lote.findMany({
-      select: { amenities: true },
-    });
+  getAllAmenities: () =>
+    prisma.amenity.findMany({
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
 
-    const set = new Set();
-    result.forEach((item) => {
-      item.amenities.forEach((amenity) => set.add(amenity));
-    });
+  findById: (id) => prisma.lote.findUnique({ where: { id }, include: loteInclude }),
 
-    return Array.from(set);
-  },
+  create: (data) => prisma.lote.create({ data, include: loteInclude }),
 
-  findById: (id) => prisma.lote.findUnique({ where: { id } }),
-
-  create: (data) => prisma.lote.create({ data }),
-
-  update: (id, data) => prisma.lote.update({ where: { id }, data }),
+  update: (id, data) => prisma.lote.update({ where: { id }, data, include: loteInclude }),
 
   remove: (id) => prisma.lote.delete({ where: { id } }),
 };

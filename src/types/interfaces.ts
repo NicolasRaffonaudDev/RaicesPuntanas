@@ -1,9 +1,14 @@
+export interface Amenity {
+    id: string;
+    name: string;
+}
+
 export interface Lote {
     id: number;
     title: string;
     price: number;
     size: number;
-    amenities: string[];
+    amenities: Amenity[];
     image: string;
     lat: number;
     lng: number;

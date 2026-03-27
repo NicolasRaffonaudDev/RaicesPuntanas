@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { Amenity } from "../types/interfaces";
 
 interface AmenitiesSelectorProps {
-  options: string[];
+  options: Amenity[];
   value: string[];
   onChange: (newAmenities: string[]) => void;
 }
@@ -12,13 +13,13 @@ const AmenitiesSelector: React.FC<AmenitiesSelectorProps> = ({ options, value, o
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
   const sortedOptions = useMemo(
-    () => options.slice().sort((a, b) => a.localeCompare(b)),
+    () => options.slice().sort((a, b) => a.name.localeCompare(b.name)),
     [options],
   );
   const filteredOptions = useMemo(() => {
     const query = search.trim().toLowerCase();
     if (!query) return sortedOptions;
-    return sortedOptions.filter((item) => item.toLowerCase().includes(query));
+    return sortedOptions.filter((item) => item.name.toLowerCase().includes(query));
   }, [search, sortedOptions]);
 
   useEffect(() => {
@@ -33,17 +34,17 @@ const AmenitiesSelector: React.FC<AmenitiesSelectorProps> = ({ options, value, o
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const toggleAmenity = (amenity: string) => {
-    if (value.includes(amenity)) {
-      onChange(value.filter((item) => item !== amenity));
+  const toggleAmenity = (amenity: Amenity) => {
+    if (value.includes(amenity.id)) {
+      onChange(value.filter((item) => item !== amenity.id));
       return;
     }
-    onChange([...value, amenity]);
+    onChange([...value, amenity.id]);
     setIsOpen(false);
   };
 
-  const removeAmenity = (amenity: string) => {
-    onChange(value.filter((item) => item !== amenity));
+  const removeAmenity = (amenityId: string) => {
+    onChange(value.filter((item) => item !== amenityId));
   };
 
   return (
@@ -76,17 +77,17 @@ const AmenitiesSelector: React.FC<AmenitiesSelectorProps> = ({ options, value, o
               )}
               {filteredOptions.map((amenity) => (
                 <button
-                  key={amenity}
+                  key={amenity.id}
                   type="button"
                   className={`flex items-center justify-between rounded px-3 py-2 text-sm transition hover:bg-white/10 ${
-                    value.includes(amenity)
+                    value.includes(amenity.id)
                       ? "bg-[var(--color-primary)]/15 text-white"
                       : "bg-black/20 text-[var(--color-text-muted)]"
                   }`}
                   onClick={() => toggleAmenity(amenity)}
                 >
-                  {amenity}
-                  {value.includes(amenity) && <span className="text-xs">Seleccionado</span>}
+                  {amenity.name}
+                  {value.includes(amenity.id) && <span className="text-xs">Seleccionado</span>}
                 </button>
               ))}
             </div>
@@ -96,16 +97,19 @@ const AmenitiesSelector: React.FC<AmenitiesSelectorProps> = ({ options, value, o
 
       {value.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {value.map((amenity) => (
+          {value.map((amenityId) => {
+            const amenity = options.find((item) => item.id === amenityId);
+            const label = amenity?.name ?? amenityId;
+            return (
             <button
-              key={amenity}
+              key={amenityId}
               type="button"
               className="rounded-full border border-white/10 bg-black/40 px-3 py-1 text-xs text-white transition hover:border-white/30 hover:bg-black/50"
-              onClick={() => removeAmenity(amenity)}
+              onClick={() => removeAmenity(amenityId)}
             >
-              {amenity} <span className="ml-1 text-[10px]">x</span>
+              {label} <span className="ml-1 text-[10px]">x</span>
             </button>
-          ))}
+          )})}
         </div>
       )}
     </div>

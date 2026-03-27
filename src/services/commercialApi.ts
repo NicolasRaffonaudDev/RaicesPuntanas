@@ -13,7 +13,7 @@ import type {
   Venta,
 } from "../types/commercial";
 import type { SystemUser, UserRole } from "../types/auth";
-import type { Lote } from "../types/interfaces";
+import type { Amenity, Lote } from "../types/interfaces";
 import { apiRequest } from "./apiClient";
 
 const parseResponse = async (res: Response) => {
@@ -64,7 +64,7 @@ export const commercialApi = {
     return res.json();
   },
 
-  getLoteFilters: async (): Promise<{ amenities: string[] }> => {
+  getLoteFilters: async (): Promise<{ amenities: Amenity[] }> => {
     const res = await apiRequest("/lotes/filters", { skipAuth: true });
     if (!res.ok) throw new Error("No se pudieron cargar los filtros");
     return res.json();

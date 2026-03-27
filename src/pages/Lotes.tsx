@@ -8,7 +8,7 @@ import { SectionEmpty, SectionError, SectionLoading } from "../components/Feedba
 import LotCard from "../components/LotCard/LotCard";
 import { useAuth } from "../context/useAuth";
 import { commercialApi } from "../services/commercialApi";
-import type { Lote } from "../types/interfaces";
+import type { Amenity, Lote } from "../types/interfaces";
 import { hasPermission } from "../utils/permissions";
 
 interface LoteFormState {
@@ -79,7 +79,7 @@ const Lotes: React.FC = () => {
     queryKey: ["lote-filters"],
     queryFn: () => commercialApi.getLoteFilters(),
   });
-  const allAmenities = (loteFilters?.amenities ?? []).filter(Boolean);
+  const allAmenities = (loteFilters?.amenities ?? []).filter((item): item is Amenity => Boolean(item?.id));
 
   const canReadFavoritos = hasPermission(user?.role, "favoritos.read");
   const {
@@ -235,9 +235,9 @@ const Lotes: React.FC = () => {
     setMeta(lotesResponse.meta);
   }, [lotesResponse?.meta]);
 
-  const handleAmenityChange = (amenity: string) => {
+  const handleAmenityChange = (amenityId: string) => {
     setSelectedAmenities((prev) =>
-      prev.includes(amenity) ? prev.filter((item) => item !== amenity) : [...prev, amenity],
+      prev.includes(amenityId) ? prev.filter((item) => item !== amenityId) : [...prev, amenityId],
     );
     setPage(1);
   };
@@ -303,7 +303,7 @@ const Lotes: React.FC = () => {
       price: String(lote.price),
       size: String(lote.size),
       description: lote.description || "",
-      amenities: lote.amenities,
+      amenities: lote.amenities.map((amenity) => amenity.id),
       image: lote.image,
       address: lote.address || "",
       lat: String(lote.lat),
@@ -420,13 +420,13 @@ const Lotes: React.FC = () => {
             <p className="mb-1 text-sm text-[var(--color-text-muted)]">Filtrar por amenities</p>
             <div className="flex flex-wrap gap-3 text-sm">
               {allAmenities.map((amenity) => (
-                <label key={amenity} className="flex items-center gap-1">
+                <label key={amenity.id} className="flex items-center gap-1">
                   <input
                     type="checkbox"
-                    checked={selectedAmenities.includes(amenity)}
-                    onChange={() => handleAmenityChange(amenity)}
+                    checked={selectedAmenities.includes(amenity.id)}
+                    onChange={() => handleAmenityChange(amenity.id)}
                   />
-                  {amenity}
+                  {amenity.name}
                 </label>
               ))}
             </div>
@@ -702,7 +702,10 @@ const Lotes: React.FC = () => {
                       title: formState.title || "Nuevo lote",
                       price: Number(formState.price) || 0,
                       size: Number(formState.size) || 0,
-                      amenities: formState.amenities,
+                      amenities: formState.amenities.map((amenityId) => {
+                        const match = allAmenities.find((item) => item.id === amenityId);
+                        return match ?? { id: amenityId, name: amenityId };
+                      }),
                       image: formState.image || "",
                       lat: Number(formState.lat),
                       lng: Number(formState.lng),

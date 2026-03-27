@@ -2,21 +2,48 @@ const { AppError } = require("../utils/app-error");
 const { loteRepository } = require("../repositories/lote-repository");
 const { auditService } = require("./audit-service");
 
-const normalizePayload = (data) => ({
-  ...data,
-  amenities: data.amenities ?? [],
-  address: data.address || null,
-  description: data.description || null,
-});
+const buildAmenitiesForCreate = (amenityIds = []) => {
+  if (!Array.isArray(amenityIds) || amenityIds.length === 0) return undefined;
+  return { connect: amenityIds.map((id) => ({ id })) };
+};
+
+const buildAmenitiesForUpdate = (amenityIds) => {
+  if (!Array.isArray(amenityIds)) return undefined;
+  return { set: amenityIds.map((id) => ({ id })) };
+};
+
+const buildCreatePayload = (data) => {
+  const { amenities, ...rest } = data;
+  return {
+    ...rest,
+    amenities: buildAmenitiesForCreate(amenities),
+    address: data.address || null,
+    description: data.description || null,
+  };
+};
+
+const buildUpdatePayload = (data) => {
+  const { amenities, ...rest } = data;
+  return {
+    ...rest,
+    amenities: buildAmenitiesForUpdate(amenities),
+    address: data.address === undefined ? undefined : data.address || null,
+    description: data.description === undefined ? undefined : data.description || null,
+  };
+};
 
 const loteService = {
   list: async ({ page, limit, minPrice, amenities, sort }) => {
     const where = {};
+    const andConditions = [];
     if (typeof minPrice === "number") {
-      where.price = { gte: minPrice };
+      andConditions.push({ price: { gte: minPrice } });
     }
     if (amenities && amenities.length > 0) {
-      where.amenities = { hasEvery: amenities };
+      andConditions.push(...amenities.map((id) => ({ amenities: { some: { id } } })));
+    }
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
     }
 
     let orderBy = { createdAt: "desc" };
@@ -54,7 +81,7 @@ const loteService = {
   },
 
   create: async ({ actorUserId, data }) => {
-    const created = await loteRepository.create(normalizePayload(data));
+    const created = await loteRepository.create(buildCreatePayload(data));
     await auditService.create({ userId: actorUserId, action: "lote.create", meta: { loteId: created.id } });
     return created;
   },
@@ -63,7 +90,7 @@ const loteService = {
     const existing = await loteRepository.findById(id);
     if (!existing) throw new AppError(404, "Lote no encontrado");
 
-    const updated = await loteRepository.update(id, normalizePayload(data));
+    const updated = await loteRepository.update(id, buildUpdatePayload(data));
     await auditService.create({ userId: actorUserId, action: "lote.update", meta: { loteId: id } });
     return updated;
   },

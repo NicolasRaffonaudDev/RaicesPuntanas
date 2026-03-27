@@ -85,7 +85,7 @@ export interface LoteFavorito {
     title: string;
     price: number;
     size: number;
-    amenities: string[];
+    amenities: Amenity[];
     image: string;
     lat: number;
     lng: number;
@@ -133,3 +133,4 @@ export interface ConsultaSeguimiento {
     role: "admin" | "empleado" | "usuario";
   } | null;
 }
+import type { Amenity } from "./interfaces";

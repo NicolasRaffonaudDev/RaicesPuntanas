@@ -48,10 +48,30 @@ const seed = async () => {
     },
   ];
 
+  const amenityMap = new Map();
+  const amenityNames = Array.from(new Set(lotes.flatMap((lote) => lote.amenities)));
+
+  for (const name of amenityNames) {
+    const amenity = await prisma.amenity.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    });
+    amenityMap.set(name, amenity.id);
+  }
+
   for (const lote of lotes) {
     const existing = await prisma.lote.findFirst({ where: { title: lote.title } });
     if (!existing) {
-      await prisma.lote.create({ data: lote });
+      const { amenities, ...rest } = lote;
+      await prisma.lote.create({
+        data: {
+          ...rest,
+          amenities: {
+            connect: amenities.map((name) => ({ id: amenityMap.get(name) })).filter((item) => item.id),
+          },
+        },
+      });
     }
   }
 
