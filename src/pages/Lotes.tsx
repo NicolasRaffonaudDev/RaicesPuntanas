@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import AddressAutocomplete from "../components/AddressAutocomplete";
 import AmenitiesSelector from "../components/AmenitiesSelector";
 import MapView from "../components/MapView/MapView";
@@ -23,6 +23,21 @@ interface LoteFormState {
   lng: string;
 }
 
+const parseAmenityParams = (raw: string | null) => {
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
+
+const areSameIds = (left: string[], right: string[]) => {
+  if (left.length !== right.length) return false;
+  return left.every((id, index) => id === right[index]);
+};
+
+const normalizeAmenityIds = (ids: string[]) => Array.from(new Set(ids));
+
 const emptyLoteForm: LoteFormState = {
   title: "",
   price: "",
@@ -37,6 +52,7 @@ const emptyLoteForm: LoteFormState = {
 
 const Lotes: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { token, user } = useAuth();
   const queryClient = useQueryClient();
   const [meta, setMeta] = useState({ page: 1, limit: 10, total: 0, totalPages: 1 });
@@ -46,7 +62,7 @@ const Lotes: React.FC = () => {
   const [mutationError, setMutationError] = useState("");
   const [filtroPrecio, setFiltroPrecio] = useState(0);
   const [orden, setOrden] = useState<"recomendado" | "precio_asc" | "precio_desc" | "tamano_desc">("recomendado");
-  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
+  const [filters, setFilters] = useState({ amenities: [] as string[] });
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -58,15 +74,16 @@ const Lotes: React.FC = () => {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["lotes", { page, limit, filtroPrecio, selectedAmenities, orden }],
+    queryKey: ["lotes", { page, limit, filtroPrecio, orden, amenities: filters.amenities }],
     queryFn: () =>
       commercialApi.listLotes({
         page,
         limit,
         minPrice: filtroPrecio > 0 ? filtroPrecio : undefined,
-        amenities: selectedAmenities.length > 0 ? selectedAmenities : undefined,
+        amenities: filters.amenities.length > 0 ? filters.amenities : undefined,
         sort: orden === "recomendado" ? undefined : (orden as "price_asc" | "price_desc" | "size_desc"),
       }),
+    placeholderData: keepPreviousData,
   });
 
   const lotes = lotesResponse?.data ?? [];
@@ -80,6 +97,28 @@ const Lotes: React.FC = () => {
     queryFn: () => commercialApi.getLoteFilters(),
   });
   const allAmenities = (loteFilters?.amenities ?? []).filter((item): item is Amenity => Boolean(item?.id));
+  const urlAmenityIds = useMemo(
+    () => normalizeAmenityIds(parseAmenityParams(searchParams.get("amenities"))),
+    [searchParams],
+  );
+
+  useEffect(() => {
+    setFilters((prev) => (areSameIds(prev.amenities, urlAmenityIds) ? prev : { ...prev, amenities: urlAmenityIds }));
+  }, [urlAmenityIds]);
+
+  useEffect(() => {
+    const current = searchParams.get("amenities") || "";
+    const nextValue = filters.amenities.join(",");
+    if (current === nextValue) return;
+
+    const nextParams = new URLSearchParams(searchParams);
+    if (nextValue) {
+      nextParams.set("amenities", nextValue);
+    } else {
+      nextParams.delete("amenities");
+    }
+    setSearchParams(nextParams, { replace: true });
+  }, [filters.amenities, searchParams, setSearchParams]);
 
   const canReadFavoritos = hasPermission(user?.role, "favoritos.read");
   const {
@@ -235,16 +274,9 @@ const Lotes: React.FC = () => {
     setMeta(lotesResponse.meta);
   }, [lotesResponse?.meta]);
 
-  const handleAmenityChange = (amenityId: string) => {
-    setSelectedAmenities((prev) =>
-      prev.includes(amenityId) ? prev.filter((item) => item !== amenityId) : [...prev, amenityId],
-    );
-    setPage(1);
-  };
-
   const resetFilters = () => {
     setFiltroPrecio(0);
-    setSelectedAmenities([]);
+    setFilters({ amenities: [] });
     setOrden("recomendado");
     setPage(1);
   };
@@ -399,77 +431,89 @@ const Lotes: React.FC = () => {
           )}
         </div>
 
-        <div className="card grid gap-4 p-4 md:grid-cols-2">
-          <div>
-            <label htmlFor="precio-min" className="mb-1 block text-sm text-[var(--color-text-muted)]">
-              Precio minimo (USD)
-            </label>
-            <input
-              id="precio-min"
-              type="number"
-              value={filtroPrecio}
-              onChange={(e) => {
-                setFiltroPrecio(Number(e.target.value) || 0);
-                setPage(1);
-              }}
-              placeholder="Ej: 40000"
-              className="field"
-            />
+        <div className="card space-y-4 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm font-semibold text-[var(--color-text-muted)]">Filtros</p>
+            <button type="button" className="btn btn-outline text-sm" onClick={resetFilters}>
+              Limpiar filtros
+            </button>
           </div>
-          <div>
-            <p className="mb-1 text-sm text-[var(--color-text-muted)]">Filtrar por amenities</p>
-            <div className="flex flex-wrap gap-3 text-sm">
-              {allAmenities.map((amenity) => (
-                <label key={amenity.id} className="flex items-center gap-1">
-                  <input
-                    type="checkbox"
-                    checked={selectedAmenities.includes(amenity.id)}
-                    onChange={() => handleAmenityChange(amenity.id)}
-                  />
-                  {amenity.name}
-                </label>
-              ))}
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label htmlFor="precio-min" className="mb-1 block text-sm text-[var(--color-text-muted)]">
+                Precio minimo (USD)
+              </label>
+              <input
+                id="precio-min"
+                type="number"
+                value={filtroPrecio}
+                onChange={(e) => {
+                  setFiltroPrecio(Number(e.target.value) || 0);
+                  setPage(1);
+                }}
+                placeholder="Ej: 40000"
+                className="field"
+              />
+            </div>
+            <div>
+              <label htmlFor="orden-lotes" className="mb-1 block text-sm text-[var(--color-text-muted)]">
+                Ordenar por
+              </label>
+              <select
+                id="orden-lotes"
+                className="field"
+                value={orden}
+                onChange={(e) => {
+                  setOrden(e.target.value as "recomendado" | "precio_asc" | "precio_desc" | "tamano_desc");
+                  setPage(1);
+                }}
+              >
+                <option value="recomendado">Recomendado</option>
+                <option value="precio_asc">Precio: menor a mayor</option>
+                <option value="precio_desc">Precio: mayor a menor</option>
+                <option value="tamano_desc">Tamano: mayor a menor</option>
+              </select>
+            </div>
+            <div className="md:col-span-2 space-y-2">
+              <p className="text-sm text-[var(--color-text-muted)]">Amenities</p>
+              {filtersLoading && (
+                <p className="text-sm text-[var(--color-text-muted)]">Cargando amenities...</p>
+              )}
+              {filtersError && (
+                <p className="text-sm text-red-300">No se pudieron cargar las amenities.</p>
+              )}
+              {!filtersLoading && !filtersError && (
+                <AmenitiesSelector
+                  options={allAmenities}
+                  value={filters.amenities}
+                  onChange={(amenities) => {
+                    setFilters({ amenities: normalizeAmenityIds(amenities) });
+                    setPage(1);
+                  }}
+                />
+              )}
+            </div>
+            <div className="rounded border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3 text-sm md:col-span-2">
+              <p className="text-[var(--color-text-muted)]">
+                Mostrando <strong className="text-[var(--color-primary)]">{meta.total || lotes.length}</strong> lotes.
+              </p>
+              {lotes.length > 0 && (
+                <p className="mt-1 text-[var(--color-text-muted)]">
+                  Desde <strong className="text-[var(--color-primary)]">${Math.min(...lotes.map((l) => l.price)).toLocaleString("es-AR")}</strong> USD
+                </p>
+              )}
             </div>
           </div>
-          <div>
-            <label htmlFor="orden-lotes" className="mb-1 block text-sm text-[var(--color-text-muted)]">
-              Ordenar por
-            </label>
-            <select
-              id="orden-lotes"
-              className="field"
-              value={orden}
-              onChange={(e) => {
-                setOrden(e.target.value as "recomendado" | "precio_asc" | "precio_desc" | "tamano_desc");
-                setPage(1);
-              }}
-            >
-              <option value="recomendado">Recomendado</option>
-              <option value="precio_asc">Precio: menor a mayor</option>
-              <option value="precio_desc">Precio: mayor a menor</option>
-              <option value="tamano_desc">Tamano: mayor a menor</option>
-            </select>
-          </div>
-          <div className="rounded border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3 text-sm">
-            <p className="text-[var(--color-text-muted)]">
-              Mostrando <strong className="text-[var(--color-primary)]">{meta.total || lotes.length}</strong> lotes.
-            </p>
-            {lotes.length > 0 && (
-              <p className="mt-1 text-[var(--color-text-muted)]">
-                Desde <strong className="text-[var(--color-primary)]">${Math.min(...lotes.map((l) => l.price)).toLocaleString("es-AR")}</strong> USD
+
+          <div className="rounded border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm text-[var(--color-text-muted)]">
+                Comparador activo: <strong className="text-[var(--color-primary)]">{compareIds.size}</strong>/3 lotes seleccionados.
               </p>
-            )}
-          </div>
-          <div className="md:col-span-2">
-            <div className="rounded border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-sm text-[var(--color-text-muted)]">
-                  Comparador activo: <strong className="text-[var(--color-primary)]">{compareIds.size}</strong>/3 lotes seleccionados.
-                </p>
-                <button type="button" className="btn btn-primary text-sm" data-testid="compare-button" onClick={goToCompare}>
-                  Comparar en mapa
-                </button>
-              </div>
+              <button type="button" className="btn btn-primary text-sm" data-testid="compare-button" onClick={goToCompare}>
+                Comparar en mapa
+              </button>
             </div>
           </div>
         </div>
