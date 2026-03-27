@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import AddressAutocomplete from "../components/AddressAutocomplete";
+import AmenitiesSelector from "../components/AmenitiesSelector";
+import MapView from "../components/MapView/MapView";
 import { SectionEmpty, SectionError, SectionLoading } from "../components/Feedback";
 import LotCard from "../components/LotCard/LotCard";
 import { useAuth } from "../context/useAuth";
@@ -14,7 +16,7 @@ interface LoteFormState {
   price: string;
   size: string;
   description: string;
-  amenities: string;
+  amenities: string[];
   image: string;
   address: string;
   lat: string;
@@ -26,7 +28,7 @@ const emptyLoteForm: LoteFormState = {
   price: "",
   size: "",
   description: "",
-  amenities: "",
+  amenities: [],
   image: "",
   address: "",
   lat: "",
@@ -38,7 +40,6 @@ const Lotes: React.FC = () => {
   const { token, user } = useAuth();
   const queryClient = useQueryClient();
   const [meta, setMeta] = useState({ page: 1, limit: 10, total: 0, totalPages: 1 });
-  const [allAmenities, setAllAmenities] = useState<string[]>([]);
   const [compareIds, setCompareIds] = useState<Set<number>>(new Set());
   const [favoriteError, setFavoriteError] = useState("");
   const [compareError, setCompareError] = useState("");
@@ -70,6 +71,12 @@ const Lotes: React.FC = () => {
 
   const lotes = lotesResponse?.data ?? [];
 
+  const { data: loteFilters } = useQuery({
+    queryKey: ["lote-filters"],
+    queryFn: () => commercialApi.getLoteFilters(),
+  });
+  const allAmenities = loteFilters?.amenities ?? [];
+
   const canReadFavoritos = hasPermission(user?.role, "favoritos.read");
   const {
     data: favoriteIds = [],
@@ -88,13 +95,6 @@ const Lotes: React.FC = () => {
 
   const favoriteSet = new Set(favoriteIds);
 
-  useEffect(() => {
-    commercialApi
-      .getLoteFilters()
-      .then((data) => setAllAmenities(data.amenities))
-      .catch(() => setAllAmenities([]));
-  }, []);
-
   const createLoteMutation = useMutation({
     mutationFn: (data: {
       title: string;
@@ -102,6 +102,7 @@ const Lotes: React.FC = () => {
       size: number;
       amenities: string[];
       image: string;
+      address?: string;
       lat: number;
       lng: number;
       description?: string;
@@ -133,6 +134,7 @@ const Lotes: React.FC = () => {
       size: number;
       amenities: string[];
       image: string;
+      address?: string;
       lat: number;
       lng: number;
       description?: string;
@@ -297,7 +299,7 @@ const Lotes: React.FC = () => {
       price: String(lote.price),
       size: String(lote.size),
       description: lote.description || "",
-      amenities: lote.amenities.join(", "),
+      amenities: lote.amenities,
       image: lote.image,
       address: lote.address || "",
       lat: String(lote.lat),
@@ -328,15 +330,20 @@ const Lotes: React.FC = () => {
       return;
     }
 
+    const priceValue = Number(formState.price);
+    const sizeValue = Number(formState.size);
+
+    if (!formState.title.trim() || !Number.isFinite(priceValue) || priceValue <= 0 || !Number.isFinite(sizeValue) || sizeValue <= 0) {
+      setMutationError("Completa titulo, precio y superficie con valores validos.");
+      return;
+    }
+
     const payload = {
       title: formState.title.trim(),
-      price: Number(formState.price),
-      size: Number(formState.size),
+      price: priceValue,
+      size: sizeValue,
       description: formState.description.trim() || undefined,
-      amenities: formState.amenities
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean),
+      amenities: formState.amenities,
       image: formState.image.trim(),
       address: formState.address.trim() || undefined,
       lat: latValue,
@@ -592,70 +599,130 @@ const Lotes: React.FC = () => {
               </button>
             </div>
 
-            <form className="grid gap-3 md:grid-cols-2" onSubmit={submitLote}>
-              <input
-                className="field"
-                placeholder="Nombre del lote"
-                value={formState.title}
-                onChange={(e) => setFormState((prev) => ({ ...prev, title: e.target.value }))}
-                required
-              />
-              <input
-                className="field"
-                type="number"
-                min={1}
-                placeholder="Precio"
-                value={formState.price}
-                onChange={(e) => setFormState((prev) => ({ ...prev, price: e.target.value }))}
-                required
-              />
-              <input
-                className="field"
-                type="number"
-                min={1}
-                placeholder="Superficie"
-                value={formState.size}
-                onChange={(e) => setFormState((prev) => ({ ...prev, size: e.target.value }))}
-                required
-              />
-              <input
-                className="field"
-                placeholder="Amenities separadas por coma"
-                value={formState.amenities}
-                onChange={(e) => setFormState((prev) => ({ ...prev, amenities: e.target.value }))}
-              />
-              <input
-                className="field md:col-span-2"
-                placeholder="Imagen (URL)"
-                value={formState.image}
-                onChange={(e) => setFormState((prev) => ({ ...prev, image: e.target.value }))}
-                required
-              />
-              <textarea
-                className="field md:col-span-2"
-                rows={4}
-                placeholder="Descripcion"
-                value={formState.description}
-                onChange={(e) => setFormState((prev) => ({ ...prev, description: e.target.value }))}
-              />
-              <div className="md:col-span-2">
-                <AddressAutocomplete
-                  value={formState.address}
-                  onChange={(value) => setFormState((prev) => ({ ...prev, address: value }))}
-                  onSelect={({ address, lat, lng }) =>
-                    setFormState((prev) => ({
-                      ...prev,
-                      address,
-                      lat: String(lat),
-                      lng: String(lng),
-                    }))
-                  }
+            <form className="grid gap-6" onSubmit={submitLote}>
+              <section className="grid gap-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
+                  Informacion basica
+                </p>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="grid gap-1">
+                    <label htmlFor="lote-title" className="text-sm text-[var(--color-text-muted)]">
+                      Nombre del lote
+                    </label>
+                    <input
+                      id="lote-title"
+                      className="field"
+                      value={formState.title}
+                      onChange={(e) => setFormState((prev) => ({ ...prev, title: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div className="grid gap-1">
+                    <label htmlFor="lote-price" className="text-sm text-[var(--color-text-muted)]">
+                      Precio (USD)
+                    </label>
+                    <input
+                      id="lote-price"
+                      className="field"
+                      type="number"
+                      min={1}
+                      value={formState.price}
+                      onChange={(e) => setFormState((prev) => ({ ...prev, price: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div className="grid gap-1">
+                    <label htmlFor="lote-size" className="text-sm text-[var(--color-text-muted)]">
+                      Superficie
+                    </label>
+                    <input
+                      id="lote-size"
+                      className="field"
+                      type="number"
+                      min={1}
+                      value={formState.size}
+                      onChange={(e) => setFormState((prev) => ({ ...prev, size: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div className="grid gap-1">
+                    <label htmlFor="lote-image" className="text-sm text-[var(--color-text-muted)]">
+                      Imagen (URL)
+                    </label>
+                    <input
+                      id="lote-image"
+                      className="field"
+                      value={formState.image}
+                      onChange={(e) => setFormState((prev) => ({ ...prev, image: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div className="grid gap-1 md:col-span-2">
+                    <label htmlFor="lote-description" className="text-sm text-[var(--color-text-muted)]">
+                      Descripcion
+                    </label>
+                    <textarea
+                      id="lote-description"
+                      className="field"
+                      rows={4}
+                      value={formState.description}
+                      onChange={(e) => setFormState((prev) => ({ ...prev, description: e.target.value }))}
+                    />
+                  </div>
+                </div>
+              </section>
+
+              <section className="grid gap-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
+                  Ubicacion
+                </p>
+                <div className="grid gap-2">
+                  <label className="text-sm text-[var(--color-text-muted)]">Direccion</label>
+                  <AddressAutocomplete
+                    value={formState.address}
+                    onChange={(value) => setFormState((prev) => ({ ...prev, address: value }))}
+                    onSelect={({ address, lat, lng }) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        address,
+                        lat: String(lat),
+                        lng: String(lng),
+                      }))
+                    }
+                  />
+                </div>
+                {Number.isFinite(Number(formState.lat)) && Number.isFinite(Number(formState.lng)) && (
+                  <MapView
+                    lote={{
+                      id: 0,
+                      title: formState.title || "Nuevo lote",
+                      price: Number(formState.price) || 0,
+                      size: Number(formState.size) || 0,
+                      amenities: formState.amenities,
+                      image: formState.image || "",
+                      lat: Number(formState.lat),
+                      lng: Number(formState.lng),
+                      address: formState.address || null,
+                      description: formState.description || "",
+                    }}
+                  />
+                )}
+              </section>
+
+              <section className="grid gap-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
+                  Caracteristicas
+                </p>
+                <AmenitiesSelector
+                  options={allAmenities}
+                  value={formState.amenities}
+                  onChange={(amenities) => setFormState((prev) => ({ ...prev, amenities }))}
                 />
-              </div>
+              </section>
 
-              {mutationError && <p className="text-sm text-red-300 md:col-span-2">{mutationError}</p>}
+              {mutationError && <p className="text-sm text-red-300">{mutationError}</p>}
 
-              <div className="flex gap-2 md:col-span-2 md:justify-end">
+              <div className="flex flex-wrap gap-2 justify-end">
                 <button type="button" className="btn btn-outline" onClick={closeModal}>
                   Cancelar
                 </button>

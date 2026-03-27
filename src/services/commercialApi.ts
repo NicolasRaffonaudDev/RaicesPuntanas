@@ -78,6 +78,7 @@ export const commercialApi = {
       size: number;
       amenities: string[];
       image: string;
+      address?: string;
       lat: number;
       lng: number;
       description?: string;
@@ -101,6 +102,7 @@ export const commercialApi = {
       size: number;
       amenities: string[];
       image: string;
+      address?: string;
       lat: number;
       lng: number;
       description?: string;
