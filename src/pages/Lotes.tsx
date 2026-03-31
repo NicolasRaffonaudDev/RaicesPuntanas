@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import AddressAutocomplete from "../components/AddressAutocomplete";
 import AmenitiesSelector from "../components/AmenitiesSelector";
 import MapView from "../components/MapView/MapView";
 import { SectionEmpty, SectionError, SectionLoading } from "../components/Feedback";
+import { useDebounce } from "../hooks/useDebounce";
 import LotCard from "../components/LotCard/LotCard";
 import { useAuth } from "../context/useAuth";
 import { commercialApi } from "../services/commercialApi";
@@ -78,10 +79,7 @@ const Lotes: React.FC = () => {
   const [editingLoteId, setEditingLoteId] = useState<number | null>(null);
   const [formState, setFormState] = useState<LoteFormState>(emptyLoteForm);
 
-  const amenitiesFromUrl = useMemo(
-    () => normalizeAmenityIds(parseArrayParam(searchParams.get("amenities"))),
-    [searchParams],
-  );
+  const amenitiesFromUrl = useMemo(() => normalizeAmenityIds(parseArrayParam(searchParams.get("amenities"))), [searchParams]);
   const page = useMemo(
     () => Math.max(1, Math.floor(parseNumberParam(searchParams.get("page"), 1, { min: 1 }))),
     [searchParams],
@@ -91,19 +89,48 @@ const Lotes: React.FC = () => {
     const raw = parseStringParam(searchParams.get("sort"), "recomendado");
     return raw === "price_asc" || raw === "price_desc" || raw === "size_desc" ? raw : "recomendado";
   }, [searchParams]);
+  const searchQuery = useMemo(() => parseStringParam(searchParams.get("q"), ""), [searchParams]);
 
-  const updateSearchParams = (updater: (params: URLSearchParams) => void) => {
-    const nextParams = new URLSearchParams(searchParams);
-    updater(nextParams);
-    setSearchParams(nextParams, { replace: true });
-  };
+  const [searchInput, setSearchInput] = useState(searchQuery);
+  const debouncedSearch = useDebounce(searchInput, 400);
+  const isDebouncing = searchInput !== debouncedSearch;
+
+  const updateSearchParams = useCallback(
+    (updater: (params: URLSearchParams) => void) => {
+      const nextParams = new URLSearchParams(searchParams);
+      updater(nextParams);
+      setSearchParams(nextParams, { replace: true });
+    },
+    [searchParams, setSearchParams],
+  );
+
+  useEffect(() => {
+    if (searchInput !== searchQuery) {
+      setSearchInput(searchQuery);
+    }
+  }, [searchQuery, searchInput]);
+
+  useEffect(() => {
+    const normalized = debouncedSearch.trim();
+    const current = searchParams.get("q") || "";
+    if (current === normalized) return;
+
+    updateSearchParams((params) => {
+      if (normalized) {
+        params.set("q", normalized);
+      } else {
+        params.delete("q");
+      }
+      params.delete("page");
+    });
+  }, [debouncedSearch, searchParams, updateSearchParams]);
 
   const {
     data: lotesResponse,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["lotes", { page, limit, minPrice, sort, amenities: amenitiesFromUrl }],
+    queryKey: ["lotes", { page, limit, minPrice, sort, amenities: amenitiesFromUrl, q: searchQuery }],
     queryFn: () =>
       commercialApi.listLotes({
         page,
@@ -111,6 +138,7 @@ const Lotes: React.FC = () => {
         minPrice: minPrice > 0 ? minPrice : undefined,
         amenities: amenitiesFromUrl.length > 0 ? amenitiesFromUrl : undefined,
         sort: sort === "recomendado" ? undefined : sort,
+        q: searchQuery.trim() ? searchQuery.trim() : undefined,
       }),
     placeholderData: keepPreviousData,
   });
@@ -286,6 +314,7 @@ const Lotes: React.FC = () => {
       params.delete("minPrice");
       params.delete("sort");
       params.delete("amenities");
+      params.delete("q");
       params.delete("page");
     });
   };
@@ -449,6 +478,22 @@ const Lotes: React.FC = () => {
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
+            <div className="md:col-span-2">
+              <label htmlFor="lotes-search" className="mb-1 block text-sm text-[var(--color-text-muted)]">
+                Buscar
+              </label>
+              <input
+                id="lotes-search"
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Buscar por nombre o ubicación..."
+                className="field"
+              />
+              {isDebouncing && (
+                <p className="mt-1 text-xs text-[var(--color-text-muted)]">Buscando...</p>
+              )}
+            </div>
             <div>
               <label htmlFor="precio-min" className="mb-1 block text-sm text-[var(--color-text-muted)]">
                 Precio minimo (USD)

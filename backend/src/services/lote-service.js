@@ -33,7 +33,7 @@ const buildUpdatePayload = (data) => {
 };
 
 const loteService = {
-  list: async ({ page, limit, minPrice, amenities, sort }) => {
+  list: async ({ page, limit, minPrice, amenities, sort, q }) => {
     const where = {};
     const andConditions = [];
     if (typeof minPrice === "number") {
@@ -41,6 +41,14 @@ const loteService = {
     }
     if (amenities && amenities.length > 0) {
       andConditions.push(...amenities.map((id) => ({ amenities: { some: { id } } })));
+    }
+    if (q) {
+      andConditions.push({
+        OR: [
+          { title: { contains: q, mode: "insensitive" } },
+          { address: { contains: q, mode: "insensitive" } },
+        ],
+      });
     }
     if (andConditions.length > 0) {
       where.AND = andConditions;

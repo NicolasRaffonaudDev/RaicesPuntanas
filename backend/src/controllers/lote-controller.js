@@ -26,6 +26,8 @@ const loteController = {
     const sort = ["price_asc", "price_desc", "size_desc"].includes(String(req.query.sort))
       ? String(req.query.sort)
       : undefined;
+    const qRaw = req.query.q ? String(req.query.q) : "";
+    const q = qRaw.trim();
 
     const result = await loteService.list({
       page,
@@ -33,6 +35,7 @@ const loteController = {
       minPrice,
       amenities,
       sort,
+      q: q || undefined,
     });
 
     res.json(result);

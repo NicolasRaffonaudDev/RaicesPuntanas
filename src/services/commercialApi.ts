@@ -33,6 +33,7 @@ interface LotesQuery {
   minPrice?: number;
   amenities?: string[];
   sort?: "price_asc" | "price_desc" | "size_desc";
+  q?: string;
 }
 
 interface LotesResponse {
@@ -48,6 +49,7 @@ export const commercialApi = {
     if (typeof query.minPrice === "number") params.set("minPrice", String(query.minPrice));
     if (query.amenities && query.amenities.length > 0) params.set("amenities", query.amenities.join(","));
     if (query.sort) params.set("sort", query.sort);
+    if (query.q) params.set("q", query.q);
 
     const queryString = params.toString();
     const res = await apiRequest(queryString ? `/lotes?${queryString}` : "/lotes", { skipAuth: true });
