@@ -35,11 +35,16 @@ export const useFavorites = () => {
     setFavorites((prev) => (prev.includes(key) ? prev.filter((item) => item !== key) : [...prev, key]));
   }, []);
 
+  const clearFavorites = useCallback(() => {
+    setFavorites([]);
+  }, []);
+
   return {
     favorites,
     favoriteSet,
     isFavorite,
     toggleFavorite,
+    clearFavorites,
     count: favorites.length,
   };
 };

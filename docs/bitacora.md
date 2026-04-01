@@ -10,6 +10,22 @@ Formato por entrada:
 
 ---
 
+## 2026-04-01 - Busqueda local y limpieza masiva en favoritos
+- Feature implementada:
+  - Busqueda local en `/favoritos` por titulo y direccion.
+  - Boton "Limpiar favoritos" con confirmacion.
+- Que se hizo:
+  - Filtro en memoria con `useMemo` para mantener rendimiento.
+  - Resumen de resultados y mensajes de vacio segun busqueda.
+- Que se aprendio (enfoque pedagogico):
+  - Filtros client-side funcionan bien cuando el dataset es pequeno y local.
+  - Filtros server-side son mejores cuando la data es grande o compartida.
+- Proximos pasos:
+  - Evaluar sincronizacion opcional con backend para multi-dispositivo.
+  - Agregar ordenamiento local si la lista crece.
+- Uso para cliente (impacto):
+  - El usuario puede encontrar y limpiar favoritos sin salir de la vista.
+
 ## 2026-04-01 - Vista de favoritos + documentacion
 - Feature implementada:
   - Vista "Mis favoritos" consumiendo `getLotesByIds`.

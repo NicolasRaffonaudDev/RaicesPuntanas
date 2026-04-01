@@ -12,6 +12,23 @@ Formato sugerido por entrada:
 
 ---
 
+## 2026-04-01 - Busqueda local + limpieza masiva en favoritos
+- Scope: `feat(favoritos)` + `docs`
+- Cambios:
+  - Busqueda local en `/favoritos` por `title` y `address`.
+  - Boton de limpieza masiva con confirmacion.
+  - Resultado filtrado en memoria con `useMemo`.
+- Motivo tecnico:
+  - Mantener UX rapida sin depender del backend para un listado pequeno.
+- Impacto en cliente:
+  - El usuario encuentra y limpia favoritos mas rapido.
+- Riesgos:
+  - Para listas enormes, el filtrado local puede ser costoso (aceptable por ahora).
+- Validacion:
+  - Busqueda local OK, limpieza masiva persiste en localStorage.
+- Siguiente paso:
+  - Evaluar sync con backend si se requiere multi-dispositivo.
+
 ## 2026-04-01 - Favoritos locales + vista dedicada
 - Scope: `feat(favoritos)` + `docs`
 - Cambios:

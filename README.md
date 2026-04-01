@@ -21,12 +21,14 @@ Aplicacion full stack para gestion comercial de lotes, clientes y operaciones.
 - Filtros por amenities, precio minimo y orden.
 - Busqueda por texto con debounce y sincronizacion con URL.
 - Comparador de lotes con hasta 3 selecciones.
-- Favoritos locales persistidos en navegador.
+- Favoritos locales persistidos en navegador (busqueda local + limpieza masiva).
 
 ## Como usar favoritos (usuario final)
 - En el listado de lotes, presiona el icono de corazon en cada tarjeta.
 - Accede a `/favoritos` para ver tus lotes guardados.
 - Vuelve a presionar el corazon para quitar un lote de favoritos.
+- Usa la busqueda local para filtrar por nombre o ubicacion.
+- Si necesitas limpiar todo, utiliza "Limpiar favoritos".
 
 ## Arquitectura actual (resumen)
 - Frontend: React + TypeScript + Vite + React Query.
