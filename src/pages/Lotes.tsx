@@ -319,6 +319,57 @@ const Lotes: React.FC = () => {
     });
   };
 
+  const activeFilters = useMemo(() => {
+    const chips: Array<{ key: string; label: string; onRemove: () => void }> = [];
+
+    if (searchQuery.trim()) {
+      const label = `Busqueda: ${searchQuery.trim()}`;
+      chips.push({
+        key: `q-${searchQuery}`,
+        label,
+        onRemove: () =>
+          updateSearchParams((params) => {
+            params.delete("q");
+            params.delete("page");
+          }),
+      });
+    }
+
+    if (minPrice > 0) {
+      const label = `Precio min: $${minPrice.toLocaleString("es-AR")}`;
+      chips.push({
+        key: "minPrice",
+        label,
+        onRemove: () =>
+          updateSearchParams((params) => {
+            params.delete("minPrice");
+            params.delete("page");
+          }),
+      });
+    }
+
+    amenitiesFromUrl.forEach((amenityId) => {
+      const amenity = allAmenities.find((item) => item.id === amenityId);
+      const label = amenity?.name ?? amenityId;
+      chips.push({
+        key: `amenity-${amenityId}`,
+        label,
+        onRemove: () =>
+          updateSearchParams((params) => {
+            const nextAmenities = amenitiesFromUrl.filter((id) => id !== amenityId);
+            if (nextAmenities.length > 0) {
+              params.set("amenities", nextAmenities.join(","));
+            } else {
+              params.delete("amenities");
+            }
+            params.delete("page");
+          }),
+      });
+    });
+
+    return chips;
+  }, [allAmenities, amenitiesFromUrl, minPrice, searchQuery, updateSearchParams]);
+
   const canManageFavorites = !!token && hasPermission(user?.role, "favoritos.write");
   const canManageLotes = !!token && hasPermission(user?.role, "lotes.write");
   const canDeleteLotes = !!token && hasPermission(user?.role, "lotes.delete");
@@ -593,6 +644,22 @@ const Lotes: React.FC = () => {
           </div>
         </div>
 
+        {activeFilters.length > 0 && (
+          <div className="card flex flex-wrap items-center gap-2 p-4 text-sm">
+            <span className="text-[var(--color-text-muted)]">Filtros activos:</span>
+            {activeFilters.map((filter) => (
+              <button
+                key={filter.key}
+                type="button"
+                className="rounded-full border border-white/10 bg-black/40 px-3 py-1 text-xs text-white transition hover:border-white/30 hover:bg-black/50"
+                onClick={filter.onRemove}
+              >
+                {filter.label} <span className="ml-1 text-[10px]">x</span>
+              </button>
+            ))}
+          </div>
+        )}
+
         {isLoading && (
           <SectionLoading
             title="Cargando lotes"
@@ -611,8 +678,12 @@ const Lotes: React.FC = () => {
 
         {!isLoading && !error && lotes.length === 0 && (
           <SectionEmpty
-            title="No encontramos lotes con esos filtros"
-            message="Prueba limpiar los filtros actuales o ajustar el rango de precio y amenities para ampliar los resultados."
+            title={searchQuery.trim() ? `No encontramos resultados para '${searchQuery.trim()}'` : "No encontramos lotes con esos filtros"}
+            message={
+              searchQuery.trim()
+                ? "Prueba limpiar la busqueda o ajustar los filtros actuales para ampliar los resultados."
+                : "Prueba limpiar los filtros actuales o ajustar el rango de precio y amenities para ampliar los resultados."
+            }
             action={(
               <button type="button" className="btn btn-outline text-sm" onClick={resetFilters}>
                 Limpiar filtros
@@ -625,7 +696,7 @@ const Lotes: React.FC = () => {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {lotes.map((lote, index) => (
               <div key={lote.id} className="space-y-2">
-                <LotCard lote={lote} prioritizeImage={index < 2} />
+                <LotCard lote={lote} prioritizeImage={index < 2} highlightQuery={searchQuery} />
                 <div className="flex gap-2">
                   <button
                     type="button"
