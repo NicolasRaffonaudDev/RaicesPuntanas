@@ -16,9 +16,28 @@ Aplicacion full stack para gestion comercial de lotes, clientes y operaciones.
 - Mantener consistencia visual y de marca en cada pantalla nueva.
 - Priorizar confiabilidad: pruebas smoke + E2E + CI.
 
+## Funcionalidades actuales
+- Catalogo de lotes con paginacion server-side.
+- Filtros por amenities, precio minimo y orden.
+- Busqueda por texto con debounce y sincronizacion con URL.
+- Comparador de lotes con hasta 3 selecciones.
+- Favoritos locales persistidos en navegador.
+
+## Como usar favoritos (usuario final)
+- En el listado de lotes, presiona el icono de corazon en cada tarjeta.
+- Accede a `/favoritos` para ver tus lotes guardados.
+- Vuelve a presionar el corazon para quitar un lote de favoritos.
+
+## Arquitectura actual (resumen)
+- Frontend: React + TypeScript + Vite + React Query.
+- Backend: Node.js + Express por capas + Prisma.
+- Configuracion: variables de entorno tipadas + validacion con Zod.
+- Datos: PostgreSQL, endpoints paginados y filtros server-side.
+- Estado cliente: favoritos locales con persistencia en `localStorage`.
+
 ## Documentacion de aprendizaje (mentoria)
 - Guia tecnica completa: `docs/MENTORIA_TECNICA.md`
-- Bitacora incremental de cambios: `docs/BITACORA_DESARROLLO.md`
+- Bitacora incremental de cambios: `docs/bitacora.md` (resumen) y `docs/BITACORA_DESARROLLO.md` (historico)
 
 ## Stack actual
 - Frontend: React + TypeScript + Vite.

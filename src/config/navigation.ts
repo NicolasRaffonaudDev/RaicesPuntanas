@@ -32,6 +32,7 @@ export const getSidebarSections = (role: UserRole | undefined): NavigationSectio
   const comercial: NavigationItem[] = [];
   if (hasPermission(role, "lotes.read")) {
     comercial.push({ id: "lotes", label: "Lotes", to: "/lotes" });
+    comercial.push({ id: "favoritos", label: "Mis favoritos", to: "/favoritos" });
   }
   if (role === "usuario" && hasPermission(role, "consultas.read")) {
     comercial.push({ id: "mis-consultas", label: "Mis consultas", to: "/mi-panel" });

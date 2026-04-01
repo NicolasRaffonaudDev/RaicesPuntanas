@@ -14,6 +14,7 @@ import {
   HomePage,
   LoginPage,
   LotesPage,
+  FavoritosPage,
   MiPanelUsuarioPage,
   RegisterPage,
   SettingsModulePage,
@@ -30,6 +31,7 @@ function App() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/lotes" element={<LotesPage />} />
+      <Route path="/favoritos" element={<FavoritosPage />} />
       <Route path="/comparar" element={<CompararLotesPage />} />
       <Route path="/contact" element={<ContactPage />} />
       <Route path="/login" element={<LoginPage />} />

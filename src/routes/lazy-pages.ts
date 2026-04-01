@@ -2,6 +2,7 @@ import { lazyWithPreload } from "../utils/lazyWithPreload";
 
 export const HomePage = lazyWithPreload(() => import("../pages/Home"));
 export const LotesPage = lazyWithPreload(() => import("../pages/Lotes"));
+export const FavoritosPage = lazyWithPreload(() => import("../pages/Favoritos"));
 export const CompararLotesPage = lazyWithPreload(() => import("../pages/CompararLotes"));
 export const ContactPage = lazyWithPreload(() => import("../pages/Contact"));
 export const LoginPage = lazyWithPreload(() => import("../pages/Login"));
@@ -16,6 +17,7 @@ export const SettingsModulePage = lazyWithPreload(() => import("../pages/Setting
 export const preloaders = {
   home: HomePage.preload,
   lotes: LotesPage.preload,
+  favoritos: FavoritosPage.preload,
   comparar: CompararLotesPage.preload,
   contacto: ContactPage.preload,
   login: LoginPage.preload,

@@ -12,6 +12,24 @@ Formato sugerido por entrada:
 
 ---
 
+## 2026-04-01 - Favoritos locales + vista dedicada
+- Scope: `feat(favoritos)` + `docs`
+- Cambios:
+  - Nueva ruta `/favoritos` con listado de lotes guardados en `localStorage`.
+  - Integracion con `getLotesByIds` y reutilizacion de `LotCard`.
+  - Acceso visible desde navbar y sidebar.
+  - Documentacion actualizada con funcionalidades y uso de favoritos.
+- Motivo tecnico:
+  - Centralizar favoritos en el cliente para UX rapida y sin dependencia de autenticacion.
+- Impacto en cliente:
+  - El usuario puede guardar lotes y consultarlos rapidamente desde "Mis favoritos".
+- Riesgos:
+  - Favoritos locales no se sincronizan entre dispositivos (aceptable por ahora).
+- Validacion:
+  - Navegacion OK, favoritos persistidos al recargar.
+- Siguiente paso:
+  - Evaluar sincronizacion opcional con backend para multi-dispositivo.
+
 ## 2026-02-26 - Performance de frontend
 - Scope: `perf(frontend)`
 - Cambios:

@@ -50,6 +50,7 @@ const NavBar: React.FC = () => {
   useEffect(() => {
     const warmCriticalRoutes = () => {
       void preloaders.lotes();
+      void preloaders.favoritos();
       void preloaders.contacto();
 
       if (user) {
@@ -112,6 +113,9 @@ const NavBar: React.FC = () => {
         >
           <Link to="/lotes" className={navItemClass} onMouseEnter={onPrefetch("lotes")} onFocus={onPrefetch("lotes")}>
             Lotes
+          </Link>
+          <Link to="/favoritos" className={navItemClass} onMouseEnter={onPrefetch("favoritos")} onFocus={onPrefetch("favoritos")}>
+            Favoritos
           </Link>
           <Link to="/contact" className={navItemClass} onMouseEnter={onPrefetch("contacto")} onFocus={onPrefetch("contacto")}>
             Contacto
