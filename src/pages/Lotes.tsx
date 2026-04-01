@@ -79,6 +79,7 @@ const Lotes: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLoteId, setEditingLoteId] = useState<number | null>(null);
   const [formState, setFormState] = useState<LoteFormState>(emptyLoteForm);
+  const { favoriteSet: localFavoriteSet, toggleFavorite: toggleLocalFavorite, count: localFavoritesCount } = useFavorites();
 
   const amenitiesFromUrl = useMemo(() => normalizeAmenityIds(parseArrayParam(searchParams.get("amenities"))), [searchParams]);
   const page = useMemo(
@@ -982,4 +983,3 @@ const Lotes: React.FC = () => {
 };
 
 export default Lotes;
-  const { favoriteSet: localFavoriteSet, toggleFavorite: toggleLocalFavorite, count: localFavoritesCount } = useFavorites();
