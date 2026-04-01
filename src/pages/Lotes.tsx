@@ -72,7 +72,6 @@ const Lotes: React.FC = () => {
   const queryClient = useQueryClient();
   const [meta, setMeta] = useState({ page: 1, limit: 10, total: 0, totalPages: 1 });
   const [compareIds, setCompareIds] = useState<Set<number>>(new Set());
-  const [favoriteError, setFavoriteError] = useState("");
   const [compareError, setCompareError] = useState("");
   const [mutationError, setMutationError] = useState("");
   const [limit] = useState(10);
@@ -156,24 +155,6 @@ const Lotes: React.FC = () => {
     queryFn: () => commercialApi.getLoteFilters(),
   });
   const allAmenities = (loteFilters?.amenities ?? []).filter((item): item is Amenity => Boolean(item?.id));
-
-  const canReadFavoritos = hasPermission(user?.role, "favoritos.read");
-  const {
-    data: favoriteIds = [],
-    isLoading: favoritesLoading,
-  } = useQuery({
-    queryKey: ["favoritos"],
-    enabled: !!token && canReadFavoritos,
-    queryFn: () => {
-      if (!token) throw new Error("No autenticado");
-      return commercialApi.getFavoritos(token);
-    },
-    onError: (err) => {
-      setFavoriteError(err instanceof Error ? err.message : "No se pudo cargar favoritos");
-    },
-  });
-
-  const serverFavoriteSet = new Set(favoriteIds);
 
   const createLoteMutation = useMutation({
     mutationFn: (data: {
@@ -271,39 +252,6 @@ const Lotes: React.FC = () => {
     },
   });
 
-  const toggleFavoriteMutation = useMutation({
-    mutationFn: async ({ loteId, action }: { loteId: number; action: "add" | "remove" }) => {
-      if (!token) throw new Error("No autenticado");
-      if (action === "add") {
-        return commercialApi.addFavorito(token, loteId);
-      }
-      await commercialApi.removeFavorito(token, loteId);
-      return null;
-    },
-    onMutate: async ({ loteId, action }) => {
-      await queryClient.cancelQueries({ queryKey: ["favoritos"] });
-      const previous = queryClient.getQueryData<number[]>(["favoritos"]);
-
-      queryClient.setQueryData<number[]>(["favoritos"], (old = []) => {
-        if (action === "remove") {
-          return old.filter((id) => id !== loteId);
-        }
-        return old.includes(loteId) ? old : [...old, loteId];
-      });
-
-      return { previous };
-    },
-    onError: (err, _vars, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(["favoritos"], context.previous);
-      }
-      setFavoriteError(err instanceof Error ? err.message : "No se pudo actualizar favoritos");
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["favoritos"] });
-    },
-  });
-
   const isSaving = createLoteMutation.isPending || updateLoteMutation.isPending;
 
   useEffect(() => {
@@ -372,7 +320,6 @@ const Lotes: React.FC = () => {
     return chips;
   }, [allAmenities, amenitiesFromUrl, minPrice, searchQuery, updateSearchParams]);
 
-  const canManageFavorites = !!token && hasPermission(user?.role, "favoritos.write");
   const canManageLotes = !!token && hasPermission(user?.role, "lotes.write");
   const canDeleteLotes = !!token && hasPermission(user?.role, "lotes.delete");
 
@@ -402,14 +349,6 @@ const Lotes: React.FC = () => {
     }
 
     navigate(`/comparar?ids=${Array.from(compareIds).join(",")}`);
-  };
-
-  const toggleFavorite = async (lote: Lote) => {
-    if (!token || !canManageFavorites) return;
-
-    setFavoriteError("");
-    const action = serverFavoriteSet.has(lote.id) ? "remove" : "add";
-    toggleFavoriteMutation.mutate({ loteId: lote.id, action });
   };
 
   const openCreateModal = () => {
@@ -680,7 +619,6 @@ const Lotes: React.FC = () => {
           />
         )}
         {mutationError && <p className="text-center text-red-300">{mutationError}</p>}
-        {favoriteError && <p className="text-center text-amber-300">{favoriteError}</p>}
         {compareError && <p className="text-center text-amber-300">{compareError}</p>}
 
         {!isLoading && !error && lotes.length === 0 && (
@@ -718,14 +656,6 @@ const Lotes: React.FC = () => {
                     onClick={() => toggleCompare(lote.id)}
                   >
                     {compareIds.has(lote.id) ? "En comparador" : "Comparar"}
-                  </button>
-                  <button
-                    type="button"
-                    className={`btn ${serverFavoriteSet.has(lote.id) ? "btn-outline" : "btn-primary"} flex-1 text-sm`}
-                    onClick={() => void toggleFavorite(lote)}
-                    disabled={!canManageFavorites || favoritesLoading || toggleFavoriteMutation.isPending}
-                  >
-                    {serverFavoriteSet.has(lote.id) ? "Quitar favorito" : "Guardar favorito"}
                   </button>
                   <button
                     type="button"
