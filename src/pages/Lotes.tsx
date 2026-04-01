@@ -6,6 +6,7 @@ import AmenitiesSelector from "../components/AmenitiesSelector";
 import MapView from "../components/MapView/MapView";
 import { SectionEmpty, SectionError, SectionLoading } from "../components/Feedback";
 import { useDebounce } from "../hooks/useDebounce";
+import { useFavorites } from "../hooks/useFavorites";
 import LotCard from "../components/LotCard/LotCard";
 import { useAuth } from "../context/useAuth";
 import { commercialApi } from "../services/commercialApi";
@@ -171,7 +172,7 @@ const Lotes: React.FC = () => {
     },
   });
 
-  const favoriteSet = new Set(favoriteIds);
+  const serverFavoriteSet = new Set(favoriteIds);
 
   const createLoteMutation = useMutation({
     mutationFn: (data: {
@@ -406,7 +407,7 @@ const Lotes: React.FC = () => {
     if (!token || !canManageFavorites) return;
 
     setFavoriteError("");
-    const action = favoriteSet.has(lote.id) ? "remove" : "add";
+    const action = serverFavoriteSet.has(lote.id) ? "remove" : "add";
     toggleFavoriteMutation.mutate({ loteId: lote.id, action });
   };
 
@@ -513,6 +514,11 @@ const Lotes: React.FC = () => {
       <div className="container space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-3xl font-bold text-[var(--color-primary)]">Lotes Disponibles</h1>
+          <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--color-text-muted)]">
+            <span className="rounded-full border border-white/10 bg-black/40 px-3 py-1 text-xs text-white">
+              Favoritos: {localFavoritesCount}
+            </span>
+          </div>
           {canManageLotes && (
             <button type="button" className="btn btn-primary text-sm" onClick={openCreateModal}>
               Nuevo lote
@@ -696,7 +702,13 @@ const Lotes: React.FC = () => {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {lotes.map((lote, index) => (
               <div key={lote.id} className="space-y-2">
-                <LotCard lote={lote} prioritizeImage={index < 2} highlightQuery={searchQuery} />
+                <LotCard
+                  lote={lote}
+                  prioritizeImage={index < 2}
+                  highlightQuery={searchQuery}
+                  isFavorite={localFavoriteSet.has(String(lote.id))}
+                  onToggleFavorite={() => toggleLocalFavorite(lote.id)}
+                />
                 <div className="flex gap-2">
                   <button
                     type="button"
@@ -708,11 +720,11 @@ const Lotes: React.FC = () => {
                   </button>
                   <button
                     type="button"
-                    className={`btn ${favoriteSet.has(lote.id) ? "btn-outline" : "btn-primary"} flex-1 text-sm`}
+                    className={`btn ${serverFavoriteSet.has(lote.id) ? "btn-outline" : "btn-primary"} flex-1 text-sm`}
                     onClick={() => void toggleFavorite(lote)}
                     disabled={!canManageFavorites || favoritesLoading || toggleFavoriteMutation.isPending}
                   >
-                    {favoriteSet.has(lote.id) ? "Quitar favorito" : "Guardar favorito"}
+                    {serverFavoriteSet.has(lote.id) ? "Quitar favorito" : "Guardar favorito"}
                   </button>
                   <button
                     type="button"
@@ -970,3 +982,4 @@ const Lotes: React.FC = () => {
 };
 
 export default Lotes;
+  const { favoriteSet: localFavoriteSet, toggleFavorite: toggleLocalFavorite, count: localFavoritesCount } = useFavorites();
