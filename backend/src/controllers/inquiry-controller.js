@@ -13,6 +13,14 @@ const inquiryController = {
     const result = await inquiryService.list({ page, limit, skip });
     res.json(result);
   },
+
+  updateStatus: async (req, res) => {
+    const data = await inquiryService.updateStatus({
+      id: req.params.id,
+      status: req.body.status,
+    });
+    res.json({ data });
+  },
 };
 
 module.exports = { inquiryController };

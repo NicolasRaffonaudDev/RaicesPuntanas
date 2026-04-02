@@ -7,4 +7,8 @@ const inquiryCreateSchema = z.object({
   loteId: z.number().int().positive(),
 });
 
-module.exports = { inquiryCreateSchema };
+const inquiryStatusSchema = z.object({
+  status: z.enum(["pending", "read"]),
+});
+
+module.exports = { inquiryCreateSchema, inquiryStatusSchema };

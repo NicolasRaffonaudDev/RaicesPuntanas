@@ -88,6 +88,11 @@ Aplicacion full stack para gestion comercial de lotes, clientes y operaciones.
 - Nombre, email, mensaje.
 - Lote asociado (titulo y direccion).
 - Fecha de creacion.
+- Estado de la consulta (pendiente / leido).
+
+### Flujo de gestion
+- Las nuevas consultas entran como "pending".
+- El admin puede marcar una consulta como "read".
 
 ## Arquitectura actual (resumen)
 - Frontend: React + TypeScript + Vite + React Query.

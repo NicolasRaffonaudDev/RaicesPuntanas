@@ -97,6 +97,23 @@ Formato sugerido por entrada:
 - Siguiente paso:
   - Agregar filtros por estado y marcar leido.
 
+## 2026-04-01 - Estado de consultas (pending/read)
+- Scope: `feat(inquiries)` + `docs`
+- Cambios:
+  - Campo `status` en `Inquiry` con default `pending`.
+  - Endpoint `PATCH /api/inquiries/:id/status`.
+  - UI con badge de estado y accion "Marcar como leido".
+- Motivo tecnico:
+  - Permitir gestion basica del flujo de consultas.
+- Impacto en cliente:
+  - El admin puede diferenciar consultas pendientes.
+- Riesgos:
+  - Falta filtro por estado en UI (planificado).
+- Validacion:
+  - Update OK con optimistic update.
+- Siguiente paso:
+  - Filtros por estado y notificaciones.
+
 ## 2026-04-01 - Favoritos locales + vista dedicada
 - Scope: `feat(favoritos)` + `docs`
 - Cambios:

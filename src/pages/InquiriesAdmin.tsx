@@ -4,6 +4,9 @@ import { SectionEmpty, SectionError, SectionLoading } from "../components/Feedba
 import InquiriesTable from "../components/InquiriesTable";
 import { useAuth } from "../context/useAuth";
 import { useInquiries } from "../hooks/useInquiries";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { commercialApi } from "../services/commercialApi";
+import type { Inquiry } from "../types/commercial";
 
 const buildPageItems = (current: number, total: number) => {
   if (total <= 7) return Array.from({ length: total }, (_, idx) => idx + 1);
@@ -27,11 +30,46 @@ const InquiriesAdmin: React.FC = () => {
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
 
+  const queryClient = useQueryClient();
   const { data, isLoading, error } = useInquiries(token, page, limit);
   const inquiries = data?.data ?? [];
   const meta = data?.meta ?? { page, limit, total: 0, totalPages: 1 };
 
   const pageItems = useMemo(() => buildPageItems(meta.page, meta.totalPages), [meta.page, meta.totalPages]);
+  const queryKey = useMemo(() => ["inquiries", { page, limit }], [page, limit]);
+
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: "pending" | "read" }) => {
+      if (!token) throw new Error("No autenticado");
+      return commercialApi.updateInquiryStatus(token, id, status);
+    },
+    onMutate: async ({ id, status }) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<{ data: Inquiry[]; meta: typeof meta }>(queryKey);
+
+      queryClient.setQueryData<{ data: Inquiry[]; meta: typeof meta }>(queryKey, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          data: old.data.map((item) => (item.id === id ? { ...item, status } : item)),
+        };
+      });
+
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
+    },
+  });
+
+  const handleMarkRead = (id: string) => {
+    updateStatusMutation.mutate({ id, status: "read" });
+  };
 
   return (
     <section className="page">
@@ -74,7 +112,11 @@ const InquiriesAdmin: React.FC = () => {
                 Pagina {meta.page} de {meta.totalPages}
               </span>
             </div>
-            <InquiriesTable inquiries={inquiries} />
+            <InquiriesTable
+              inquiries={inquiries}
+              onMarkRead={handleMarkRead}
+              updatingId={updateStatusMutation.isPending ? updateStatusMutation.variables?.id ?? null : null}
+            />
           </>
         )}
 

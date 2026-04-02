@@ -26,6 +26,13 @@ const inquiryRepository = {
     }),
 
   count: () => prisma.inquiry.count(),
+
+  updateStatus: (id, status) =>
+    prisma.inquiry.update({
+      where: { id },
+      data: { status },
+      include: inquiryInclude,
+    }),
 };
 
 module.exports = { inquiryRepository };

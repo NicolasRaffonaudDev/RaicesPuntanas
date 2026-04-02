@@ -92,6 +92,21 @@ Formato por entrada:
 - Uso para cliente (impacto):
   - El admin puede revisar leads desde el panel sin ir a la DB.
 
+## 2026-04-01 - Estado de consultas (pending/read)
+- Feature implementada:
+  - Campo `status` en `Inquiry` con valores pending/read.
+  - Accion "Marcar como leido" con actualizacion optimista.
+- Que se hizo:
+  - Endpoint `PATCH /api/inquiries/:id/status`.
+  - UI con badge de estado y actualizacion inmediata.
+- Que se aprendio (enfoque pedagogico):
+  - Manejo de estados en entidades con actualizacion parcial.
+  - Optimistic updates con React Query.
+- Proximos pasos:
+  - Filtros por estado y notificaciones.
+- Uso para cliente (impacto):
+  - El admin puede organizar consultas leidas vs pendientes.
+
 ## 2026-04-01 - Vista de favoritos + documentacion
 - Feature implementada:
   - Vista "Mis favoritos" consumiendo `getLotesByIds`.

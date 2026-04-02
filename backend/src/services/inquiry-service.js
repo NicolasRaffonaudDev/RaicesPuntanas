@@ -40,6 +40,8 @@ const inquiryService = {
       },
     };
   },
+
+  updateStatus: async ({ id, status }) => inquiryRepository.updateStatus(id, status),
 };
 
 module.exports = { inquiryService };

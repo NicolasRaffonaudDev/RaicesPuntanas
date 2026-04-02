@@ -99,6 +99,7 @@ export interface Inquiry {
   email: string;
   message: string;
   loteId: number;
+  status: "pending" | "read";
   createdAt: string;
   lote?: {
     id: number;

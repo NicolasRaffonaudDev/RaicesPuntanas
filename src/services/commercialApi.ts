@@ -432,6 +432,20 @@ export const commercialApi = {
     return res.json();
   },
 
+  updateInquiryStatus: async (token: string, id: string, status: "pending" | "read") => {
+    const res = await apiRequest(`/inquiries/${id}/status`, {
+      method: "PATCH",
+      headers: authHeaders(token),
+      body: JSON.stringify({ status }),
+    });
+    if (!res.ok) {
+      const payload = await res.json();
+      throw new Error(payload.message || "No se pudo actualizar la consulta");
+    }
+    const payload = await res.json();
+    return payload.data as Inquiry;
+  },
+
   listMisConsultas: async (token: string): Promise<Consulta[]> => {
     const res = await apiRequest("/consultas/mine", { headers: authHeaders(token) });
     const payload = await parseResponse(res);
