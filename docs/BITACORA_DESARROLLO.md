@@ -63,6 +63,23 @@ Formato sugerido por entrada:
 - Siguiente paso:
   - Conectar con backend real y log de consultas.
 
+## 2026-04-01 - Sistema de consultas persistente
+- Scope: `feat(inquiries)` + `docs`
+- Cambios:
+  - Nuevo modelo `Inquiry` en Prisma con relacion a `Lote`.
+  - Endpoint publico `POST /inquiries` con validacion Zod.
+  - Modal de contacto envia consultas reales al backend.
+- Motivo tecnico:
+  - Transformar el contacto en un lead persistente para seguimiento comercial.
+- Impacto en cliente:
+  - Las consultas quedan guardadas y se pueden gestionar luego.
+- Riesgos:
+  - Sin panel admin aun, la visibilidad es limitada (planificado).
+- Validacion:
+  - Requests OK y registros en DB.
+- Siguiente paso:
+  - Panel administrativo y notificaciones.
+
 ## 2026-04-01 - Favoritos locales + vista dedicada
 - Scope: `feat(favoritos)` + `docs`
 - Cambios:

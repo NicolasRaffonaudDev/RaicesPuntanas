@@ -59,6 +59,23 @@ Formato por entrada:
 - Uso para cliente (impacto):
   - El usuario puede iniciar una consulta sin salir del listado o comparador.
 
+## 2026-04-01 - Consultas persistentes (leads)
+- Feature implementada:
+  - Endpoint `POST /api/inquiries` con validacion.
+  - Persistencia en DB con modelo `Inquiry`.
+  - Modal de contacto conectado a backend real.
+- Que se hizo:
+  - Prisma modela consultas con relacion a `Lote`.
+  - Frontend envia datos reales en lugar de simulacion.
+- Que se aprendio (enfoque pedagogico):
+  - Integracion fullstack: formulario -> API -> DB.
+  - Importancia de validar en cliente y servidor.
+- Proximos pasos:
+  - Panel admin para listar consultas.
+  - Notificaciones por email.
+- Uso para cliente (impacto):
+  - Las consultas quedan registradas para seguimiento comercial.
+
 ## 2026-04-01 - Vista de favoritos + documentacion
 - Feature implementada:
   - Vista "Mis favoritos" consumiendo `getLotesByIds`.

@@ -54,15 +54,27 @@ Aplicacion full stack para gestion comercial de lotes, clientes y operaciones.
 ### Como usarlo
 - En cualquier lote, presiona "Consultar".
 - Completa tu nombre, email y mensaje.
-- Recibiras un aviso de envio correcto (simulado por ahora).
-
-### Limitacion actual
-- El envio es simulado (no conecta con backend).
+- Recibiras un aviso de envio correcto cuando la consulta quede registrada.
 
 ### Como esta implementado (dev)
 - Modal reusable `ContactModal` recibe el lote por prop.
-- Validaciones basicas en el frontend y estado de envio simulado.
-- Se reutiliza en `Lotes` y en `Comparar`.
+- Validaciones basicas en frontend + backend.
+- Se reutiliza en `Lotes` y en `Comparar` con envio real.
+
+## Sistema de consultas
+### Que hace
+- Guarda consultas (leads) desde el modal de contacto.
+- Persiste datos en PostgreSQL vinculados al lote.
+
+### Flujo completo (frontend -> backend -> DB)
+- `ContactModal` envia `name`, `email`, `message` y `loteId`.
+- `POST /api/inquiries` valida y persiste la consulta.
+- Prisma guarda el registro en `Inquiry` relacionado con `Lote`.
+
+### Como probarlo
+1. Abri un lote y pulsa "Consultar".
+2. Completa el formulario y envia.
+3. Verifica en el backend el log `[inquiry]` y en DB la tabla `Inquiry`.
 
 ## Arquitectura actual (resumen)
 - Frontend: React + TypeScript + Vite + React Query.
@@ -199,6 +211,7 @@ Aplicacion full stack para gestion comercial de lotes, clientes y operaciones.
 - `GET/POST /api/ventas` (GET todos autenticados, POST admin/empleado)
 - `GET/POST /api/inventario/movimientos` (admin/empleado)
 - `POST /api/telemetry/web-vitals` (ingesta de metricas de performance frontend)
+- `POST /api/inquiries` (consultas publicas)
 
 ## Credenciales seed
 - `email`: `admin@raicespuntanas.local`

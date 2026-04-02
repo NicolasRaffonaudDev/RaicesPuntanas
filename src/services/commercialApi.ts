@@ -398,6 +398,20 @@ export const commercialApi = {
     return payload.data as Consulta;
   },
 
+  createInquiry: async (body: { name: string; email: string; message: string; loteId: number }) => {
+    const res = await apiRequest("/inquiries", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const payload = await res.json();
+      throw new Error(payload.message || "No se pudo enviar la consulta");
+    }
+    const payload = await res.json();
+    return payload.data;
+  },
+
   listMisConsultas: async (token: string): Promise<Consulta[]> => {
     const res = await apiRequest("/consultas/mine", { headers: authHeaders(token) });
     const payload = await parseResponse(res);

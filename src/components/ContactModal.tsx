@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Lote } from "../types/interfaces";
+import { commercialApi } from "../services/commercialApi";
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, lote, onClose }) =>
   const [errors, setErrors] = useState<{ name?: string; email?: string; message?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const nameRef = useRef<HTMLInputElement | null>(null);
 
   const defaultMessage = useMemo(() => buildDefaultMessage(lote), [lote]);
@@ -34,6 +36,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, lote, onClose }) =>
     setErrors({});
     setIsSubmitting(false);
     setIsSuccess(false);
+    setSubmitError("");
     const timeout = window.setTimeout(() => nameRef.current?.focus(), 0);
     return () => window.clearTimeout(timeout);
   }, [defaultMessage, isOpen]);
@@ -51,7 +54,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, lote, onClose }) =>
 
   if (!isOpen || !lote) return null;
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     const nextErrors: { name?: string; email?: string; message?: string } = {};
 
@@ -64,11 +67,21 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, lote, onClose }) =>
 
     setIsSubmitting(true);
     setIsSuccess(false);
+    setSubmitError("");
 
-    window.setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      await commercialApi.createInquiry({
+        name: name.trim(),
+        email: email.trim(),
+        message: message.trim(),
+        loteId: lote.id,
+      });
       setIsSuccess(true);
-    }, 900);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "No se pudo enviar la consulta");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleClose = () => {
@@ -78,6 +91,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, lote, onClose }) =>
     setErrors({});
     setIsSubmitting(false);
     setIsSuccess(false);
+    setSubmitError("");
     onClose();
   };
 
@@ -138,6 +152,11 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, lote, onClose }) =>
             {errors.message && <p className="text-xs text-red-300">{errors.message}</p>}
           </div>
 
+          {submitError && (
+            <p className="rounded border border-red-700/40 bg-red-900/30 px-3 py-2 text-sm text-red-300">
+              {submitError || "No se pudo enviar la consulta"}
+            </p>
+          )}
           {isSuccess && (
             <p className="rounded border border-emerald-700/40 bg-emerald-500/15 px-3 py-2 text-sm text-emerald-200">
               Consulta enviada correctamente.
