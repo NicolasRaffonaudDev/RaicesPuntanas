@@ -12,6 +12,23 @@ Formato sugerido por entrada:
 
 ---
 
+## 2026-04-02 - Filtro por estado en consultas
+- Scope: `feat(inquiries)` + `docs`
+- Cambios:
+  - Backend filtra `GET /api/inquiries` por `status` y ajusta `count`.
+  - UI agrega botones de filtro y usa URL como fuente de verdad.
+  - React Query cachea por `{ page, limit, status }`.
+- Motivo tecnico:
+  - Habilitar segmentacion de consultas sin duplicar estado en cliente.
+- Impacto en cliente:
+  - El admin filtra pendientes o leidas y comparte la vista filtrada.
+- Riesgos:
+  - Si se agregan mas estados, hay que actualizar validaciones y UI.
+- Validacion:
+  - Filtros funcionando con `?status=pending|read`.
+- Siguiente paso:
+  - Contadores por estado y retorno a "pending".
+
 ## 2026-04-01 - Busqueda local + limpieza masiva en favoritos
 - Scope: `feat(favoritos)` + `docs`
 - Cambios:

@@ -24,10 +24,10 @@ const inquiryService = {
     return inquiry;
   },
 
-  list: async ({ page, limit, skip }) => {
+  list: async ({ page, limit, skip, status }) => {
     const [data, total] = await Promise.all([
-      inquiryRepository.findPaged({ skip, take: limit }),
-      inquiryRepository.count(),
+      inquiryRepository.findPaged({ skip, take: limit, status }),
+      inquiryRepository.count(status),
     ]);
 
     return {

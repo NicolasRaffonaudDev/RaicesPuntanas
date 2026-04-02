@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { SectionEmpty, SectionError, SectionLoading } from "../components/Feedback";
 import InquiriesTable from "../components/InquiriesTable";
 import { useAuth } from "../context/useAuth";
@@ -26,17 +26,22 @@ const buildPageItems = (current: number, total: number) => {
 
 const InquiriesAdmin: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { token } = useAuth();
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
 
+  // La URL es la fuente de verdad del filtro de estado (link compartible y persistente).
+  const statusParam = searchParams.get("status");
+  const status = statusParam === "pending" || statusParam === "read" ? statusParam : undefined;
+
   const queryClient = useQueryClient();
-  const { data, isLoading, error } = useInquiries(token, page, limit);
+  const { data, isLoading, error } = useInquiries(token, page, limit, status);
   const inquiries = data?.data ?? [];
   const meta = data?.meta ?? { page, limit, total: 0, totalPages: 1 };
 
   const pageItems = useMemo(() => buildPageItems(meta.page, meta.totalPages), [meta.page, meta.totalPages]);
-  const queryKey = useMemo(() => ["inquiries", { page, limit }], [page, limit]);
+  const queryKey = useMemo(() => ["inquiries", { page, limit, status }], [page, limit, status]);
 
   const updateStatusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: "pending" | "read" }) => {
@@ -71,6 +76,15 @@ const InquiriesAdmin: React.FC = () => {
     updateStatusMutation.mutate({ id, status: "read" });
   };
 
+  const handleFilterChange = (nextStatus?: "pending" | "read") => {
+    if (!nextStatus) {
+      setSearchParams({});
+    } else {
+      setSearchParams({ status: nextStatus });
+    }
+    setPage(1);
+  };
+
   return (
     <section className="page">
       <div className="container space-y-5">
@@ -95,28 +109,58 @@ const InquiriesAdmin: React.FC = () => {
           />
         )}
 
-        {!isLoading && !error && inquiries.length === 0 && (
-          <SectionEmpty
-            title="No hay consultas todavia"
-            message="Cuando los usuarios envien consultas apareceran aqui."
-          />
-        )}
-
-        {!isLoading && !error && inquiries.length > 0 && (
+        {!isLoading && !error && (
           <>
-            <div className="card flex flex-wrap items-center justify-between gap-3 p-4 text-sm text-[var(--color-text-muted)]">
-              <span>
-                Total: <strong className="text-white">{meta.total}</strong>
-              </span>
-              <span>
-                Pagina {meta.page} de {meta.totalPages}
-              </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                className={`btn ${!status ? "btn-primary" : "btn-outline"}`}
+                onClick={() => handleFilterChange(undefined)}
+              >
+                Todas
+              </button>
+              <button
+                type="button"
+                className={`btn ${status === "pending" ? "btn-primary" : "btn-outline"}`}
+                onClick={() => handleFilterChange("pending")}
+              >
+                Pendientes
+              </button>
+              <button
+                type="button"
+                className={`btn ${status === "read" ? "btn-primary" : "btn-outline"}`}
+                onClick={() => handleFilterChange("read")}
+              >
+                Leidas
+              </button>
             </div>
-            <InquiriesTable
-              inquiries={inquiries}
-              onMarkRead={handleMarkRead}
-              updatingId={updateStatusMutation.isPending ? updateStatusMutation.variables?.id ?? null : null}
-            />
+            {inquiries.length === 0 && (
+              <SectionEmpty
+                title={status ? "No hay consultas para este estado" : "No hay consultas todavia"}
+                message={
+                  status
+                    ? "Proba con otro filtro para revisar el resto de las consultas."
+                    : "Cuando los usuarios envien consultas apareceran aqui."
+                }
+              />
+            )}
+            {inquiries.length > 0 && (
+              <>
+                <div className="card flex flex-wrap items-center justify-between gap-3 p-4 text-sm text-[var(--color-text-muted)]">
+                  <span>
+                    Total: <strong className="text-white">{meta.total}</strong>
+                  </span>
+                  <span>
+                    Pagina {meta.page} de {meta.totalPages}
+                  </span>
+                </div>
+                <InquiriesTable
+                  inquiries={inquiries}
+                  onMarkRead={handleMarkRead}
+                  updatingId={updateStatusMutation.isPending ? updateStatusMutation.variables?.id ?? null : null}
+                />
+              </>
+            )}
           </>
         )}
 

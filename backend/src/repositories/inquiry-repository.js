@@ -17,15 +17,16 @@ const inquiryRepository = {
       include: inquiryInclude,
     }),
 
-  findPaged: ({ skip, take }) =>
+  findPaged: ({ skip, take, status }) =>
     prisma.inquiry.findMany({
+      where: status ? { status } : undefined,
       orderBy: { createdAt: "desc" },
       skip,
       take,
       include: inquiryInclude,
     }),
 
-  count: () => prisma.inquiry.count(),
+  count: (status) => prisma.inquiry.count({ where: status ? { status } : undefined }),
 
   updateStatus: (id, status) =>
     prisma.inquiry.update({

@@ -94,6 +94,17 @@ Aplicacion full stack para gestion comercial de lotes, clientes y operaciones.
 - Las nuevas consultas entran como "pending".
 - El admin puede marcar una consulta como "read".
 
+## Filtro de consultas por estado
+El panel admin permite filtrar consultas por estado:
+- Todas
+- Pendientes
+- Leidas
+
+El estado se controla mediante query params:
+`/admin/inquiries?status=pending`
+
+Esto permite compartir vistas filtradas y mantener consistencia UX.
+
 ## Arquitectura actual (resumen)
 - Frontend: React + TypeScript + Vite + React Query.
 - Backend: Node.js + Express por capas + Prisma.

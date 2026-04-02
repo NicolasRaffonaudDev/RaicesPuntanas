@@ -10,6 +10,22 @@ Formato por entrada:
 
 ---
 
+## 2026-04-02 - Filtro por estado en consultas
+- Feature implementada:
+  - Filtro por estado (todas, pendientes, leidas) en `/admin/inquiries`.
+  - URL como fuente de verdad con `?status=pending|read`.
+- Que se hizo:
+  - Backend agrega `status` en query para listado y conteo.
+  - Frontend sincroniza filtro en React Query y botones de UI.
+- Que se aprendio (enfoque pedagogico):
+  - Los filtros en URL mejoran el shareability y la persistencia del estado.
+  - React Query permite cachear por clave sin duplicar estados.
+- Proximos pasos:
+  - Agregar contadores por estado.
+  - Permitir volver a "pending" desde la UI.
+- Uso para cliente (impacto):
+  - El admin puede revisar pendientes rapidamente y compartir el enlace filtrado.
+
 ## 2026-04-01 - Busqueda local y limpieza masiva en favoritos
 - Feature implementada:
   - Busqueda local en `/favoritos` por titulo y direccion.

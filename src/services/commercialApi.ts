@@ -415,11 +415,12 @@ export const commercialApi = {
 
   listInquiries: async (
     token: string,
-    query?: { page?: number; limit?: number },
+    query?: { page?: number; limit?: number; status?: "pending" | "read" },
   ): Promise<{ data: Inquiry[]; meta: Pagination }> => {
     const params = new URLSearchParams();
     if (query?.page) params.set("page", String(query.page));
     if (query?.limit) params.set("limit", String(query.limit));
+    if (query?.status) params.set("status", query.status);
 
     const queryString = params.toString();
     const res = await apiRequest(queryString ? `/inquiries?${queryString}` : "/inquiries", {
