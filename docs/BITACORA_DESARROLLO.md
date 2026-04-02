@@ -46,6 +46,23 @@ Formato sugerido por entrada:
 - Siguiente paso:
   - Resaltar columnas con valores distintos entre lotes.
 
+## 2026-04-01 - Contacto por lote con modal
+- Scope: `feat(contacto)` + `docs`
+- Cambios:
+  - Boton "Consultar" en cards y comparador.
+  - Modal reutilizable con formulario y validaciones basicas.
+  - Envio simulado con feedback de exito.
+- Motivo tecnico:
+  - Facilitar el contacto desde el contexto del lote sin navegar.
+- Impacto en cliente:
+  - Reduccion de friccion para iniciar una consulta.
+- Riesgos:
+  - Envio simulado puede generar expectativa (documentado).
+- Validacion:
+  - Formulario valida campos obligatorios y muestra confirmacion.
+- Siguiente paso:
+  - Conectar con backend real y log de consultas.
+
 ## 2026-04-01 - Favoritos locales + vista dedicada
 - Scope: `feat(favoritos)` + `docs`
 - Cambios:

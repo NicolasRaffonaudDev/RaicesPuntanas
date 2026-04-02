@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { commercialApi } from "../services/commercialApi";
+import ContactModal from "../components/ContactModal";
 import type { Lote } from "../types/interfaces";
 
 const parseIds = (raw: string | null): number[] => {
@@ -19,9 +20,10 @@ interface CompareRowProps {
   isBestPrice: boolean;
   isBestSize: boolean;
   onRemove: (id: number) => void;
+  onContact: (lote: Lote) => void;
 }
 
-const CompareRow: React.FC<CompareRowProps> = ({ lote, isBestPrice, isBestSize, onRemove }) => (
+const CompareRow: React.FC<CompareRowProps> = ({ lote, isBestPrice, isBestSize, onRemove, onContact }) => (
   <tr className="border-t border-[var(--color-border)]">
     <td className="px-4 py-4 text-sm font-semibold text-white">{lote.title}</td>
     <td className={`px-4 py-4 text-sm ${isBestPrice ? "text-emerald-300" : "text-[var(--color-text-muted)]"}`}>
@@ -39,9 +41,14 @@ const CompareRow: React.FC<CompareRowProps> = ({ lote, isBestPrice, isBestSize, 
       {lote.amenities.length > 0 ? lote.amenities.map((amenity) => amenity.name).join(", ") : "Sin amenities"}
     </td>
     <td className="px-4 py-4 text-right">
-      <button type="button" className="btn btn-outline text-xs" onClick={() => onRemove(lote.id)}>
-        Quitar
-      </button>
+      <div className="flex flex-wrap justify-end gap-2">
+        <button type="button" className="btn btn-primary text-xs" onClick={() => onContact(lote)}>
+          Contactar
+        </button>
+        <button type="button" className="btn btn-outline text-xs" onClick={() => onRemove(lote.id)}>
+          Quitar
+        </button>
+      </div>
     </td>
   </tr>
 );
@@ -51,9 +58,10 @@ interface CompareTableProps {
   minPrice: number | null;
   maxSize: number | null;
   onRemove: (id: number) => void;
+  onContact: (lote: Lote) => void;
 }
 
-const CompareTable: React.FC<CompareTableProps> = ({ lotes, minPrice, maxSize, onRemove }) => (
+const CompareTable: React.FC<CompareTableProps> = ({ lotes, minPrice, maxSize, onRemove, onContact }) => (
   <div className="card overflow-hidden">
     <div className="overflow-x-auto">
       <table className="w-full text-left text-sm">
@@ -75,6 +83,7 @@ const CompareTable: React.FC<CompareTableProps> = ({ lotes, minPrice, maxSize, o
               isBestPrice={minPrice !== null && lote.price === minPrice}
               isBestSize={maxSize !== null && lote.size === maxSize}
               onRemove={onRemove}
+              onContact={onContact}
             />
           ))}
         </tbody>
@@ -89,6 +98,8 @@ const CompararLotes: React.FC = () => {
   const [lotes, setLotes] = useState<Lote[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isContactOpen, setIsContactOpen] = useState(false);
+  const [contactLote, setContactLote] = useState<Lote | null>(null);
   const selectedIds = useMemo(() => parseIds(searchParams.get("ids")), [searchParams]);
   const hasMapsKey = Boolean(import.meta.env.VITE_GOOGLE_MAPS_API_KEY);
 
@@ -137,6 +148,16 @@ const CompararLotes: React.FC = () => {
     const confirmed = window.confirm("Se limpiara el comparador. Esta accion no se puede deshacer.");
     if (!confirmed) return;
     updateIds([]);
+  };
+
+  const openContactModal = (lote: Lote) => {
+    setContactLote(lote);
+    setIsContactOpen(true);
+  };
+
+  const closeContactModal = () => {
+    setIsContactOpen(false);
+    setContactLote(null);
   };
 
   const center = useMemo(() => {
@@ -192,7 +213,13 @@ const CompararLotes: React.FC = () => {
               </button>
             </div>
 
-            <CompareTable lotes={lotes} minPrice={minPrice} maxSize={maxSize} onRemove={handleRemove} />
+            <CompareTable
+              lotes={lotes}
+              minPrice={minPrice}
+              maxSize={maxSize}
+              onRemove={handleRemove}
+              onContact={openContactModal}
+            />
 
             <div className="card overflow-hidden">
               {!hasMapsKey ? (
@@ -229,6 +256,7 @@ const CompararLotes: React.FC = () => {
           </>
         )}
       </div>
+      <ContactModal isOpen={isContactOpen} lote={contactLote} onClose={closeContactModal} />
     </section>
   );
 };

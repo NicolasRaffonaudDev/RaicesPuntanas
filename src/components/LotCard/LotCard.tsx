@@ -8,6 +8,7 @@ interface LotCardProps {
   highlightQuery?: string;
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
+  onContact?: () => void;
 }
 
 const LotCard: React.FC<LotCardProps> = ({
@@ -16,6 +17,7 @@ const LotCard: React.FC<LotCardProps> = ({
   highlightQuery = "",
   isFavorite = false,
   onToggleFavorite,
+  onContact,
 }) => {
   return (
     <article
@@ -68,6 +70,11 @@ const LotCard: React.FC<LotCardProps> = ({
             <li key={amenity.id}>{amenity.name}</li>
           ))}
         </ul>
+        {onContact && (
+          <button type="button" className="btn btn-primary w-full text-sm" onClick={onContact}>
+            Consultar
+          </button>
+        )}
       </div>
       <MapView lote={lote} />
     </article>

@@ -43,6 +43,22 @@ Formato por entrada:
 - Uso para cliente (impacto):
   - Decisiones mas rapidas al ver diferencias clave en una sola vista.
 
+## 2026-04-01 - Contacto por lote con modal
+- Feature implementada:
+  - Boton "Consultar" en cards y comparador.
+  - Modal reutilizable con formulario y validaciones basicas.
+- Que se hizo:
+  - Mensaje prellenado con datos del lote.
+  - Envio simulado con feedback de exito y loading.
+- Que se aprendio (enfoque pedagogico):
+  - Estructurar modales reutilizables con props y estado local.
+  - Validaciones minimas para UX clara sin backend.
+- Proximos pasos:
+  - Integrar envio real con endpoint de consultas.
+  - Agregar tracking de conversion de consultas.
+- Uso para cliente (impacto):
+  - El usuario puede iniciar una consulta sin salir del listado o comparador.
+
 ## 2026-04-01 - Vista de favoritos + documentacion
 - Feature implementada:
   - Vista "Mis favoritos" consumiendo `getLotesByIds`.

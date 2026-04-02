@@ -3,6 +3,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tansta
 import { useNavigate, useSearchParams } from "react-router-dom";
 import AddressAutocomplete from "../components/AddressAutocomplete";
 import AmenitiesSelector from "../components/AmenitiesSelector";
+import ContactModal from "../components/ContactModal";
 import MapView from "../components/MapView/MapView";
 import { SectionEmpty, SectionError, SectionLoading } from "../components/Feedback";
 import { useDebounce } from "../hooks/useDebounce";
@@ -76,6 +77,8 @@ const Lotes: React.FC = () => {
   const [mutationError, setMutationError] = useState("");
   const [limit] = useState(10);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isContactOpen, setIsContactOpen] = useState(false);
+  const [contactLote, setContactLote] = useState<Lote | null>(null);
   const [editingLoteId, setEditingLoteId] = useState<number | null>(null);
   const [formState, setFormState] = useState<LoteFormState>(emptyLoteForm);
   const { favoriteSet: localFavoriteSet, toggleFavorite: toggleLocalFavorite, count: localFavoritesCount } = useFavorites();
@@ -356,6 +359,16 @@ const Lotes: React.FC = () => {
     setFormState(emptyLoteForm);
     setMutationError("");
     setIsModalOpen(true);
+  };
+
+  const openContactModal = (lote: Lote) => {
+    setContactLote(lote);
+    setIsContactOpen(true);
+  };
+
+  const closeContactModal = () => {
+    setIsContactOpen(false);
+    setContactLote(null);
   };
 
   const openEditModal = (lote: Lote) => {
@@ -647,6 +660,7 @@ const Lotes: React.FC = () => {
                   highlightQuery={searchQuery}
                   isFavorite={localFavoriteSet.has(String(lote.id))}
                   onToggleFavorite={() => toggleLocalFavorite(lote.id)}
+                  onContact={() => openContactModal(lote)}
                 />
                 <div className="flex gap-2">
                   <button
@@ -656,13 +670,6 @@ const Lotes: React.FC = () => {
                     onClick={() => toggleCompare(lote.id)}
                   >
                     {compareIds.has(lote.id) ? "En comparador" : "Comparar"}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-outline flex-1 text-sm"
-                    onClick={() => navigate(`/contact?loteId=${lote.id}&asunto=${encodeURIComponent(`Consulta por ${lote.title}`)}`)}
-                  >
-                    Consultar
                   </button>
                 </div>
                 {canManageLotes && (
@@ -908,6 +915,7 @@ const Lotes: React.FC = () => {
           </div>
         </div>
       )}
+      <ContactModal isOpen={isContactOpen} lote={contactLote} onClose={closeContactModal} />
     </section>
   );
 };

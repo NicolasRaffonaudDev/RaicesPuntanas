@@ -46,6 +46,24 @@ Aplicacion full stack para gestion comercial de lotes, clientes y operaciones.
 - Se consultan lotes con `getLotesByIds`.
 - Se calcula `minPrice` y `maxSize` con `useMemo` para resaltar valores.
 
+## Contacto con propiedades
+### Que hace (usuario)
+- Permite consultar un lote desde el listado o el comparador.
+- Abre un formulario con mensaje prellenado para enviar la consulta.
+
+### Como usarlo
+- En cualquier lote, presiona "Consultar".
+- Completa tu nombre, email y mensaje.
+- Recibiras un aviso de envio correcto (simulado por ahora).
+
+### Limitacion actual
+- El envio es simulado (no conecta con backend).
+
+### Como esta implementado (dev)
+- Modal reusable `ContactModal` recibe el lote por prop.
+- Validaciones basicas en el frontend y estado de envio simulado.
+- Se reutiliza en `Lotes` y en `Comparar`.
+
 ## Arquitectura actual (resumen)
 - Frontend: React + TypeScript + Vite + React Query.
 - Backend: Node.js + Express por capas + Prisma.
