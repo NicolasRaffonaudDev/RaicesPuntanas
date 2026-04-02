@@ -80,6 +80,23 @@ Formato sugerido por entrada:
 - Siguiente paso:
   - Panel administrativo y notificaciones.
 
+## 2026-04-01 - Panel admin de consultas
+- Scope: `feat(admin)` + `docs`
+- Cambios:
+  - Endpoint `GET /api/inquiries` con paginacion.
+  - Vista `/admin/inquiries` con tabla y paginacion.
+  - Hook `useInquiries` y componente `InquiriesTable`.
+- Motivo tecnico:
+  - Dar visibilidad comercial a las consultas recibidas.
+- Impacto en cliente:
+  - El admin ve leads sin acceder a la base de datos.
+- Riesgos:
+  - Faltan filtros/estados (planificado).
+- Validacion:
+  - Listado OK con paginacion basica.
+- Siguiente paso:
+  - Agregar filtros por estado y marcar leido.
+
 ## 2026-04-01 - Favoritos locales + vista dedicada
 - Scope: `feat(favoritos)` + `docs`
 - Cambios:

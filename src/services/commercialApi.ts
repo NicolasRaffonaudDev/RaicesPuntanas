@@ -5,6 +5,7 @@ import type {
   ConsultaEstado,
   ConsultaSeguimiento,
   ConsultaWithUser,
+  Inquiry,
   InventarioMovimiento,
   LoteFavorito,
   PaginatedResult,
@@ -410,6 +411,25 @@ export const commercialApi = {
     }
     const payload = await res.json();
     return payload.data;
+  },
+
+  listInquiries: async (
+    token: string,
+    query?: { page?: number; limit?: number },
+  ): Promise<{ data: Inquiry[]; meta: Pagination }> => {
+    const params = new URLSearchParams();
+    if (query?.page) params.set("page", String(query.page));
+    if (query?.limit) params.set("limit", String(query.limit));
+
+    const queryString = params.toString();
+    const res = await apiRequest(queryString ? `/inquiries?${queryString}` : "/inquiries", {
+      headers: authHeaders(token),
+    });
+    if (!res.ok) {
+      const payload = await res.json();
+      throw new Error(payload.message || "No se pudieron cargar las consultas");
+    }
+    return res.json();
   },
 
   listMisConsultas: async (token: string): Promise<Consulta[]> => {

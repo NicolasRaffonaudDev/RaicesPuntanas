@@ -76,6 +76,22 @@ Formato por entrada:
 - Uso para cliente (impacto):
   - Las consultas quedan registradas para seguimiento comercial.
 
+## 2026-04-01 - Panel admin de consultas
+- Feature implementada:
+  - Vista `/admin/inquiries` con listado paginado.
+  - Tabla con datos de cliente, mensaje, lote y fecha.
+- Que se hizo:
+  - Hook `useInquiries` con React Query.
+  - Componentes de tabla reutilizables.
+- Que se aprendio (enfoque pedagogico):
+  - Como construir paneles administrativos con paginacion real.
+  - Separacion de datos (hook) y presentacion (tabla).
+- Proximos pasos:
+  - Agregar filtros por estado o busqueda.
+  - Marcar consultas como leidas.
+- Uso para cliente (impacto):
+  - El admin puede revisar leads desde el panel sin ir a la DB.
+
 ## 2026-04-01 - Vista de favoritos + documentacion
 - Feature implementada:
   - Vista "Mis favoritos" consumiendo `getLotesByIds`.

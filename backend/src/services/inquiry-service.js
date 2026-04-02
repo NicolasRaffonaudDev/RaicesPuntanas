@@ -23,6 +23,23 @@ const inquiryService = {
 
     return inquiry;
   },
+
+  list: async ({ page, limit, skip }) => {
+    const [data, total] = await Promise.all([
+      inquiryRepository.findPaged({ skip, take: limit }),
+      inquiryRepository.count(),
+    ]);
+
+    return {
+      data,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit) || 1,
+      },
+    };
+  },
 };
 
 module.exports = { inquiryService };

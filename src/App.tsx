@@ -12,6 +12,7 @@ import {
   DashboardPage,
   GestionComercialPage,
   HomePage,
+  InquiriesAdminPage,
   LoginPage,
   LotesPage,
   FavoritosPage,
@@ -66,6 +67,14 @@ function App() {
         element={
           <ProtectedRoute allowedRoles={["admin", "empleado"]}>
             <ConsultasInboxPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/inquiries"
+        element={
+          <ProtectedRoute>
+            <InquiriesAdminPage />
           </ProtectedRoute>
         }
       />

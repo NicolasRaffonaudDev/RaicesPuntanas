@@ -93,6 +93,20 @@ export interface LoteFavorito {
   };
 }
 
+export interface Inquiry {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  loteId: number;
+  createdAt: string;
+  lote?: {
+    id: number;
+    title: string;
+    address?: string | null;
+  };
+}
+
 export type ConsultaEstado = "pendiente" | "en_revision" | "respondida" | "cerrada";
 
 export interface Consulta {

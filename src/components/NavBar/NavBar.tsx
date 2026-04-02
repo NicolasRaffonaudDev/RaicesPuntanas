@@ -52,6 +52,7 @@ const NavBar: React.FC = () => {
       void preloaders.lotes();
       void preloaders.favoritos();
       void preloaders.contacto();
+      void preloaders.inquiries();
 
       if (user) {
         void preloaders.dashboard();

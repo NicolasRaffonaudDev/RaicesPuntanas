@@ -76,6 +76,19 @@ Aplicacion full stack para gestion comercial de lotes, clientes y operaciones.
 2. Completa el formulario y envia.
 3. Verifica en el backend el log `[inquiry]` y en DB la tabla `Inquiry`.
 
+## Panel de consultas
+### Que permite hacer
+- Visualizar las consultas (leads) recibidas por lote.
+- Revisar nombre, email, mensaje y fecha.
+
+### Como acceder
+- Ruta: `/admin/inquiries` (usuario autenticado).
+
+### Que datos muestra
+- Nombre, email, mensaje.
+- Lote asociado (titulo y direccion).
+- Fecha de creacion.
+
 ## Arquitectura actual (resumen)
 - Frontend: React + TypeScript + Vite + React Query.
 - Backend: Node.js + Express por capas + Prisma.

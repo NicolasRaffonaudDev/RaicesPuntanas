@@ -5,6 +5,7 @@ export const LotesPage = lazyWithPreload(() => import("../pages/Lotes"));
 export const FavoritosPage = lazyWithPreload(() => import("../pages/Favoritos"));
 export const CompararLotesPage = lazyWithPreload(() => import("../pages/CompararLotes"));
 export const ContactPage = lazyWithPreload(() => import("../pages/Contact"));
+export const InquiriesAdminPage = lazyWithPreload(() => import("../pages/InquiriesAdmin"));
 export const LoginPage = lazyWithPreload(() => import("../pages/Login"));
 export const RegisterPage = lazyWithPreload(() => import("../pages/Register"));
 export const SetupAdminPage = lazyWithPreload(() => import("../pages/SetupAdmin"));
@@ -20,6 +21,7 @@ export const preloaders = {
   favoritos: FavoritosPage.preload,
   comparar: CompararLotesPage.preload,
   contacto: ContactPage.preload,
+  inquiries: InquiriesAdminPage.preload,
   login: LoginPage.preload,
   register: RegisterPage.preload,
   setupAdmin: SetupAdminPage.preload,
