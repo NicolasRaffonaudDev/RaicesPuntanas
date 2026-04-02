@@ -29,6 +29,23 @@ Formato sugerido por entrada:
 - Siguiente paso:
   - Evaluar sync con backend si se requiere multi-dispositivo.
 
+## 2026-04-01 - Comparador visual mejorado
+- Scope: `feat(comparador)` + `docs`
+- Cambios:
+  - Tabla comparativa con columnas de precio, tamano, direccion y amenities.
+  - Resaltado del menor precio y mayor tamano.
+  - Acciones para quitar items y limpiar comparador.
+- Motivo tecnico:
+  - Hacer mas clara la comparacion de lotes en una sola vista.
+- Impacto en cliente:
+  - Mejores decisiones al ver diferencias clave rapidamente.
+- Riesgos:
+  - Si se comparan muchos lotes, la tabla puede necesitar scroll horizontal.
+- Validacion:
+  - URL `?ids=` sincronizada y acciones de quitar/limpiar funcionando.
+- Siguiente paso:
+  - Resaltar columnas con valores distintos entre lotes.
+
 ## 2026-04-01 - Favoritos locales + vista dedicada
 - Scope: `feat(favoritos)` + `docs`
 - Cambios:

@@ -30,6 +30,22 @@ Aplicacion full stack para gestion comercial de lotes, clientes y operaciones.
 - Usa la busqueda local para filtrar por nombre o ubicacion.
 - Si necesitas limpiar todo, utiliza "Limpiar favoritos".
 
+## Comparador de lotes
+### Que hace (usuario)
+- Permite ver varios lotes en una tabla comparativa.
+- Resalta el menor precio y el mayor tamano para tomar decisiones rapidas.
+- Desde la vista puedes quitar lotes o limpiar el comparador.
+
+### Como usarlo
+- En `Lotes`, activa el comparador (hasta 3 o 4 lotes recomendados).
+- Ingresa a `/comparar` para ver la tabla comparativa.
+- Usa "Limpiar comparador" si quieres empezar de nuevo.
+
+### Como esta implementado (dev)
+- La URL guarda los ids: `/comparar?ids=1,2,3`.
+- Se consultan lotes con `getLotesByIds`.
+- Se calcula `minPrice` y `maxSize` con `useMemo` para resaltar valores.
+
 ## Arquitectura actual (resumen)
 - Frontend: React + TypeScript + Vite + React Query.
 - Backend: Node.js + Express por capas + Prisma.

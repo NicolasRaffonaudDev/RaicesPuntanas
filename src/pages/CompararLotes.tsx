@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { commercialApi } from "../services/commercialApi";
@@ -12,14 +12,98 @@ const parseIds = (raw: string | null): number[] => {
     .filter((item) => Number.isInteger(item) && item > 0);
 };
 
+const formatPrice = (price: number) => `$${price.toLocaleString("es-AR")} USD`;
+
+interface CompareRowProps {
+  lote: Lote;
+  isBestPrice: boolean;
+  isBestSize: boolean;
+  onRemove: (id: number) => void;
+}
+
+const CompareRow: React.FC<CompareRowProps> = ({ lote, isBestPrice, isBestSize, onRemove }) => (
+  <tr className="border-t border-[var(--color-border)]">
+    <td className="px-4 py-4 text-sm font-semibold text-white">{lote.title}</td>
+    <td className={`px-4 py-4 text-sm ${isBestPrice ? "text-emerald-300" : "text-[var(--color-text-muted)]"}`}>
+      <span className={isBestPrice ? "rounded bg-emerald-500/15 px-2 py-1" : undefined}>
+        {formatPrice(lote.price)}
+      </span>
+    </td>
+    <td className={`px-4 py-4 text-sm ${isBestSize ? "text-emerald-300" : "text-[var(--color-text-muted)]"}`}>
+      <span className={isBestSize ? "rounded bg-emerald-500/15 px-2 py-1" : undefined}>
+        {lote.size} m2
+      </span>
+    </td>
+    <td className="px-4 py-4 text-sm text-[var(--color-text-muted)]">{lote.address || "Sin direccion"}</td>
+    <td className="px-4 py-4 text-sm text-[var(--color-text-muted)]">
+      {lote.amenities.length > 0 ? lote.amenities.map((amenity) => amenity.name).join(", ") : "Sin amenities"}
+    </td>
+    <td className="px-4 py-4 text-right">
+      <button type="button" className="btn btn-outline text-xs" onClick={() => onRemove(lote.id)}>
+        Quitar
+      </button>
+    </td>
+  </tr>
+);
+
+interface CompareTableProps {
+  lotes: Lote[];
+  minPrice: number | null;
+  maxSize: number | null;
+  onRemove: (id: number) => void;
+}
+
+const CompareTable: React.FC<CompareTableProps> = ({ lotes, minPrice, maxSize, onRemove }) => (
+  <div className="card overflow-hidden">
+    <div className="overflow-x-auto">
+      <table className="w-full text-left text-sm">
+        <thead className="bg-[var(--color-surface-alt)] text-xs uppercase text-[var(--color-text-muted)]">
+          <tr>
+            <th className="px-4 py-3">Titulo</th>
+            <th className="px-4 py-3">Precio</th>
+            <th className="px-4 py-3">Tamano</th>
+            <th className="px-4 py-3">Direccion</th>
+            <th className="px-4 py-3">Amenities</th>
+            <th className="px-4 py-3 text-right">Accion</th>
+          </tr>
+        </thead>
+        <tbody>
+          {lotes.map((lote) => (
+            <CompareRow
+              key={lote.id}
+              lote={lote}
+              isBestPrice={minPrice !== null && lote.price === minPrice}
+              isBestSize={maxSize !== null && lote.size === maxSize}
+              onRemove={onRemove}
+            />
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+);
+
 const CompararLotes: React.FC = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const [lotes, setLotes] = useState<Lote[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const selectedIds = useMemo(() => parseIds(searchParams.get("ids")), [searchParams]);
   const hasMapsKey = Boolean(import.meta.env.VITE_GOOGLE_MAPS_API_KEY);
+
+  const updateIds = useCallback(
+    (nextIds: number[]) => {
+      const params = new URLSearchParams(searchParams);
+      if (nextIds.length > 0) {
+        params.set("ids", nextIds.join(","));
+      } else {
+        params.delete("ids");
+      }
+      setSearchParams(params, { replace: true });
+    },
+    [searchParams, setSearchParams],
+  );
 
   useEffect(() => {
     if (selectedIds.length === 0) {
@@ -35,6 +119,26 @@ const CompararLotes: React.FC = () => {
       .finally(() => setLoading(false));
   }, [selectedIds]);
 
+  const minPrice = useMemo(() => {
+    if (lotes.length === 0) return null;
+    return Math.min(...lotes.map((lote) => lote.price));
+  }, [lotes]);
+
+  const maxSize = useMemo(() => {
+    if (lotes.length === 0) return null;
+    return Math.max(...lotes.map((lote) => lote.size));
+  }, [lotes]);
+
+  const handleRemove = (id: number) => {
+    updateIds(selectedIds.filter((item) => item !== id));
+  };
+
+  const handleClear = () => {
+    const confirmed = window.confirm("Se limpiara el comparador. Esta accion no se puede deshacer.");
+    if (!confirmed) return;
+    updateIds([]);
+  };
+
   const center = useMemo(() => {
     if (lotes.length === 0) return { lat: -33.3017, lng: -66.3378 };
     const latAvg = lotes.reduce((acc, lote) => acc + lote.lat, 0) / lotes.length;
@@ -47,41 +151,48 @@ const CompararLotes: React.FC = () => {
       <div className="container space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-3xl font-bold text-[var(--color-primary)]">Comparador de Lotes</h1>
-          <button type="button" className="btn btn-outline text-sm" onClick={() => navigate("/lotes")}>
-            Volver a lotes
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            {selectedIds.length > 0 && (
+              <button type="button" className="btn btn-outline text-sm" onClick={handleClear}>
+                Limpiar comparador
+              </button>
+            )}
+            <button type="button" className="btn btn-outline text-sm" onClick={() => navigate("/lotes")}>
+              Volver a lotes
+            </button>
+          </div>
         </div>
 
         {loading && <p className="text-[var(--color-text-muted)]">Preparando comparacion...</p>}
         {error && <p className="rounded border border-red-700 bg-red-900/30 p-2 text-sm text-red-300">{error}</p>}
 
-        {!loading && !error && lotes.length < 2 && (
-          <div className="card p-4 text-sm text-[var(--color-text-muted)]">
-            Necesitas seleccionar al menos 2 lotes para comparar. Regresa a <strong className="text-[var(--color-primary)]">Lotes</strong> y activa el comparador.
+        {!loading && !error && lotes.length === 0 && (
+          <div className="card p-6 text-center text-sm text-[var(--color-text-muted)]">
+            <p className="text-base text-white">Agrega lotes para comparar</p>
+            <p className="mt-2">Selecciona hasta 3 o 4 lotes para una comparacion clara.</p>
+            <button type="button" className="btn btn-primary mt-4 text-sm" onClick={() => navigate("/lotes")}>
+              Explorar lotes
+            </button>
           </div>
         )}
 
-        {!loading && !error && lotes.length >= 2 && (
+        {!loading && !error && lotes.length > 0 && (
           <>
-            <div className="card p-4">
-              <div className="grid gap-3 md:grid-cols-3">
-                {lotes.map((lote) => (
-                  <article key={lote.id} className="rounded border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3" data-testid={`compare-card-${lote.id}`}>
-                    <p className="font-semibold text-[var(--color-primary)]">{lote.title}</p>
-                    <p className="mt-1 text-sm text-[var(--color-text-muted)]">Precio: ${lote.price.toLocaleString("es-AR")} USD</p>
-                    <p className="text-sm text-[var(--color-text-muted)]">Tamano: {lote.size} m2</p>
-                    <button
-                      type="button"
-                      className="btn btn-primary mt-3 w-full text-sm"
-                      data-testid={`compare-consult-${lote.id}`}
-                      onClick={() => navigate(`/contact?loteId=${lote.id}&asunto=${encodeURIComponent(`Consulta por ${lote.title}`)}`)}
-                    >
-                      Consultar este lote
-                    </button>
-                  </article>
-                ))}
+            <div className="card flex flex-wrap items-center justify-between gap-3 p-4 text-sm text-[var(--color-text-muted)]">
+              <div>
+                Comparando <strong className="text-white">{lotes.length}</strong> lotes.
+                <span className="ml-2">Recomendado: 3 a 4 lotes.</span>
               </div>
+              <button
+                type="button"
+                className="btn btn-primary text-sm"
+                onClick={() => navigate("/lotes")}
+              >
+                Agregar mas lotes
+              </button>
             </div>
+
+            <CompareTable lotes={lotes} minPrice={minPrice} maxSize={maxSize} onRemove={handleRemove} />
 
             <div className="card overflow-hidden">
               {!hasMapsKey ? (

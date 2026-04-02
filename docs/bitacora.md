@@ -26,6 +26,23 @@ Formato por entrada:
 - Uso para cliente (impacto):
   - El usuario puede encontrar y limpiar favoritos sin salir de la vista.
 
+## 2026-04-01 - Comparador visual mejorado
+- Feature implementada:
+  - Tabla comparativa con precio, tamano, direccion y amenities.
+  - Resaltado del menor precio y mayor tamano.
+  - Acciones para quitar items y limpiar comparador.
+- Que se hizo:
+  - Calculos derivados con `useMemo` para valores extremos.
+  - Componentes `CompareTable` y `CompareRow` para orden y claridad.
+- Que se aprendio (enfoque pedagogico):
+  - Como comparar datasets en frontend sin duplicar render.
+  - Uso de `useMemo` para datos derivados y performance.
+- Proximos pasos:
+  - Agregar comparacion visual de valores distintos por columna.
+  - Mostrar links directos a contacto desde la tabla.
+- Uso para cliente (impacto):
+  - Decisiones mas rapidas al ver diferencias clave en una sola vista.
+
 ## 2026-04-01 - Vista de favoritos + documentacion
 - Feature implementada:
   - Vista "Mis favoritos" consumiendo `getLotesByIds`.
