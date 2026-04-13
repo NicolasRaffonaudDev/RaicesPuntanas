@@ -110,6 +110,10 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
 - Devuelve: `{ total, pending, read }`.
 - Se usa en el panel admin para mostrar el volumen total y por estado.
 
+## Fix navegacion admin
+- Se corrige un loop de navegacion provocado por sincronizacion de query params en Gestion.
+- Se agregan guardas para evitar `setSearchParams` repetidos.
+
 ## Arquitectura actual (resumen)
 - Frontend: React + TypeScript + Vite + React Query.
 - Backend: Node.js + Express por capas + Prisma.

@@ -101,18 +101,28 @@ const GestionComercial: React.FC = () => {
 
   const can = useCallback((permission: string) => hasPermission(user?.role, permission), [user?.role]);
 
+  const searchKey = searchParams.toString();
+
   useEffect(() => {
     const nextTab = resolveTab(searchParams.get("tab"));
     setTab((prev) => (prev === nextTab ? prev : nextTab));
-  }, [searchParams]);
+  }, [searchKey]);
 
   useEffect(() => {
     const current = searchParams.get("tab");
     if (current === tab) return;
     const nextParams = new URLSearchParams(searchParams);
     nextParams.set("tab", tab);
+    if (nextParams.toString() === searchParams.toString()) return;
+    if (import.meta.env.DEV) {
+      console.log("NAVIGATE SYNC", {
+        pathname: window.location.pathname,
+        from: searchParams.toString(),
+        to: nextParams.toString(),
+      });
+    }
     setSearchParams(nextParams, { replace: true });
-  }, [tab, searchParams, setSearchParams]);
+  }, [tab, searchKey, setSearchParams]);
 
   const showToast = (message: string) => {
     setToast(message);
