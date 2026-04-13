@@ -114,6 +114,10 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
 - Se corrige un loop de navegacion por doble fuente de verdad (tab <-> URL).
 - La URL pasa a ser la unica fuente de verdad del tab en Gestion.
 
+## Fix compilacion admin
+- Se corrige una declaracion duplicada de `searchKey` en `GestionComercial`.
+- Ajuste final del refactor de navegacion.
+
 ## Arquitectura actual (resumen)
 - Frontend: React + TypeScript + Vite + React Query.
 - Backend: Node.js + Express por capas + Prisma.

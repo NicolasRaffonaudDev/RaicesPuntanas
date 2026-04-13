@@ -29,6 +29,20 @@ Formato sugerido por entrada:
 - Siguiente paso:
   - Si aparecen nuevos loops, revisar que no existan nuevas fuentes de verdad.
 
+## 2026-04-13 - Fix compilacion post-refactor
+- Scope: `fix(admin)`
+- Cambios:
+  - Se elimina la declaracion duplicada de `searchKey` en `GestionComercial`.
+  - Se mantiene el efecto sincronizado con la URL.
+- Motivo tecnico:
+  - Error de compilacion por duplicacion de identificadores.
+- Impacto en cliente:
+  - Compilacion estable y sin regresiones de navegacion.
+- Riesgos:
+  - Ninguno, el comportamiento permanece igual.
+- Validacion:
+  - Build OK y navegacion estable entre tabs.
+
 ## 2026-04-13 - Estadisticas de consultas en admin
 - Scope: `feat(inquiries)` + `docs`
 - Cambios:

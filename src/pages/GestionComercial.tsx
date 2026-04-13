@@ -102,13 +102,11 @@ const GestionComercial: React.FC = () => {
 
   const can = useCallback((permission: string) => hasPermission(user?.role, permission), [user?.role]);
 
-  const searchKey = searchParams.toString();
-
   useEffect(() => {
     if (searchParams.get("tab")) return;
     const nextParams = new URLSearchParams(searchParams);
     nextParams.set("tab", tab);
-    if (nextParams.toString() === searchParams.toString()) return;
+    if (nextParams.toString() === searchKey) return;
     setSearchParams(nextParams, { replace: true });
   }, [searchKey, tab, searchParams, setSearchParams]);
 
