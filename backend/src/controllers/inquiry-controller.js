@@ -27,6 +27,11 @@ const inquiryController = {
     });
     res.json({ data });
   },
+
+  getStats: async (_req, res) => {
+    const stats = await inquiryService.getStats();
+    res.json(stats);
+  },
 };
 
 module.exports = { inquiryController };

@@ -28,6 +28,15 @@ const inquiryRepository = {
 
   count: (status) => prisma.inquiry.count({ where: status ? { status } : undefined }),
 
+  getStats: async () => {
+    const [total, pending, read] = await Promise.all([
+      prisma.inquiry.count(),
+      prisma.inquiry.count({ where: { status: "pending" } }),
+      prisma.inquiry.count({ where: { status: "read" } }),
+    ]);
+    return { total, pending, read };
+  },
+
   updateStatus: (id, status) =>
     prisma.inquiry.update({
       where: { id },

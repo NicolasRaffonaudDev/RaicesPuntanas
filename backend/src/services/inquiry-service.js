@@ -41,6 +41,8 @@ const inquiryService = {
     };
   },
 
+  getStats: async () => inquiryRepository.getStats(),
+
   updateStatus: async ({ id, status }) => inquiryRepository.updateStatus(id, status),
 };
 

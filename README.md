@@ -105,6 +105,11 @@ El estado se controla mediante query params:
 
 Esto permite compartir vistas filtradas y mantener consistencia UX.
 
+## Estadisticas de consultas
+- Endpoint: `GET /api/inquiries/stats` (requiere autenticacion).
+- Devuelve: `{ total, pending, read }`.
+- Se usa en el panel admin para mostrar el volumen total y por estado.
+
 ## Arquitectura actual (resumen)
 - Frontend: React + TypeScript + Vite + React Query.
 - Backend: Node.js + Express por capas + Prisma.

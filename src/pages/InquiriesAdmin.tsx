@@ -4,6 +4,7 @@ import { SectionEmpty, SectionError, SectionLoading } from "../components/Feedba
 import InquiriesTable from "../components/InquiriesTable";
 import { useAuth } from "../context/useAuth";
 import { useInquiries } from "../hooks/useInquiries";
+import { useInquiryStats } from "../hooks/useInquiryStats";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { commercialApi } from "../services/commercialApi";
 import type { Inquiry } from "../types/commercial";
@@ -37,8 +38,15 @@ const InquiriesAdmin: React.FC = () => {
 
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useInquiries(token, page, limit, status);
+  const {
+    data: statsData,
+    isLoading: statsLoading,
+    error: statsError,
+  } = useInquiryStats(token);
   const inquiries = data?.data ?? [];
   const meta = data?.meta ?? { page, limit, total: 0, totalPages: 1 };
+  const stats = statsData ?? { total: 0, pending: 0, read: 0 };
+  const statsFallback = statsLoading || !!statsError;
 
   const pageItems = useMemo(() => buildPageItems(meta.page, meta.totalPages), [meta.page, meta.totalPages]);
   const queryKey = useMemo(() => ["inquiries", { page, limit, status }], [page, limit, status]);
@@ -69,6 +77,7 @@ const InquiriesAdmin: React.FC = () => {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey });
+      queryClient.invalidateQueries({ queryKey: ["inquiryStats"] });
     },
   });
 
@@ -96,6 +105,27 @@ const InquiriesAdmin: React.FC = () => {
           <button type="button" className="btn btn-outline text-sm" onClick={() => navigate("/dashboard")}>
             Volver al dashboard
           </button>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="card flex flex-col gap-1 p-4">
+            <span className="text-xs uppercase text-[var(--color-text-muted)]">Total</span>
+            <span className="text-2xl font-semibold text-white">
+              {statsFallback ? "—" : stats.total}
+            </span>
+          </div>
+          <div className="card flex flex-col gap-1 p-4">
+            <span className="text-xs uppercase text-[var(--color-text-muted)]">Pendientes</span>
+            <span className="text-2xl font-semibold text-amber-200">
+              {statsFallback ? "—" : stats.pending}
+            </span>
+          </div>
+          <div className="card flex flex-col gap-1 p-4">
+            <span className="text-xs uppercase text-[var(--color-text-muted)]">Leidas</span>
+            <span className="text-2xl font-semibold text-emerald-200">
+              {statsFallback ? "—" : stats.read}
+            </span>
+          </div>
         </div>
 
         {isLoading && (

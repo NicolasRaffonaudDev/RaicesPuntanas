@@ -8,6 +8,7 @@ const { asyncHandler } = require("../utils/async-handler");
 const inquiryRoutes = Router();
 
 inquiryRoutes.post("/", validateBody(inquiryCreateSchema), asyncHandler(inquiryController.create));
+inquiryRoutes.get("/stats", requireAuth, asyncHandler(inquiryController.getStats));
 inquiryRoutes.get("/", requireAuth, asyncHandler(inquiryController.list));
 inquiryRoutes.patch(
   "/:id/status",

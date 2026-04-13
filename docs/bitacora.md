@@ -10,6 +10,22 @@ Formato por entrada:
 
 ---
 
+## 2026-04-13 - Estadisticas de consultas en admin
+- Feature implementada:
+  - Endpoint `/api/inquiries/stats` con conteos por estado.
+  - Contadores visibles en el panel admin (total, pendientes, leidas).
+- Que se hizo:
+  - Backend agrega conteos eficientes con Prisma.
+  - Frontend consume stats con React Query y actualiza al cambiar estado.
+- Que se aprendio (enfoque pedagogico):
+  - Es mejor contar en backend para evitar traer listas completas.
+  - Las invalidaciones de cache mantienen datos derivados consistentes.
+- Proximos pasos:
+  - Agregar filtros avanzados (fecha/texto).
+  - Permitir volver a "pending".
+- Uso para cliente (impacto):
+  - El admin entiende volumen operativo de un vistazo.
+
 ## 2026-04-02 - Filtro por estado en consultas
 - Feature implementada:
   - Filtro por estado (todas, pendientes, leidas) en `/admin/inquiries`.

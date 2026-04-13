@@ -433,6 +433,15 @@ export const commercialApi = {
     return res.json();
   },
 
+  getInquiryStats: async (token: string): Promise<{ total: number; pending: number; read: number }> => {
+    const res = await apiRequest("/inquiries/stats", { headers: authHeaders(token) });
+    if (!res.ok) {
+      const payload = await res.json();
+      throw new Error(payload.message || "No se pudieron cargar las estadisticas");
+    }
+    return res.json();
+  },
+
   updateInquiryStatus: async (token: string, id: string, status: "pending" | "read") => {
     const res = await apiRequest(`/inquiries/${id}/status`, {
       method: "PATCH",

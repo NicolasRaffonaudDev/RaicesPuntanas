@@ -12,6 +12,24 @@ Formato sugerido por entrada:
 
 ---
 
+## 2026-04-13 - Estadisticas de consultas en admin
+- Scope: `feat(inquiries)` + `docs`
+- Cambios:
+  - Nuevo endpoint `GET /api/inquiries/stats`.
+  - Hook `useInquiryStats` con React Query.
+  - UI con contadores de total, pendientes y leidas.
+  - Invalidacion de stats al cambiar estado.
+- Motivo tecnico:
+  - Evitar recalculos en frontend y mejorar performance operativa.
+- Impacto en cliente:
+  - Visibilidad inmediata del volumen de consultas.
+- Riesgos:
+  - Si se agregan mas estados, hay que actualizar conteos y UI.
+- Validacion:
+  - Contadores coinciden con listado y cambian al marcar leido.
+- Siguiente paso:
+  - Filtros avanzados y acciones masivas.
+
 ## 2026-04-02 - Filtro por estado en consultas
 - Scope: `feat(inquiries)` + `docs`
 - Cambios:
