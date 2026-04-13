@@ -39,7 +39,8 @@ const GestionComercial: React.FC = () => {
   const { token, user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [tab, setTab] = useState<Tab>(() => resolveTab(searchParams.get("tab")));
+  const searchKey = searchParams.toString();
+  const tab = useMemo(() => resolveTab(searchParams.get("tab")), [searchKey]);
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
   const [loading, setLoading] = useState(false);
@@ -104,25 +105,22 @@ const GestionComercial: React.FC = () => {
   const searchKey = searchParams.toString();
 
   useEffect(() => {
-    const nextTab = resolveTab(searchParams.get("tab"));
-    setTab((prev) => (prev === nextTab ? prev : nextTab));
-  }, [searchKey]);
-
-  useEffect(() => {
-    const current = searchParams.get("tab");
-    if (current === tab) return;
+    if (searchParams.get("tab")) return;
     const nextParams = new URLSearchParams(searchParams);
     nextParams.set("tab", tab);
     if (nextParams.toString() === searchParams.toString()) return;
-    if (import.meta.env.DEV) {
-      console.log("NAVIGATE SYNC", {
-        pathname: window.location.pathname,
-        from: searchParams.toString(),
-        to: nextParams.toString(),
-      });
-    }
     setSearchParams(nextParams, { replace: true });
-  }, [tab, searchKey, setSearchParams]);
+  }, [searchKey, tab, searchParams, setSearchParams]);
+
+  const setTabParam = useCallback(
+    (nextTab: Tab) => {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.set("tab", nextTab);
+      if (nextParams.toString() === searchParams.toString()) return;
+      setSearchParams(nextParams, { replace: true });
+    },
+    [searchParams, setSearchParams],
+  );
 
   const showToast = (message: string) => {
     setToast(message);
@@ -466,15 +464,15 @@ const GestionComercial: React.FC = () => {
         </div>
 
         <div className="card flex flex-wrap gap-2 p-2">
-          <button className={`btn text-sm ${tab === "clientes" ? "btn-primary" : "btn-outline"}`} onClick={() => setTab("clientes")} type="button">Clientes</button>
-          <button className={`btn text-sm ${tab === "productos" ? "btn-primary" : "btn-outline"}`} onClick={() => setTab("productos")} type="button">Productos</button>
-          <button className={`btn text-sm ${tab === "ventas" ? "btn-primary" : "btn-outline"}`} onClick={() => setTab("ventas")} type="button">Ventas</button>
-          <button className={`btn text-sm ${tab === "inventario" ? "btn-primary" : "btn-outline"}`} onClick={() => setTab("inventario")} type="button">Inventario</button>
+          <button className={`btn text-sm ${tab === "clientes" ? "btn-primary" : "btn-outline"}`} onClick={() => setTabParam("clientes")} type="button">Clientes</button>
+          <button className={`btn text-sm ${tab === "productos" ? "btn-primary" : "btn-outline"}`} onClick={() => setTabParam("productos")} type="button">Productos</button>
+          <button className={`btn text-sm ${tab === "ventas" ? "btn-primary" : "btn-outline"}`} onClick={() => setTabParam("ventas")} type="button">Ventas</button>
+          <button className={`btn text-sm ${tab === "inventario" ? "btn-primary" : "btn-outline"}`} onClick={() => setTabParam("inventario")} type="button">Inventario</button>
           {can("users.read") && (
-            <button className={`btn text-sm ${tab === "usuarios" ? "btn-primary" : "btn-outline"}`} onClick={() => setTab("usuarios")} type="button">Usuarios</button>
+            <button className={`btn text-sm ${tab === "usuarios" ? "btn-primary" : "btn-outline"}`} onClick={() => setTabParam("usuarios")} type="button">Usuarios</button>
           )}
           {can("audit.read") && (
-            <button className={`btn text-sm ${tab === "auditoria" ? "btn-primary" : "btn-outline"}`} onClick={() => setTab("auditoria")} type="button">Auditoria</button>
+            <button className={`btn text-sm ${tab === "auditoria" ? "btn-primary" : "btn-outline"}`} onClick={() => setTabParam("auditoria")} type="button">Auditoria</button>
           )}
         </div>
 

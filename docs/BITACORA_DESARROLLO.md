@@ -15,19 +15,19 @@ Formato sugerido por entrada:
 ## 2026-04-13 - Fix loop de navegacion en panel admin
 - Scope: `fix(admin)`
 - Cambios:
-  - Se ajusta sincronizacion de query params en `GestionComercial`.
+  - Se elimina la doble sincronizacion tab <-> URL en `GestionComercial`.
+  - La URL queda como unica fuente de verdad del tab.
   - Guardas para evitar `setSearchParams` repetidos.
-  - Log de debug en modo DEV para identificar triggers de sync.
 - Motivo tecnico:
   - Evitar loops de navegacion al cambiar entre secciones admin.
 - Impacto en cliente:
   - Navegacion estable entre secciones del panel.
 - Riesgos:
-  - Si se agregan nuevos params en Gestion, hay que mantener el guard.
+  - Si se agregan nuevos params en Gestion, hay que mantener el criterio URL-first.
 - Validacion:
   - Navegacion entre tabs y secciones sin redirects automaticos.
 - Siguiente paso:
-  - Remover logs si ya no se necesitan en DEV.
+  - Si aparecen nuevos loops, revisar que no existan nuevas fuentes de verdad.
 
 ## 2026-04-13 - Estadisticas de consultas en admin
 - Scope: `feat(inquiries)` + `docs`
