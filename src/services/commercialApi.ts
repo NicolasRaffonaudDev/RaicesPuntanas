@@ -399,6 +399,22 @@ export const commercialApi = {
     return payload.data as Consulta;
   },
 
+  createPublicConsulta: async (body: {
+    nombreContacto: string;
+    emailContacto: string;
+    mensaje: string;
+    loteId: number;
+    telefonoContacto?: string;
+  }): Promise<Consulta> => {
+    const res = await apiRequest("/consultas/public", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const payload = await parseResponse(res);
+    return payload.data as Consulta;
+  },
+
   createInquiry: async (body: { name: string; email: string; message: string; loteId: number }) => {
     const res = await apiRequest("/inquiries", {
       method: "POST",

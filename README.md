@@ -115,6 +115,11 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
 - Nuevo endpoint: `POST /api/consultas/public`.
 - Base tecnica para la unificacion CRM entre `Inquiry` y `Consulta`.
 
+## Unificacion CRM (fase 2)
+- `ContactModal` ahora crea consultas publicas via `POST /api/consultas/public`.
+- `Inquiry` queda activo como sistema legacy para compatibilidad e historico.
+- El punto de entrada real del lead ya empieza a converger sobre `Consulta`.
+
 ## Fix navegacion admin
 - Se corrige un loop de navegacion por doble fuente de verdad (tab <-> URL).
 - La URL pasa a ser la unica fuente de verdad del tab en Gestion.

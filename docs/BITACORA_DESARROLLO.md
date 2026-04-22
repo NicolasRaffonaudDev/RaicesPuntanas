@@ -12,6 +12,23 @@ Formato sugerido por entrada:
 
 ---
 
+## 2026-04-22 - Migracion del formulario publico a consultas
+- Scope: `feat(consultas)` + `docs`
+- Cambios:
+  - `ContactModal` deja de crear `Inquiry` y pasa a usar `POST /api/consultas/public`.
+  - Se agrega `createPublicConsulta` en el API layer del frontend.
+  - Se mantiene compatibilidad con `Inquiry` y `InquiriesAdmin` para datos historicos.
+- Motivo tecnico:
+  - Mover el punto de entrada real del lead hacia `Consulta` sin romper el sistema anterior.
+- Impacto en cliente:
+  - El usuario sigue viendo el mismo formulario y la misma UX, pero la consulta ahora entra al flujo CRM objetivo.
+- Riesgos:
+  - Durante la transicion conviven `Inquiry` historico y nuevas `Consulta` publicas en backoffice distinto.
+- Validacion:
+  - El flujo publico ya apunta al endpoint de consultas publicas.
+- Siguiente paso:
+  - Unificar la bandeja operativa para que admin gestione un solo flujo comercial.
+
 ## 2026-04-22 - Base para leads publicos en consultas
 - Scope: `feat(consultas)` + `prisma`
 - Cambios:

@@ -70,10 +70,10 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, lote, onClose }) =>
     setSubmitError("");
 
     try {
-      await commercialApi.createInquiry({
-        name: name.trim(),
-        email: email.trim(),
-        message: message.trim(),
+      await commercialApi.createPublicConsulta({
+        nombreContacto: name.trim(),
+        emailContacto: email.trim(),
+        mensaje: message.trim(),
         loteId: lote.id,
       });
       setIsSuccess(true);
