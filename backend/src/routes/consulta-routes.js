@@ -4,12 +4,19 @@ const { requireAuth, requirePermission } = require("../middlewares/auth");
 const { validateBody } = require("../middlewares/validate");
 const {
   consultaCreateSchema,
+  publicConsultaCreateSchema,
   consultaUpdateSchema,
   consultaSeguimientoCreateSchema,
 } = require("../schemas/consulta-schema");
 const { asyncHandler } = require("../utils/async-handler");
 
 const consultaRoutes = Router();
+
+consultaRoutes.post(
+  "/public",
+  validateBody(publicConsultaCreateSchema),
+  asyncHandler(consultaController.createPublic),
+);
 
 consultaRoutes.use(requireAuth);
 consultaRoutes.post(

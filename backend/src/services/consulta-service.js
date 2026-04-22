@@ -10,6 +10,13 @@ const seguimientoInclude = {
   },
 };
 
+const buildPublicConsultaSubject = (lote) => {
+  if (lote?.title) {
+    return `Consulta por lote ${lote.title}`;
+  }
+  return "Consulta desde formulario publico";
+};
+
 const consultaService = {
   create: async ({ userId, data }) => {
     if (data.loteId) {
@@ -34,6 +41,29 @@ const consultaService = {
     return consulta;
   },
 
+  createPublic: async ({ data }) => {
+    const lote = await prisma.lote.findUnique({ where: { id: data.loteId } });
+    if (!lote) throw new AppError(404, "Lote no encontrado");
+
+    return prisma.consulta.create({
+      data: {
+        userId: null,
+        loteId: data.loteId,
+        asunto: buildPublicConsultaSubject(lote),
+        mensaje: data.mensaje,
+        nombreContacto: data.nombreContacto,
+        emailContacto: data.emailContacto,
+        telefonoContacto: data.telefonoContacto || null,
+        origen: "public_form",
+        estado: "pendiente",
+      },
+      include: {
+        user: { select: { id: true, name: true, email: true, role: true } },
+        lote: true,
+      },
+    });
+  },
+
   listMine: async ({ userId }) =>
     prisma.consulta.findMany({
       where: { userId },
@@ -55,6 +85,8 @@ const consultaService = {
               { asunto: { contains: search, mode: "insensitive" } },
               { mensaje: { contains: search, mode: "insensitive" } },
               { user: { email: { contains: search, mode: "insensitive" } } },
+              { emailContacto: { contains: search, mode: "insensitive" } },
+              { nombreContacto: { contains: search, mode: "insensitive" } },
             ],
           }
         : {}),

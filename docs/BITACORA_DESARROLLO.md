@@ -12,6 +12,23 @@ Formato sugerido por entrada:
 
 ---
 
+## 2026-04-22 - Base para leads publicos en consultas
+- Scope: `feat(consultas)` + `prisma`
+- Cambios:
+  - `Consulta` ahora soporta `userId` opcional.
+  - Se agregan `nombreContacto`, `emailContacto`, `telefonoContacto` y `origen`.
+  - Nuevo endpoint `POST /api/consultas/public`.
+- Motivo tecnico:
+  - Iniciar la unificacion `Inquiry -> Consulta` sin romper flujos existentes.
+- Impacto en cliente:
+  - Todavia no cambia la UI, pero el backend ya acepta leads publicos como consultas reales.
+- Riesgos:
+  - Conviven temporalmente `Inquiry` y `Consulta` como entradas distintas hasta la migracion de frontend.
+- Validacion:
+  - Migracion Prisma aplicada y cliente regenerado.
+- Siguiente paso:
+  - Conectar el formulario publico a `POST /api/consultas/public`.
+
 ## 2026-04-13 - Fix loop de navegacion en panel admin
 - Scope: `fix(admin)`
 - Cambios:

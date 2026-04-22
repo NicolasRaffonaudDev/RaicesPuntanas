@@ -7,6 +7,11 @@ const consultaController = {
     res.status(201).json({ data });
   },
 
+  createPublic: async (req, res) => {
+    const data = await consultaService.createPublic({ data: req.body });
+    res.status(201).json({ data });
+  },
+
   listMine: async (req, res) => {
     const data = await consultaService.listMine({ userId: req.auth.sub });
     res.json({ data });

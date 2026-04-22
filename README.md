@@ -110,6 +110,11 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
 - Devuelve: `{ total, pending, read }`.
 - Se usa en el panel admin para mostrar el volumen total y por estado.
 
+## Soporte para leads publicos en consultas
+- Se permite crear consultas sin usuario autenticado.
+- Nuevo endpoint: `POST /api/consultas/public`.
+- Base tecnica para la unificacion CRM entre `Inquiry` y `Consulta`.
+
 ## Fix navegacion admin
 - Se corrige un loop de navegacion por doble fuente de verdad (tab <-> URL).
 - La URL pasa a ser la unica fuente de verdad del tab en Gestion.

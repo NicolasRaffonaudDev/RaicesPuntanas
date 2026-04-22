@@ -177,17 +177,22 @@ model LoteFavorito {
 
 model Consulta {
   id        String   @id @default(cuid())
-  userId    String
+  userId    String?
   loteId    Int?
   asunto    String
   mensaje   String
+  nombreContacto String?
+  emailContacto String?
+  telefonoContacto String?
+  origen    String   @default("user")
   estado    String   @default("pendiente")
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   lote      Lote?    @relation(fields: [loteId], references: [id], onDelete: SetNull)
   seguimientos ConsultaSeguimiento[]
 
   @@index([userId, createdAt])
+  @@index([origen, createdAt])
   @@index([estado, createdAt])
 }
 
