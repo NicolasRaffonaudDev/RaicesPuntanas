@@ -12,6 +12,23 @@ Formato sugerido por entrada:
 
 ---
 
+## 2026-04-22 - Estabilizacion TypeScript del frontend
+- Scope: `fix(frontend)` + `docs`
+- Cambios:
+  - Se corrige el tipado de `libraries` en `AddressAutocomplete`.
+  - Se ajusta el rollback de React Query en `Lotes` usando `QueryKey`.
+  - El build del frontend vuelve a pasar.
+- Motivo tecnico:
+  - Destrabar la compilacion y dejar una base estable antes de seguir iterando features.
+- Impacto en cliente:
+  - No cambia la UX, pero se recupera la estabilidad del pipeline frontend.
+- Riesgos:
+  - Bajos; son cambios de tipado sin cambio funcional.
+- Validacion:
+  - `npm run build` exitoso.
+- Siguiente paso:
+  - Mantener la disciplina de tipado al migrar mas flujos al CRM unificado.
+
 ## 2026-04-22 - Migracion del formulario publico a consultas
 - Scope: `feat(consultas)` + `docs`
 - Cambios:

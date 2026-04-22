@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { QueryKey } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import AddressAutocomplete from "../components/AddressAutocomplete";
 import AmenitiesSelector from "../components/AmenitiesSelector";
@@ -244,7 +245,7 @@ const Lotes: React.FC = () => {
     },
     onError: (err, _loteId, context) => {
       if (context?.previousData) {
-        context.previousData.forEach(([key, value]: [unknown, unknown]) => {
+        context.previousData.forEach(([key, value]: [QueryKey, unknown]) => {
           queryClient.setQueryData(key, value);
         });
       }

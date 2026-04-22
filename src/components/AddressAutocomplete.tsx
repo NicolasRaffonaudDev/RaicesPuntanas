@@ -8,7 +8,7 @@ interface AddressAutocompleteProps {
   placeholder?: string;
 }
 
-const libraries = ["places"] as const;
+const libraries: "places"[] = ["places"];
 
 const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   value,

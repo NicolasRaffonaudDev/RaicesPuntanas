@@ -128,6 +128,10 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
 - Se corrige una declaracion duplicada de `searchKey` en `GestionComercial`.
 - Ajuste final del refactor de navegacion.
 
+## Estabilizacion TypeScript
+- Se corrigen errores de tipado en `AddressAutocomplete` y `Lotes`.
+- El build del frontend vuelve a pasar correctamente.
+
 ## Arquitectura actual (resumen)
 - Frontend: React + TypeScript + Vite + React Query.
 - Backend: Node.js + Express por capas + Prisma.
