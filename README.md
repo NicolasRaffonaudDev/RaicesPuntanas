@@ -125,6 +125,11 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
 - Se agrega filtro por origen (`user` / `public_form`) para operar una sola cola comercial.
 - `Inquiries` queda en proceso de deprecacion como modulo legacy.
 
+## Filtros avanzados CRM
+- La bandeja de consultas soporta filtros combinables por `estado`, `origen`, `loteId` y `q`.
+- Todos los filtros viven en la URL y se pueden compartir o navegar con back/forward.
+- El backend resuelve estos filtros con un `where` dinamico sobre Prisma.
+
 ## Fix navegacion admin
 - Se corrige un loop de navegacion por doble fuente de verdad (tab <-> URL).
 - La URL pasa a ser la unica fuente de verdad del tab en Gestion.

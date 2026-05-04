@@ -19,11 +19,17 @@ const consultaController = {
 
   listAll: async (req, res) => {
     const { page, limit, skip } = parsePagination(req.query);
-    const search = req.query.search ? String(req.query.search).trim() : "";
+    const q = req.query.q
+      ? String(req.query.q).trim()
+      : req.query.search
+        ? String(req.query.search).trim()
+        : "";
     const estado = req.query.estado ? String(req.query.estado).trim() : "";
     const rawOrigen = req.query.origen ? String(req.query.origen).trim() : "";
     const origen = rawOrigen === "user" || rawOrigen === "public_form" ? rawOrigen : "";
-    const result = await consultaService.listAll({ page, limit, skip, search, estado, origen });
+    const rawLoteId = req.query.loteId ? Number(req.query.loteId) : NaN;
+    const loteId = Number.isFinite(rawLoteId) && rawLoteId > 0 ? rawLoteId : undefined;
+    const result = await consultaService.listAll({ page, limit, skip, q, estado, origen, loteId });
     res.json(result);
   },
 

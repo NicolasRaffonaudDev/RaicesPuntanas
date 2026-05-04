@@ -77,21 +77,23 @@ const consultaService = {
       },
     }),
 
-  listAll: async ({ page, limit, skip, search, estado, origen }) => {
+  listAll: async ({ page, limit, skip, q, estado, origen, loteId }) => {
     const where = {
-      ...(search
+      ...(q
         ? {
             OR: [
-              { asunto: { contains: search, mode: "insensitive" } },
-              { mensaje: { contains: search, mode: "insensitive" } },
-              { user: { email: { contains: search, mode: "insensitive" } } },
-              { emailContacto: { contains: search, mode: "insensitive" } },
-              { nombreContacto: { contains: search, mode: "insensitive" } },
+              { asunto: { contains: q, mode: "insensitive" } },
+              { mensaje: { contains: q, mode: "insensitive" } },
+              { user: { email: { contains: q, mode: "insensitive" } } },
+              { user: { name: { contains: q, mode: "insensitive" } } },
+              { emailContacto: { contains: q, mode: "insensitive" } },
+              { nombreContacto: { contains: q, mode: "insensitive" } },
             ],
           }
         : {}),
       ...(estado ? { estado } : {}),
       ...(origen ? { origen } : {}),
+      ...(typeof loteId === "number" ? { loteId } : {}),
     };
 
     const [data, total] = await Promise.all([

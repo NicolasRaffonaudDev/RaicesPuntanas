@@ -1,4 +1,5 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { io } from "socket.io-client";
 import { useSearchParams } from "react-router-dom";
 import { SectionEmpty, SectionError, SectionLoading } from "../components/Feedback";
@@ -6,9 +7,17 @@ import { PageHeader } from "../components/PageHeader";
 import { useAuth } from "../context/useAuth";
 import { commercialApi } from "../services/commercialApi";
 import { API_ORIGIN } from "../services/apiClient";
-import type { ConsultaEstado, ConsultaSeguimiento, ConsultaWithUser, Pagination } from "../types/commercial";
+import type { ConsultaEstado, ConsultaSeguimiento, Pagination } from "../types/commercial";
+import type { Lote } from "../types/interfaces";
 
 const defaultPagination: Pagination = { page: 1, limit: 10, total: 0, totalPages: 1 };
+const consultaEstados: ConsultaEstado[] = ["pendiente", "en_revision", "respondida", "cerrada"];
+const parsePositiveInt = (raw: string | null, fallback?: number) => {
+  if (!raw) return fallback;
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
+  return Math.floor(parsed);
+};
 
 const quickTemplates = [
   {
@@ -39,21 +48,22 @@ const quickTemplates = [
 const ConsultasInbox: React.FC = () => {
   const { token, user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [consultas, setConsultas] = useState<ConsultaWithUser[]>([]);
-  const [pagination, setPagination] = useState<Pagination>(defaultPagination);
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const [estado, setEstado] = useState("");
-  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [seguimientos, setSeguimientos] = useState<Record<string, ConsultaSeguimiento[]>>({});
   const [newMessageByConsulta, setNewMessageByConsulta] = useState<Record<string, string>>({});
   const [isInternalByConsulta, setIsInternalByConsulta] = useState<Record<string, boolean>>({});
+
+  const page = useMemo(() => parsePositiveInt(searchParams.get("page"), 1) ?? 1, [searchParams]);
+  const q = useMemo(() => (searchParams.get("q") || "").trim(), [searchParams]);
+  const estadoParam = searchParams.get("estado") || "";
+  const estado = consultaEstados.includes(estadoParam as ConsultaEstado) ? (estadoParam as ConsultaEstado) : "";
   const origenParam = searchParams.get("origen");
   const origen = origenParam === "user" || origenParam === "public_form" ? origenParam : "";
-  const hasActiveFilters = search.trim().length > 0 || estado.trim().length > 0 || origen.length > 0;
+  const loteId = useMemo(() => parsePositiveInt(searchParams.get("loteId")), [searchParams]);
+  const hasActiveFilters = q.length > 0 || estado.length > 0 || origen.length > 0 || typeof loteId === "number";
 
   const originLabel = useMemo(() => {
     if (origen === "user") return "Usuarios";
@@ -61,56 +71,72 @@ const ConsultasInbox: React.FC = () => {
     return "Todas";
   }, [origen]);
 
-  const updateOrigenFilter = useCallback(
-    (nextOrigen: "" | "user" | "public_form") => {
+  const updateSearchParams = useCallback(
+    (updater: (params: URLSearchParams) => void) => {
       const nextParams = new URLSearchParams(searchParams);
-      if (nextOrigen) {
-        nextParams.set("origen", nextOrigen);
-      } else {
-        nextParams.delete("origen");
-      }
+      updater(nextParams);
       setSearchParams(nextParams, { replace: true });
-      setPage(1);
     },
     [searchParams, setSearchParams],
   );
 
-  const loadConsultas = useCallback(async () => {
-    if (!token) return;
-    try {
-      setLoading(true);
-      setError("");
-      const result = await commercialApi.listConsultas(token, {
+  const consultasQueryKey = useMemo(
+    () => ["consultas", { page, q, estado, origen, loteId: loteId ?? null }] as const,
+    [page, q, estado, origen, loteId],
+  );
+
+  const {
+    data: consultasResponse,
+    isLoading,
+    isFetching,
+    error: queryError,
+  } = useQuery({
+    queryKey: consultasQueryKey,
+    enabled: !!token,
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      if (!token) throw new Error("No autenticado");
+      return commercialApi.listConsultas(token, {
         page,
         limit: 10,
-        search: search || undefined,
+        q: q || undefined,
         estado: estado || undefined,
         origen: origen || undefined,
+        loteId,
       });
-      setConsultas(result.data);
-      setPagination(result.pagination);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo cargar consultas");
-    } finally {
-      setLoading(false);
+    },
+  });
+
+  const { data: loteOptionsResponse } = useQuery({
+    queryKey: ["consultas-lote-options"],
+    placeholderData: keepPreviousData,
+    queryFn: () => commercialApi.listLotes({ page: 1, limit: 100 }),
+  });
+
+  const consultas = consultasResponse?.data ?? [];
+  const meta = consultasResponse?.pagination ?? defaultPagination;
+  const loteOptions: Lote[] = loteOptionsResponse?.data ?? [];
+
+  useEffect(() => {
+    if (queryError) {
+      setError(queryError instanceof Error ? queryError.message : "No se pudo cargar consultas");
+      return;
     }
-  }, [token, page, search, estado, origen]);
+    setError("");
+  }, [queryError]);
 
   useEffect(() => {
-    void loadConsultas();
-  }, [loadConsultas]);
-
-  useEffect(() => {
+    if (!token) return;
     const socket = io(API_ORIGIN, { transports: ["polling"] });
     socket.on("audit:created", (entry: { action?: string }) => {
       if (entry?.action?.startsWith("consulta.")) {
-        void loadConsultas();
+        void queryClient.invalidateQueries({ queryKey: ["consultas"] });
       }
     });
     return () => {
       socket.disconnect();
     };
-  }, [loadConsultas]);
+  }, [token, queryClient]);
 
   const showToast = (message: string) => {
     setToast(message);
@@ -120,9 +146,10 @@ const ConsultasInbox: React.FC = () => {
   const updateEstado = async (consultaId: string, nextEstado: ConsultaEstado) => {
     if (!token) return;
     try {
+      setError("");
       await commercialApi.updateConsultaEstado(token, consultaId, nextEstado);
       showToast("Estado actualizado");
-      await loadConsultas();
+      await queryClient.invalidateQueries({ queryKey: ["consultas"] });
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo actualizar estado");
     }
@@ -138,6 +165,7 @@ const ConsultasInbox: React.FC = () => {
     if (!token || seguimientos[consultaId]) return;
 
     try {
+      setError("");
       const data = await commercialApi.listConsultaSeguimientos(token, consultaId);
       setSeguimientos((prev) => ({ ...prev, [consultaId]: data }));
       setIsInternalByConsulta((prev) => ({ ...prev, [consultaId]: true }));
@@ -152,6 +180,7 @@ const ConsultasInbox: React.FC = () => {
     if (!mensaje) return;
 
     try {
+      setError("");
       await commercialApi.addConsultaSeguimiento(token, consultaId, {
         mensaje,
         esInterno: isInternalByConsulta[consultaId] ?? true,
@@ -160,7 +189,7 @@ const ConsultasInbox: React.FC = () => {
       const data = await commercialApi.listConsultaSeguimientos(token, consultaId);
       setSeguimientos((prev) => ({ ...prev, [consultaId]: data }));
       showToast("Seguimiento agregado");
-      await loadConsultas();
+      await queryClient.invalidateQueries({ queryKey: ["consultas"] });
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo guardar seguimiento");
     }
@@ -202,14 +231,17 @@ const ConsultasInbox: React.FC = () => {
         </div>
 
         {toast && <p className="rounded border border-emerald-700 bg-emerald-900/25 p-2 text-sm text-emerald-300">{toast}</p>}
+        {isFetching && !isLoading && (
+          <p className="text-sm text-[var(--color-text-muted)]">Actualizando resultados...</p>
+        )}
 
-        {loading && (
+        {isLoading && (
           <SectionLoading
             title="Actualizando inbox"
             message="Estamos cargando consultas, estados y seguimiento comercial para mostrarte la bandeja actual."
           />
         )}
-        {!loading && error && (
+        {!isLoading && error && (
           <SectionError
             title="No pudimos cargar el inbox"
             message={error}
@@ -219,19 +251,33 @@ const ConsultasInbox: React.FC = () => {
         <div className="card grid gap-2 p-3 md:grid-cols-5">
           <input
             className="field md:col-span-2"
-            placeholder="Buscar por asunto, mensaje o email..."
-            value={search}
+            placeholder="Buscar por contacto, asunto o mensaje..."
+            value={q}
             onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
+              const nextValue = e.target.value;
+              updateSearchParams((params) => {
+                if (nextValue.trim()) {
+                  params.set("q", nextValue);
+                } else {
+                  params.delete("q");
+                }
+                params.delete("page");
+              });
             }}
           />
           <select
             className="field"
             value={estado}
             onChange={(e) => {
-              setEstado(e.target.value);
-              setPage(1);
+              const nextEstado = e.target.value;
+              updateSearchParams((params) => {
+                if (nextEstado) {
+                  params.set("estado", nextEstado);
+                } else {
+                  params.delete("estado");
+                }
+                params.delete("page");
+              });
             }}
           >
             <option value="">Todos los estados</option>
@@ -240,25 +286,62 @@ const ConsultasInbox: React.FC = () => {
             <option value="respondida">respondida</option>
             <option value="cerrada">cerrada</option>
           </select>
+          <select
+            className="field"
+            value={typeof loteId === "number" ? String(loteId) : ""}
+            onChange={(e) => {
+              const nextValue = e.target.value;
+              updateSearchParams((params) => {
+                if (nextValue) {
+                  params.set("loteId", nextValue);
+                } else {
+                  params.delete("loteId");
+                }
+                params.delete("page");
+              });
+            }}
+          >
+            <option value="">Todos los lotes</option>
+            {loteOptions.map((lote) => (
+              <option key={lote.id} value={String(lote.id)}>
+                {lote.id} - {lote.title}
+              </option>
+            ))}
+          </select>
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               className={`btn ${!origen ? "btn-primary" : "btn-outline"} text-sm`}
-              onClick={() => updateOrigenFilter("")}
+              onClick={() =>
+                updateSearchParams((params) => {
+                  params.delete("origen");
+                  params.delete("page");
+                })
+              }
             >
               Todas
             </button>
             <button
               type="button"
               className={`btn ${origen === "user" ? "btn-primary" : "btn-outline"} text-sm`}
-              onClick={() => updateOrigenFilter("user")}
+              onClick={() =>
+                updateSearchParams((params) => {
+                  params.set("origen", "user");
+                  params.delete("page");
+                })
+              }
             >
               Usuarios
             </button>
             <button
               type="button"
               className={`btn ${origen === "public_form" ? "btn-primary" : "btn-outline"} text-sm`}
-              onClick={() => updateOrigenFilter("public_form")}
+              onClick={() =>
+                updateSearchParams((params) => {
+                  params.set("origen", "public_form");
+                  params.delete("page");
+                })
+              }
             >
               Leads
             </button>
@@ -267,10 +350,8 @@ const ConsultasInbox: React.FC = () => {
             className="btn btn-outline"
             type="button"
             onClick={() => {
-              setSearch("");
-              setEstado("");
-              updateOrigenFilter("");
-              setPage(1);
+              setError("");
+              setSearchParams({}, { replace: true });
             }}
           >
             Limpiar filtros
@@ -278,7 +359,7 @@ const ConsultasInbox: React.FC = () => {
         </div>
 
         <div className="card overflow-auto p-3">
-          {!loading && !error && consultas.length === 0 ? (
+          {!isLoading && !error && consultas.length === 0 ? (
             <SectionEmpty
               compact
               title={hasActiveFilters ? "No encontramos consultas para esos filtros" : "Todavia no hay consultas registradas"}
@@ -292,10 +373,8 @@ const ConsultasInbox: React.FC = () => {
                   className="btn btn-outline text-sm"
                   type="button"
                   onClick={() => {
-                    setSearch("");
-                    setEstado("");
-                    updateOrigenFilter("");
-                    setPage(1);
+                    setError("");
+                    setSearchParams({}, { replace: true });
                   }}
                 >
                   Limpiar filtros
@@ -464,19 +543,37 @@ const ConsultasInbox: React.FC = () => {
         <div className="flex items-center justify-end gap-2 text-sm">
           <button
             className="btn btn-outline"
-            disabled={pagination.page <= 1}
-            onClick={() => setPage((prev) => prev - 1)}
+            disabled={meta.page <= 1}
+            onClick={() =>
+              updateSearchParams((params) => {
+                const nextPage = Math.max(1, page - 1);
+                if (nextPage <= 1) {
+                  params.delete("page");
+                } else {
+                  params.set("page", String(nextPage));
+                }
+              })
+            }
             type="button"
           >
             Anterior
           </button>
           <span>
-            Pagina {pagination.page} de {pagination.totalPages}
+            Pagina {meta.page} de {meta.totalPages}
           </span>
           <button
             className="btn btn-outline"
-            disabled={pagination.page >= pagination.totalPages}
-            onClick={() => setPage((prev) => prev + 1)}
+            disabled={meta.page >= meta.totalPages}
+            onClick={() =>
+              updateSearchParams((params) => {
+                const nextPage = Math.min(meta.totalPages, page + 1);
+                if (nextPage <= 1) {
+                  params.delete("page");
+                } else {
+                  params.set("page", String(nextPage));
+                }
+              })
+            }
             type="button"
           >
             Siguiente

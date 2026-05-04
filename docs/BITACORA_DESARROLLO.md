@@ -12,6 +12,23 @@ Formato sugerido por entrada:
 
 ---
 
+## 2026-05-04 - Filtros avanzados en bandeja CRM
+- Scope: `feat(crm)` + `docs`
+- Cambios:
+  - La bandeja `ConsultasInbox` ahora sincroniza `estado`, `origen`, `loteId`, `q` y `page` directamente con la URL.
+  - `GET /api/consultas` soporta filtrado dinamico por `where` en Prisma.
+  - Se migra el listado a React Query para mantener cache y paginacion consistentes.
+- Motivo tecnico:
+  - Llevar la bandeja a un flujo CRM real con filtros combinables, persistentes y navegables.
+- Impacto en cliente:
+  - El equipo comercial puede refinar la cola por origen, estado, lote o texto sin perder contexto al navegar.
+- Riesgos:
+  - La lista de lotes para el selector usa un fetch simple de apoyo y podria necesitar evolucion si el catalogo crece mucho.
+- Validacion:
+  - Los filtros ya pueden combinarse en URL sin romper paginacion ni back/forward.
+- Siguiente paso:
+  - Incorporar contadores por filtro y acciones masivas propias de CRM.
+
 ## 2026-05-04 - Consolidacion de bandeja comercial
 - Scope: `feat(crm)` + `docs`
 - Cambios:

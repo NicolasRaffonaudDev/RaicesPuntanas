@@ -480,14 +480,27 @@ export const commercialApi = {
 
   listConsultas: async (
     token: string,
-    query?: { page?: number; limit?: number; search?: string; estado?: string; origen?: "user" | "public_form" },
+    query?: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      q?: string;
+      estado?: string;
+      origen?: "user" | "public_form";
+      loteId?: number;
+    },
   ): Promise<PaginatedResult<ConsultaWithUser>> => {
     const params = new URLSearchParams();
     if (query?.page) params.set("page", String(query.page));
     if (query?.limit) params.set("limit", String(query.limit));
-    if (query?.search) params.set("search", query.search);
+    if (query?.q) {
+      params.set("q", query.q);
+    } else if (query?.search) {
+      params.set("search", query.search);
+    }
     if (query?.estado) params.set("estado", query.estado);
     if (query?.origen) params.set("origen", query.origen);
+    if (typeof query?.loteId === "number") params.set("loteId", String(query.loteId));
 
     const res = await apiRequest(`/consultas?${params.toString()}`, {
       headers: authHeaders(token),
