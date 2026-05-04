@@ -38,8 +38,8 @@ export const getSidebarSections = (role: UserRole | undefined): NavigationSectio
     comercial.push({ id: "mis-consultas", label: "Mis consultas", to: "/mi-panel" });
   }
   if ((role === "admin" || role === "empleado") && hasPermission(role, "consultas.manage")) {
-    comercial.push({ id: "consultas", label: "Consultas", to: "/consultas" });
-    comercial.push({ id: "inquiries", label: "Consultas (leads)", to: "/admin/inquiries" });
+    comercial.push({ id: "consultas", label: "Consultas CRM", to: "/consultas" });
+    comercial.push({ id: "inquiries", label: "Leads legacy", to: "/admin/inquiries" });
   }
   if (hasPermission(role, "clientes.read")) {
     comercial.push({ id: "clientes", label: "Clientes", to: "/gestion?tab=clientes" });

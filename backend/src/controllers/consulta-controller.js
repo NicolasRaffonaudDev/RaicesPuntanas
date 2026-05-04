@@ -21,7 +21,9 @@ const consultaController = {
     const { page, limit, skip } = parsePagination(req.query);
     const search = req.query.search ? String(req.query.search).trim() : "";
     const estado = req.query.estado ? String(req.query.estado).trim() : "";
-    const result = await consultaService.listAll({ page, limit, skip, search, estado });
+    const rawOrigen = req.query.origen ? String(req.query.origen).trim() : "";
+    const origen = rawOrigen === "user" || rawOrigen === "public_form" ? rawOrigen : "";
+    const result = await consultaService.listAll({ page, limit, skip, search, estado, origen });
     res.json(result);
   },
 

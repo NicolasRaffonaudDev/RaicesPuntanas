@@ -12,6 +12,23 @@ Formato sugerido por entrada:
 
 ---
 
+## 2026-05-04 - Consolidacion de bandeja comercial
+- Scope: `feat(crm)` + `docs`
+- Cambios:
+  - `ConsultasInbox` ahora muestra tambien leads publicos creados desde formulario.
+  - Se agrega filtro por origen usando `?origen=user|public_form`.
+  - `InquiriesAdmin` queda marcado visualmente como modulo legacy.
+- Motivo tecnico:
+  - Consolidar la operacion comercial en una sola bandeja sin romper compatibilidad historica.
+- Impacto en cliente:
+  - El equipo comercial deja de alternar entre dos vistas para gestionar entradas nuevas.
+- Riesgos:
+  - Siguen conviviendo datos legacy en `Inquiry` hasta una migracion posterior.
+- Validacion:
+  - La bandeja CRM ya puede distinguir leads y usuarios por `origen`.
+- Siguiente paso:
+  - Evaluar migracion historica y retiro progresivo del modulo legacy.
+
 ## 2026-04-22 - Estabilizacion TypeScript del frontend
 - Scope: `fix(frontend)` + `docs`
 - Cambios:

@@ -107,6 +107,10 @@ const InquiriesAdmin: React.FC = () => {
           </button>
         </div>
 
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-100">
+          Este modulo queda en transicion. La bandeja principal ahora es <strong>/consultas</strong> y este panel se mantiene solo para revisar leads legacy.
+        </div>
+
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="card flex flex-col gap-1 p-4">
             <span className="text-xs uppercase text-[var(--color-text-muted)]">Total</span>

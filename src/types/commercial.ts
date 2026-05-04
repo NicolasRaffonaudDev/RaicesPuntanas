@@ -112,11 +112,15 @@ export type ConsultaEstado = "pendiente" | "en_revision" | "respondida" | "cerra
 
 export interface Consulta {
   id: string;
-  userId: string;
+  userId?: string | null;
   loteId?: number | null;
   asunto: string;
   mensaje: string;
   estado: ConsultaEstado | string;
+  origen?: "user" | "public_form" | string;
+  nombreContacto?: string | null;
+  emailContacto?: string | null;
+  telefonoContacto?: string | null;
   createdAt: string;
   lote?: {
     id: number;

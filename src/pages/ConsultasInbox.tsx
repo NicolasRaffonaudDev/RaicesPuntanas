@@ -1,5 +1,6 @@
-import { Fragment, useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { io } from "socket.io-client";
+import { useSearchParams } from "react-router-dom";
 import { SectionEmpty, SectionError, SectionLoading } from "../components/Feedback";
 import { PageHeader } from "../components/PageHeader";
 import { useAuth } from "../context/useAuth";
@@ -37,6 +38,7 @@ const quickTemplates = [
 
 const ConsultasInbox: React.FC = () => {
   const { token, user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [consultas, setConsultas] = useState<ConsultaWithUser[]>([]);
   const [pagination, setPagination] = useState<Pagination>(defaultPagination);
   const [page, setPage] = useState(1);
@@ -49,7 +51,29 @@ const ConsultasInbox: React.FC = () => {
   const [seguimientos, setSeguimientos] = useState<Record<string, ConsultaSeguimiento[]>>({});
   const [newMessageByConsulta, setNewMessageByConsulta] = useState<Record<string, string>>({});
   const [isInternalByConsulta, setIsInternalByConsulta] = useState<Record<string, boolean>>({});
-  const hasActiveFilters = search.trim().length > 0 || estado.trim().length > 0;
+  const origenParam = searchParams.get("origen");
+  const origen = origenParam === "user" || origenParam === "public_form" ? origenParam : "";
+  const hasActiveFilters = search.trim().length > 0 || estado.trim().length > 0 || origen.length > 0;
+
+  const originLabel = useMemo(() => {
+    if (origen === "user") return "Usuarios";
+    if (origen === "public_form") return "Leads";
+    return "Todas";
+  }, [origen]);
+
+  const updateOrigenFilter = useCallback(
+    (nextOrigen: "" | "user" | "public_form") => {
+      const nextParams = new URLSearchParams(searchParams);
+      if (nextOrigen) {
+        nextParams.set("origen", nextOrigen);
+      } else {
+        nextParams.delete("origen");
+      }
+      setSearchParams(nextParams, { replace: true });
+      setPage(1);
+    },
+    [searchParams, setSearchParams],
+  );
 
   const loadConsultas = useCallback(async () => {
     if (!token) return;
@@ -61,6 +85,7 @@ const ConsultasInbox: React.FC = () => {
         limit: 10,
         search: search || undefined,
         estado: estado || undefined,
+        origen: origen || undefined,
       });
       setConsultas(result.data);
       setPagination(result.pagination);
@@ -69,7 +94,7 @@ const ConsultasInbox: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [token, page, search, estado]);
+  }, [token, page, search, estado, origen]);
 
   useEffect(() => {
     void loadConsultas();
@@ -164,6 +189,18 @@ const ConsultasInbox: React.FC = () => {
           )}
         />
 
+        <div className="card flex flex-wrap items-center justify-between gap-3 p-4 text-sm">
+          <div>
+            <p className="font-medium text-white">Bandeja unificada</p>
+            <p className="text-[var(--color-text-muted)]">
+              Aqui ves consultas de usuarios autenticados y leads publicos en una sola operacion.
+            </p>
+          </div>
+          <div className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-[var(--color-text-muted)]">
+            Filtro actual: <span className="text-[var(--color-primary)]">{originLabel}</span>
+          </div>
+        </div>
+
         {toast && <p className="rounded border border-emerald-700 bg-emerald-900/25 p-2 text-sm text-emerald-300">{toast}</p>}
 
         {loading && (
@@ -179,7 +216,7 @@ const ConsultasInbox: React.FC = () => {
           />
         )}
 
-        <div className="card grid gap-2 p-3 md:grid-cols-4">
+        <div className="card grid gap-2 p-3 md:grid-cols-5">
           <input
             className="field md:col-span-2"
             placeholder="Buscar por asunto, mensaje o email..."
@@ -203,12 +240,36 @@ const ConsultasInbox: React.FC = () => {
             <option value="respondida">respondida</option>
             <option value="cerrada">cerrada</option>
           </select>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              className={`btn ${!origen ? "btn-primary" : "btn-outline"} text-sm`}
+              onClick={() => updateOrigenFilter("")}
+            >
+              Todas
+            </button>
+            <button
+              type="button"
+              className={`btn ${origen === "user" ? "btn-primary" : "btn-outline"} text-sm`}
+              onClick={() => updateOrigenFilter("user")}
+            >
+              Usuarios
+            </button>
+            <button
+              type="button"
+              className={`btn ${origen === "public_form" ? "btn-primary" : "btn-outline"} text-sm`}
+              onClick={() => updateOrigenFilter("public_form")}
+            >
+              Leads
+            </button>
+          </div>
           <button
             className="btn btn-outline"
             type="button"
             onClick={() => {
               setSearch("");
               setEstado("");
+              updateOrigenFilter("");
               setPage(1);
             }}
           >
@@ -233,6 +294,7 @@ const ConsultasInbox: React.FC = () => {
                   onClick={() => {
                     setSearch("");
                     setEstado("");
+                    updateOrigenFilter("");
                     setPage(1);
                   }}
                 >
@@ -245,7 +307,8 @@ const ConsultasInbox: React.FC = () => {
               <thead>
                 <tr>
                   <th className="p-2">Fecha</th>
-                  <th className="p-2">Usuario</th>
+                  <th className="p-2">Tipo</th>
+                  <th className="p-2">Contacto</th>
                   <th className="p-2">Asunto</th>
                   <th className="p-2">Mensaje</th>
                   <th className="p-2">Lote</th>
@@ -260,14 +323,30 @@ const ConsultasInbox: React.FC = () => {
                   const items = seguimientos[consulta.id] || [];
                   const visibleCount = items.filter((item) => !item.esInterno).length;
                   const internoCount = items.length - visibleCount;
+                  const isLead = consulta.origen === "public_form" || !consulta.userId;
+                  const contactName = consulta.user?.name || consulta.nombreContacto || "-";
+                  const contactEmail = consulta.user?.email || consulta.emailContacto || "-";
+                  const contactPhone = consulta.telefonoContacto || "";
 
                   return (
                     <Fragment key={consulta.id}>
                       <tr key={consulta.id} className="border-t border-[var(--color-border)]">
                         <td className="p-2">{new Date(consulta.createdAt).toLocaleString("es-AR")}</td>
                         <td className="p-2">
-                          <p>{consulta.user?.name || "-"}</p>
-                          <p className="text-xs text-[var(--color-text-muted)]">{consulta.user?.email || "-"}</p>
+                          <span
+                            className={`rounded px-2 py-1 text-xs font-medium ${
+                              isLead
+                                ? "border border-amber-500/30 bg-amber-500/10 text-amber-200"
+                                : "border border-sky-500/30 bg-sky-500/10 text-sky-200"
+                            }`}
+                          >
+                            {isLead ? "Lead" : "Usuario"}
+                          </span>
+                        </td>
+                        <td className="p-2">
+                          <p>{contactName}</p>
+                          <p className="text-xs text-[var(--color-text-muted)]">{contactEmail}</p>
+                          {contactPhone && <p className="text-xs text-[var(--color-text-muted)]">{contactPhone}</p>}
                         </td>
                         <td className="p-2">{consulta.asunto}</td>
                         <td className="p-2 max-w-[300px] text-xs text-[var(--color-text-muted)]">{consulta.mensaje}</td>
@@ -297,7 +376,7 @@ const ConsultasInbox: React.FC = () => {
                       </tr>
                       {isExpanded && (
                         <tr className="border-t border-[var(--color-border)] bg-black/20">
-                          <td className="p-3" colSpan={8}>
+                          <td className="p-3" colSpan={9}>
                             <div className="space-y-3">
                               <div className="flex flex-wrap items-center justify-between gap-2">
                                 <p className="text-sm font-semibold text-[var(--color-primary)]">Historial de seguimiento</p>

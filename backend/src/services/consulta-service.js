@@ -77,7 +77,7 @@ const consultaService = {
       },
     }),
 
-  listAll: async ({ page, limit, skip, search, estado }) => {
+  listAll: async ({ page, limit, skip, search, estado, origen }) => {
     const where = {
       ...(search
         ? {
@@ -91,6 +91,7 @@ const consultaService = {
           }
         : {}),
       ...(estado ? { estado } : {}),
+      ...(origen ? { origen } : {}),
     };
 
     const [data, total] = await Promise.all([
@@ -168,6 +169,7 @@ const consultaService = {
       where: { id: consultaId },
       include: {
         user: { select: { id: true, name: true, email: true } },
+        lote: { select: { title: true } },
       },
     });
     if (!consulta) throw new AppError(404, "Consulta no encontrada");
@@ -191,19 +193,24 @@ const consultaService = {
     });
 
     if (!esInterno) {
-      try {
-        await emailService.sendConsultaReply({
-          to: consulta.user.email,
-          clienteNombre: consulta.user.name,
-          asuntoConsulta: consulta.asunto,
-          mensajeRespuesta: mensaje,
-        });
+      const recipientEmail = consulta.user?.email || consulta.emailContacto;
+      const clienteNombre = consulta.user?.name || consulta.nombreContacto || "Cliente";
 
-        await auditService.create({
-          userId: actorUserId,
-          action: "consulta.seguimiento.email_sent",
-          meta: { consultaId },
-        });
+      try {
+        if (recipientEmail) {
+          await emailService.sendConsultaReply({
+            to: recipientEmail,
+            clienteNombre,
+            asuntoConsulta: consulta.asunto || buildPublicConsultaSubject(consulta.lote),
+            mensajeRespuesta: mensaje,
+          });
+
+          await auditService.create({
+            userId: actorUserId,
+            action: "consulta.seguimiento.email_sent",
+            meta: { consultaId },
+          });
+        }
       } catch (emailError) {
         await auditService.create({
           userId: actorUserId,
