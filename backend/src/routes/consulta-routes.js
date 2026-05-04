@@ -6,6 +6,7 @@ const {
   consultaCreateSchema,
   publicConsultaCreateSchema,
   consultaUpdateSchema,
+  consultaBulkUpdateSchema,
   consultaSeguimientoCreateSchema,
 } = require("../schemas/consulta-schema");
 const { asyncHandler } = require("../utils/async-handler");
@@ -27,6 +28,12 @@ consultaRoutes.post(
 );
 consultaRoutes.get("/mine", requirePermission("consultas.read"), asyncHandler(consultaController.listMine));
 consultaRoutes.get("/", requirePermission("consultas.manage"), asyncHandler(consultaController.listAll));
+consultaRoutes.patch(
+  "/status",
+  requirePermission("consultas.manage"),
+  validateBody(consultaBulkUpdateSchema),
+  asyncHandler(consultaController.updateEstadoMany),
+);
 consultaRoutes.patch(
   "/:id/estado",
   requirePermission("consultas.manage"),

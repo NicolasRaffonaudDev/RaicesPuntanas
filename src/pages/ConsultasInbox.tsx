@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
-import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { io } from "socket.io-client";
 import { useSearchParams } from "react-router-dom";
 import { SectionEmpty, SectionError, SectionLoading } from "../components/Feedback";
@@ -52,6 +52,8 @@ const ConsultasInbox: React.FC = () => {
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkEstado, setBulkEstado] = useState<ConsultaEstado | "">("");
   const [seguimientos, setSeguimientos] = useState<Record<string, ConsultaSeguimiento[]>>({});
   const [newMessageByConsulta, setNewMessageByConsulta] = useState<Record<string, string>>({});
   const [isInternalByConsulta, setIsInternalByConsulta] = useState<Record<string, boolean>>({});
@@ -116,6 +118,8 @@ const ConsultasInbox: React.FC = () => {
   const consultas = consultasResponse?.data ?? [];
   const meta = consultasResponse?.pagination ?? defaultPagination;
   const loteOptions: Lote[] = loteOptionsResponse?.data ?? [];
+  const allVisibleSelected = consultas.length > 0 && consultas.every((consulta) => selectedIds.includes(consulta.id));
+  const hasSelected = selectedIds.length > 0;
 
   useEffect(() => {
     if (queryError) {
@@ -124,6 +128,10 @@ const ConsultasInbox: React.FC = () => {
     }
     setError("");
   }, [queryError]);
+
+  useEffect(() => {
+    setSelectedIds((prev) => prev.filter((id) => consultas.some((consulta) => consulta.id === id)));
+  }, [consultas]);
 
   useEffect(() => {
     if (!token) return;
@@ -143,17 +151,30 @@ const ConsultasInbox: React.FC = () => {
     window.setTimeout(() => setToast(""), 2000);
   };
 
-  const updateEstado = async (consultaId: string, nextEstado: ConsultaEstado) => {
-    if (!token) return;
-    try {
+  const updateEstadoMutation = useMutation({
+    mutationFn: async ({ ids, estado }: { ids: string[]; estado: ConsultaEstado }) => {
+      if (!token) throw new Error("No autenticado");
+      if (ids.length === 1) {
+        await commercialApi.updateConsultaEstado(token, ids[0], estado);
+        return { ids, estado, count: 1 };
+      }
+      return commercialApi.updateConsultasEstado(token, ids, estado);
+    },
+    onSuccess: async (result) => {
       setError("");
-      await commercialApi.updateConsultaEstado(token, consultaId, nextEstado);
-      showToast("Estado actualizado");
+      setSelectedIds((prev) => prev.filter((id) => !result.ids.includes(id)));
+      setBulkEstado("");
+      showToast(
+        result.count > 1
+          ? `${result.count} consultas actualizadas a ${result.estado}.`
+          : `Estado actualizado a ${result.estado}.`,
+      );
       await queryClient.invalidateQueries({ queryKey: ["consultas"] });
-    } catch (err) {
+    },
+    onError: (err) => {
       setError(err instanceof Error ? err.message : "No se pudo actualizar estado");
-    }
-  };
+    },
+  });
 
   const toggleSeguimientos = async (consultaId: string) => {
     if (expandedId === consultaId) {
@@ -200,6 +221,31 @@ const ConsultasInbox: React.FC = () => {
     setIsInternalByConsulta((prev) => ({ ...prev, [consultaId]: template.esInterno }));
   };
 
+  const toggleSelected = (consultaId: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(consultaId) ? prev.filter((id) => id !== consultaId) : [...prev, consultaId],
+    );
+  };
+
+  const toggleSelectAllVisible = () => {
+    if (allVisibleSelected) {
+      setSelectedIds((prev) => prev.filter((id) => !consultas.some((consulta) => consulta.id === id)));
+      return;
+    }
+
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      consultas.forEach((consulta) => next.add(consulta.id));
+      return Array.from(next);
+    });
+  };
+
+  const submitBulkEstado = async () => {
+    if (!bulkEstado || selectedIds.length === 0) return;
+    setError("");
+    await updateEstadoMutation.mutateAsync({ ids: selectedIds, estado: bulkEstado });
+  };
+
   return (
     <section className="page">
       <div className="container space-y-4">
@@ -227,6 +273,45 @@ const ConsultasInbox: React.FC = () => {
           </div>
           <div className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-[var(--color-text-muted)]">
             Filtro actual: <span className="text-[var(--color-primary)]">{originLabel}</span>
+          </div>
+        </div>
+
+        <div className="card flex flex-wrap items-center justify-between gap-3 p-4 text-sm">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-[var(--color-text-muted)]">
+              Seleccionadas: <span className="text-[var(--color-primary)]">{selectedIds.length}</span>
+            </span>
+            {hasSelected && (
+              <button
+                type="button"
+                className="btn btn-outline text-sm"
+                onClick={() => setSelectedIds([])}
+              >
+                Limpiar seleccion
+              </button>
+            )}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              className="field min-w-[170px]"
+              value={bulkEstado}
+              onChange={(e) => setBulkEstado(e.target.value as ConsultaEstado | "")}
+              disabled={!hasSelected || updateEstadoMutation.isPending}
+            >
+              <option value="">Marcar como...</option>
+              <option value="pendiente">pendiente</option>
+              <option value="en_revision">en_revision</option>
+              <option value="respondida">respondida</option>
+              <option value="cerrada">cerrada</option>
+            </select>
+            <button
+              type="button"
+              className="btn btn-primary text-sm"
+              disabled={!hasSelected || !bulkEstado || updateEstadoMutation.isPending}
+              onClick={() => void submitBulkEstado()}
+            >
+              {updateEstadoMutation.isPending ? "Actualizando..." : "Aplicar a seleccion"}
+            </button>
           </div>
         </div>
 
@@ -385,6 +470,14 @@ const ConsultasInbox: React.FC = () => {
             <table className="min-w-full text-left text-sm">
               <thead>
                 <tr>
+                  <th className="p-2">
+                    <input
+                      type="checkbox"
+                      checked={allVisibleSelected}
+                      aria-label="Seleccionar consultas visibles"
+                      onChange={toggleSelectAllVisible}
+                    />
+                  </th>
                   <th className="p-2">Fecha</th>
                   <th className="p-2">Tipo</th>
                   <th className="p-2">Contacto</th>
@@ -410,6 +503,14 @@ const ConsultasInbox: React.FC = () => {
                   return (
                     <Fragment key={consulta.id}>
                       <tr key={consulta.id} className="border-t border-[var(--color-border)]">
+                        <td className="p-2">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.includes(consulta.id)}
+                            aria-label={`Seleccionar consulta ${consulta.id}`}
+                            onChange={() => toggleSelected(consulta.id)}
+                          />
+                        </td>
                         <td className="p-2">{new Date(consulta.createdAt).toLocaleString("es-AR")}</td>
                         <td className="p-2">
                           <span
@@ -439,7 +540,13 @@ const ConsultasInbox: React.FC = () => {
                           <select
                             className="field min-w-[130px]"
                             value={consulta.estado}
-                            onChange={(e) => void updateEstado(consulta.id, e.target.value as ConsultaEstado)}
+                            disabled={updateEstadoMutation.isPending}
+                            onChange={(e) =>
+                              void updateEstadoMutation.mutateAsync({
+                                ids: [consulta.id],
+                                estado: e.target.value as ConsultaEstado,
+                              })
+                            }
                           >
                             <option value="pendiente">pendiente</option>
                             <option value="en_revision">en_revision</option>
@@ -455,7 +562,7 @@ const ConsultasInbox: React.FC = () => {
                       </tr>
                       {isExpanded && (
                         <tr className="border-t border-[var(--color-border)] bg-black/20">
-                          <td className="p-3" colSpan={9}>
+                          <td className="p-3" colSpan={10}>
                             <div className="space-y-3">
                               <div className="flex flex-wrap items-center justify-between gap-2">
                                 <p className="text-sm font-semibold text-[var(--color-primary)]">Historial de seguimiento</p>

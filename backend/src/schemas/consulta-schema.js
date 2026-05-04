@@ -18,6 +18,11 @@ const consultaUpdateSchema = z.object({
   estado: z.enum(["pendiente", "en_revision", "respondida", "cerrada"]),
 });
 
+const consultaBulkUpdateSchema = z.object({
+  ids: z.array(z.string().trim().min(1)).min(1),
+  estado: z.enum(["pendiente", "en_revision", "respondida", "cerrada"]),
+});
+
 const consultaSeguimientoCreateSchema = z.object({
   mensaje: z.string().trim().min(3).max(2000),
   esInterno: z.boolean().optional(),
@@ -27,5 +32,6 @@ module.exports = {
   consultaCreateSchema,
   publicConsultaCreateSchema,
   consultaUpdateSchema,
+  consultaBulkUpdateSchema,
   consultaSeguimientoCreateSchema,
 };

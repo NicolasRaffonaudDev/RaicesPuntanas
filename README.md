@@ -130,6 +130,11 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
 - Todos los filtros viven en la URL y se pueden compartir o navegar con back/forward.
 - El backend resuelve estos filtros con un `where` dinamico sobre Prisma.
 
+## Acciones CRM
+- La bandeja permite seleccion multiple de consultas.
+- Se puede actualizar el estado de una consulta individual o en lote.
+- La operacion masiva reutiliza el flujo CRM sin romper los endpoints individuales ya existentes.
+
 ## Fix navegacion admin
 - Se corrige un loop de navegacion por doble fuente de verdad (tab <-> URL).
 - La URL pasa a ser la unica fuente de verdad del tab en Gestion.

@@ -12,6 +12,23 @@ Formato sugerido por entrada:
 
 ---
 
+## 2026-05-04 - Acciones operativas en la bandeja CRM
+- Scope: `feat(crm)` + `docs`
+- Cambios:
+  - Se agrega seleccion multiple por fila y seleccion global de la pagina actual.
+  - Nuevo endpoint `PATCH /api/consultas/status` para actualizacion masiva de estado.
+  - La bandeja permite actualizar estado individual o en lote con React Query.
+- Motivo tecnico:
+  - Pasar de una vista de observacion a una herramienta operativa real para el equipo comercial.
+- Impacto en cliente:
+  - El operador puede avanzar varias consultas en bloque sin repetir acciones una por una.
+- Riesgos:
+  - La seleccion masiva se limita a la pagina visible, por lo que hay que comunicar bien ese alcance en UX.
+- Validacion:
+  - El flujo individual sigue funcionando y la actualizacion masiva invalida la cache de consultas.
+- Siguiente paso:
+  - Incorporar reglas de negocio por estado y acciones masivas adicionales.
+
 ## 2026-05-04 - Filtros avanzados en bandeja CRM
 - Scope: `feat(crm)` + `docs`
 - Cambios:

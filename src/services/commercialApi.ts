@@ -523,6 +523,20 @@ export const commercialApi = {
     return payload.data as ConsultaWithUser;
   },
 
+  updateConsultasEstado: async (
+    token: string,
+    ids: string[],
+    estado: ConsultaEstado,
+  ): Promise<{ ids: string[]; estado: ConsultaEstado; count: number }> => {
+    const res = await apiRequest("/consultas/status", {
+      method: "PATCH",
+      headers: authHeaders(token),
+      body: JSON.stringify({ ids, estado }),
+    });
+    const payload = await parseResponse(res);
+    return payload.data as { ids: string[]; estado: ConsultaEstado; count: number };
+  },
+
   listConsultaSeguimientos: async (token: string, consultaId: string): Promise<ConsultaSeguimiento[]> => {
     const res = await apiRequest(`/consultas/${consultaId}/seguimientos`, {
       headers: authHeaders(token),

@@ -145,6 +145,35 @@ const consultaService = {
     return updated;
   },
 
+  updateEstadoMany: async ({ actorUserId, ids, estado }) => {
+    const uniqueIds = Array.from(new Set(ids.map((id) => String(id).trim()).filter(Boolean)));
+    if (uniqueIds.length === 0) throw new AppError(400, "No se recibieron consultas para actualizar");
+
+    const existing = await prisma.consulta.findMany({
+      where: { id: { in: uniqueIds } },
+      select: { id: true },
+    });
+    if (existing.length === 0) throw new AppError(404, "No se encontraron consultas para actualizar");
+
+    const existingIds = existing.map((item) => item.id);
+    const result = await prisma.consulta.updateMany({
+      where: { id: { in: existingIds } },
+      data: { estado },
+    });
+
+    await auditService.create({
+      userId: actorUserId,
+      action: "consulta.estado.bulk_update",
+      meta: { ids: existingIds, estado, count: result.count },
+    });
+
+    return {
+      ids: existingIds,
+      estado,
+      count: result.count,
+    };
+  },
+
   listSeguimientos: async ({ consultaId, actorUserId, actorRole }) => {
     const consulta = await prisma.consulta.findUnique({
       where: { id: consultaId },

@@ -42,6 +42,15 @@ const consultaController = {
     res.json({ data });
   },
 
+  updateEstadoMany: async (req, res) => {
+    const data = await consultaService.updateEstadoMany({
+      actorUserId: req.auth.sub,
+      ids: req.body.ids,
+      estado: req.body.estado,
+    });
+    res.json({ data });
+  },
+
   listSeguimientos: async (req, res) => {
     const data = await consultaService.listSeguimientos({
       consultaId: req.params.id,
