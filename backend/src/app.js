@@ -30,6 +30,13 @@ const setupAdminLimiter = rateLimit({
   legacyHeaders: false,
   message: { message: "Demasiados intentos de bootstrap admin, intenta mas tarde" },
 });
+const publicConsultaLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Demasiadas consultas publicas en poco tiempo, intenta mas tarde" },
+});
 
 app.use(
   cors({
@@ -43,6 +50,7 @@ app.use(express.json({ limit: "1mb" }));
 app.use("/api/auth/login", authLoginLimiter);
 app.use("/api/auth/refresh", refreshLimiter);
 app.use("/api/auth/setup-admin", setupAdminLimiter);
+app.use("/api/consultas/public", publicConsultaLimiter);
 
 app.use(
   "/api",

@@ -12,6 +12,24 @@ Formato sugerido por entrada:
 
 ---
 
+## 2026-05-04 - Setup de base y preparacion para deploy
+- Scope: `chore(setup)` + `infra` + `docs`
+- Cambios:
+  - Se valida el flujo real de Docker + PostgreSQL para levantar la base local del proyecto.
+  - Se actualiza `docker-compose.yml` con `healthcheck` y sin atributo `version` obsoleto.
+  - Se endurece `POST /api/consultas/public` con rate limit especifico.
+  - Se dejan ejemplos de entorno consistentes y documentacion de setup/migraciones lista para deploy.
+- Motivo tecnico:
+  - Cerrar la brecha entre codigo correcto y entorno operativo real, especialmente alrededor de Prisma y la migracion pendiente de `prioridad`.
+- Impacto en cliente:
+  - Menor riesgo de caidas por despliegues incompletos y mejor proteccion basica contra spam en el formulario publico.
+- Riesgos:
+  - Si el entorno usa otro host/puerto/origen, hay que adaptar `.env` antes de desplegar.
+- Validacion:
+  - PostgreSQL levantado por Docker, Prisma detecta y aplica migraciones, y el backend queda listo para arrancar con esquema consistente.
+- Siguiente paso:
+  - Ejecutar smoke funcional del flujo CRM completo sobre la base ya migrada y definir pipeline de deploy.
+
 ## 2026-05-04 - Prioridad y notas internas en CRM
 - Scope: `feat(crm)` + `prisma` + `docs`
 - Cambios:

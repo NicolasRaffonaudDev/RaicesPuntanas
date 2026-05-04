@@ -64,17 +64,17 @@ Aplicacion full stack para gestion comercial de lotes, clientes y operaciones.
 ## Sistema de consultas
 ### Que hace
 - Guarda consultas (leads) desde el modal de contacto.
-- Persiste datos en PostgreSQL vinculados al lote.
+- Persiste datos en PostgreSQL vinculados al lote dentro de `Consulta`, que es la base del CRM unificado.
 
 ### Flujo completo (frontend -> backend -> DB)
-- `ContactModal` envia `name`, `email`, `message` y `loteId`.
-- `POST /api/inquiries` valida y persiste la consulta.
-- Prisma guarda el registro en `Inquiry` relacionado con `Lote`.
+- `ContactModal` envia `nombreContacto`, `emailContacto`, `mensaje` y `loteId`.
+- `POST /api/consultas/public` valida y persiste la consulta.
+- Prisma guarda el registro en `Consulta` con `origen=public_form`, relacionado con `Lote`.
 
 ### Como probarlo
 1. Abri un lote y pulsa "Consultar".
 2. Completa el formulario y envia.
-3. Verifica en el backend el log `[inquiry]` y en DB la tabla `Inquiry`.
+3. Verifica en DB la tabla `Consulta` y confirma `origen=public_form`.
 
 ## Panel de consultas
 ### Que permite hacer
@@ -139,6 +139,35 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
 - Cada consulta ahora tiene prioridad operativa (`baja`, `media`, `alta`).
 - La bandeja permite ajustar prioridad rapidamente desde la lista.
 - Las notas internas reutilizan `ConsultaSeguimiento`, evitando duplicar modelos o flujos.
+
+## Setup local completo
+1. Requisito base:
+   - Docker Desktop iniciado o una instancia local de PostgreSQL escuchando en `localhost:5432`.
+2. Levantar PostgreSQL con Docker:
+   - `docker compose up -d postgres`
+3. Configurar backend:
+   - `cd backend`
+   - `Copy-Item .env.example .env`
+   - Revisar `DATABASE_URL`, `JWT_SECRET` y `FRONTEND_ORIGIN`.
+4. Aplicar esquema y generar cliente Prisma:
+   - `npm install`
+   - `npm run prisma:generate`
+   - `npm run prisma:migrate -- --name init` para primera instalacion, o `npm run prisma:deploy` si ya existen migraciones versionadas.
+5. Cargar datos base opcionales:
+   - `npm run db:seed`
+6. Levantar backend:
+   - `npm run dev`
+7. Configurar frontend desde la raiz:
+   - `Copy-Item .env.example .env`
+   - Verificar `VITE_API_URL=http://localhost:3001/api`
+   - `npm install`
+   - `npm run dev`
+
+## Preparacion para deploy
+- El backend valida variables criticas con Zod antes de iniciar.
+- CORS usa `FRONTEND_ORIGIN` explicito; no se usa `*`.
+- `POST /api/consultas/public` tiene rate limit especifico para mitigar spam.
+- Prisma ya incluye migracion para `prioridad` en consultas; en deploy usar `npm run prisma:deploy`.
 
 ## Fix navegacion admin
 - Se corrige un loop de navegacion por doble fuente de verdad (tab <-> URL).
@@ -233,11 +262,11 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
 2. Configura backend:
    - `cd backend`
    - `Copy-Item .env.example .env`
-   - Ajusta `JWT_SECRET` si corresponde.
+   - Ajusta `JWT_SECRET` si corresponde y verifica `DATABASE_URL`.
 3. Inicializa esquema y datos:
    - `npm install`
    - `npm run prisma:generate`
-   - `npm run prisma:migrate -- --name init`
+   - `npm run prisma:migrate -- --name init` o `npm run prisma:deploy` si ya existe base versionada
    - `npm run db:seed`
 4. Inicia backend:
    - `npm run dev`
@@ -287,7 +316,8 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
 - `GET/POST /api/ventas` (GET todos autenticados, POST admin/empleado)
 - `GET/POST /api/inventario/movimientos` (admin/empleado)
 - `POST /api/telemetry/web-vitals` (ingesta de metricas de performance frontend)
-- `POST /api/inquiries` (consultas publicas)
+- `POST /api/inquiries` (legacy historico)
+- `POST /api/consultas/public` (entrada publica actual al CRM)
 
 ## Credenciales seed
 - `email`: `admin@raicespuntanas.local`
@@ -303,6 +333,7 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
 - Refresh token rotativo con revocacion en base de datos.
 - Lockout por intentos fallidos (`MAX_LOGIN_ATTEMPTS`, `LOCKOUT_MINUTES`).
 - Rate limit especifico para `/api/auth/login`, `/api/auth/refresh` y `/api/auth/setup-admin`.
+- Rate limit especifico para `/api/consultas/public`.
 - Frontend con refresh automatico y retry de requests protegidas tras `401`.
 
 ## Permisos destacados por rol
