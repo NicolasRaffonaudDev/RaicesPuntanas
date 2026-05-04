@@ -186,6 +186,7 @@ model Consulta {
   telefonoContacto String?
   origen    String   @default("user")
   estado    String   @default("pendiente")
+  prioridad String   @default("media")
   createdAt DateTime @default(now())
   user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   lote      Lote?    @relation(fields: [loteId], references: [id], onDelete: SetNull)
@@ -194,6 +195,7 @@ model Consulta {
   @@index([userId, createdAt])
   @@index([origen, createdAt])
   @@index([estado, createdAt])
+  @@index([prioridad, createdAt])
 }
 
 model ConsultaSeguimiento {

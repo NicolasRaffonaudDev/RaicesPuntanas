@@ -7,16 +7,22 @@ import { PageHeader } from "../components/PageHeader";
 import { useAuth } from "../context/useAuth";
 import { commercialApi } from "../services/commercialApi";
 import { API_ORIGIN } from "../services/apiClient";
-import type { ConsultaEstado, ConsultaSeguimiento, Pagination } from "../types/commercial";
+import type { ConsultaEstado, ConsultaPrioridad, ConsultaSeguimiento, Pagination } from "../types/commercial";
 import type { Lote } from "../types/interfaces";
 
 const defaultPagination: Pagination = { page: 1, limit: 10, total: 0, totalPages: 1 };
 const consultaEstados: ConsultaEstado[] = ["pendiente", "en_revision", "respondida", "cerrada"];
+const consultaPrioridades: ConsultaPrioridad[] = ["baja", "media", "alta"];
 const parsePositiveInt = (raw: string | null, fallback?: number) => {
   if (!raw) return fallback;
   const parsed = Number(raw);
   if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
   return Math.floor(parsed);
+};
+const getPrioridadTone = (prioridad?: string) => {
+  if (prioridad === "alta") return "border border-red-500/30 bg-red-500/10 text-red-200";
+  if (prioridad === "baja") return "border border-slate-500/30 bg-slate-500/10 text-slate-200";
+  return "border border-amber-500/30 bg-amber-500/10 text-amber-200";
 };
 
 const quickTemplates = [
@@ -173,6 +179,21 @@ const ConsultasInbox: React.FC = () => {
     },
     onError: (err) => {
       setError(err instanceof Error ? err.message : "No se pudo actualizar estado");
+    },
+  });
+
+  const updatePrioridadMutation = useMutation({
+    mutationFn: async ({ id, prioridad }: { id: string; prioridad: ConsultaPrioridad }) => {
+      if (!token) throw new Error("No autenticado");
+      return commercialApi.updateConsultaPrioridad(token, id, prioridad);
+    },
+    onSuccess: async (result) => {
+      setError("");
+      showToast(`Prioridad actualizada a ${result.prioridad ?? "media"}.`);
+      await queryClient.invalidateQueries({ queryKey: ["consultas"] });
+    },
+    onError: (err) => {
+      setError(err instanceof Error ? err.message : "No se pudo actualizar prioridad");
     },
   });
 
@@ -484,6 +505,7 @@ const ConsultasInbox: React.FC = () => {
                   <th className="p-2">Asunto</th>
                   <th className="p-2">Mensaje</th>
                   <th className="p-2">Lote</th>
+                  <th className="p-2">Prioridad</th>
                   <th className="p-2">Estado</th>
                   <th className="p-2">Accion</th>
                   <th className="p-2">Seguimiento</th>
@@ -499,6 +521,9 @@ const ConsultasInbox: React.FC = () => {
                   const contactName = consulta.user?.name || consulta.nombreContacto || "-";
                   const contactEmail = consulta.user?.email || consulta.emailContacto || "-";
                   const contactPhone = consulta.telefonoContacto || "";
+                  const prioridad = consultaPrioridades.includes(consulta.prioridad as ConsultaPrioridad)
+                    ? (consulta.prioridad as ConsultaPrioridad)
+                    : "media";
 
                   return (
                     <Fragment key={consulta.id}>
@@ -532,6 +557,28 @@ const ConsultasInbox: React.FC = () => {
                         <td className="p-2 max-w-[300px] text-xs text-[var(--color-text-muted)]">{consulta.mensaje}</td>
                         <td className="p-2">{consulta.lote ? `${consulta.lote.id} - ${consulta.lote.title}` : "-"}</td>
                         <td className="p-2">
+                          <div className="space-y-2">
+                            <span className={`inline-flex rounded px-2 py-1 text-xs font-medium uppercase ${getPrioridadTone(prioridad)}`}>
+                              {prioridad}
+                            </span>
+                            <select
+                              className="field min-w-[120px]"
+                              value={prioridad}
+                              disabled={updatePrioridadMutation.isPending}
+                              onChange={(e) =>
+                                void updatePrioridadMutation.mutateAsync({
+                                  id: consulta.id,
+                                  prioridad: e.target.value as ConsultaPrioridad,
+                                })
+                              }
+                            >
+                              <option value="baja">baja</option>
+                              <option value="media">media</option>
+                              <option value="alta">alta</option>
+                            </select>
+                          </div>
+                        </td>
+                        <td className="p-2">
                           <span className="rounded border border-[var(--color-primary)] px-2 py-1 text-xs uppercase text-[var(--color-primary)]">
                             {consulta.estado}
                           </span>
@@ -562,7 +609,7 @@ const ConsultasInbox: React.FC = () => {
                       </tr>
                       {isExpanded && (
                         <tr className="border-t border-[var(--color-border)] bg-black/20">
-                          <td className="p-3" colSpan={10}>
+                          <td className="p-3" colSpan={11}>
                             <div className="space-y-3">
                               <div className="flex flex-wrap items-center justify-between gap-2">
                                 <p className="text-sm font-semibold text-[var(--color-primary)]">Historial de seguimiento</p>
@@ -576,13 +623,20 @@ const ConsultasInbox: React.FC = () => {
                               ) : (
                                 <ul className="space-y-2">
                                   {items.map((item) => (
-                                    <li key={item.id} className="rounded border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-2">
+                                    <li
+                                      key={item.id}
+                                      className={`rounded border p-2 ${
+                                        item.esInterno
+                                          ? "border-slate-500/20 bg-slate-800/40"
+                                          : "border-[var(--color-border)] bg-[var(--color-surface-alt)]"
+                                      }`}
+                                    >
                                       <div className="flex flex-wrap items-center justify-between gap-2">
                                         <span className="text-xs text-[var(--color-text-muted)]">
                                           {item.autor?.name || item.autor?.email || "Sistema"} - {new Date(item.createdAt).toLocaleString("es-AR")}
                                         </span>
                                         <span
-                                          className={`rounded px-2 py-0.5 text-xs ${item.esInterno ? "bg-red-900/40 text-red-300" : "bg-emerald-900/40 text-emerald-300"}`}
+                                          className={`rounded px-2 py-0.5 text-xs ${item.esInterno ? "bg-slate-700/60 text-slate-200" : "bg-emerald-900/40 text-emerald-300"}`}
                                         >
                                           {item.esInterno ? "Interno" : "Visible cliente"}
                                         </span>
@@ -597,7 +651,11 @@ const ConsultasInbox: React.FC = () => {
                                 <textarea
                                   className="field md:col-span-4"
                                   rows={3}
-                                  placeholder="Escribe una nota interna o respuesta al cliente..."
+                                  placeholder={
+                                    (isInternalByConsulta[consulta.id] ?? true)
+                                      ? "Escribe una nota interna para el equipo..."
+                                      : "Escribe una respuesta visible para el cliente..."
+                                  }
                                   data-testid={`seguimiento-input-${consulta.id}`}
                                   value={newMessageByConsulta[consulta.id] || ""}
                                   onChange={(e) => setNewMessageByConsulta((prev) => ({ ...prev, [consulta.id]: e.target.value }))}
@@ -617,7 +675,7 @@ const ConsultasInbox: React.FC = () => {
                                     data-testid={`seguimiento-submit-${consulta.id}`}
                                     onClick={() => void submitSeguimiento(consulta.id)}
                                   >
-                                    Guardar seguimiento
+                                    {(isInternalByConsulta[consulta.id] ?? true) ? "Agregar nota interna" : "Enviar respuesta"}
                                   </button>
                                 </div>
                               </div>

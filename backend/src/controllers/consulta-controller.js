@@ -51,6 +51,15 @@ const consultaController = {
     res.json({ data });
   },
 
+  updatePrioridad: async (req, res) => {
+    const data = await consultaService.updatePrioridad({
+      actorUserId: req.auth.sub,
+      id: req.params.id,
+      prioridad: req.body.prioridad,
+    });
+    res.json({ data });
+  },
+
   listSeguimientos: async (req, res) => {
     const data = await consultaService.listSeguimientos({
       consultaId: req.params.id,

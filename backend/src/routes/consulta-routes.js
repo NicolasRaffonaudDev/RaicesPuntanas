@@ -6,6 +6,7 @@ const {
   consultaCreateSchema,
   publicConsultaCreateSchema,
   consultaUpdateSchema,
+  consultaPrioridadSchema,
   consultaBulkUpdateSchema,
   consultaSeguimientoCreateSchema,
 } = require("../schemas/consulta-schema");
@@ -39,6 +40,12 @@ consultaRoutes.patch(
   requirePermission("consultas.manage"),
   validateBody(consultaUpdateSchema),
   asyncHandler(consultaController.updateEstado),
+);
+consultaRoutes.patch(
+  "/:id/prioridad",
+  requirePermission("consultas.manage"),
+  validateBody(consultaPrioridadSchema),
+  asyncHandler(consultaController.updatePrioridad),
 );
 consultaRoutes.get(
   "/:id/seguimientos",

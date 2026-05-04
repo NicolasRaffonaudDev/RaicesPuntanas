@@ -109,6 +109,7 @@ export interface Inquiry {
 }
 
 export type ConsultaEstado = "pendiente" | "en_revision" | "respondida" | "cerrada";
+export type ConsultaPrioridad = "baja" | "media" | "alta";
 
 export interface Consulta {
   id: string;
@@ -117,6 +118,7 @@ export interface Consulta {
   asunto: string;
   mensaje: string;
   estado: ConsultaEstado | string;
+  prioridad?: ConsultaPrioridad | string;
   origen?: "user" | "public_form" | string;
   nombreContacto?: string | null;
   emailContacto?: string | null;

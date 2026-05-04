@@ -3,6 +3,7 @@ import type {
   Cliente,
   Consulta,
   ConsultaEstado,
+  ConsultaPrioridad,
   ConsultaSeguimiento,
   ConsultaWithUser,
   Inquiry,
@@ -518,6 +519,20 @@ export const commercialApi = {
       method: "PATCH",
       headers: authHeaders(token),
       body: JSON.stringify({ estado }),
+    });
+    const payload = await parseResponse(res);
+    return payload.data as ConsultaWithUser;
+  },
+
+  updateConsultaPrioridad: async (
+    token: string,
+    consultaId: string,
+    prioridad: ConsultaPrioridad,
+  ): Promise<ConsultaWithUser> => {
+    const res = await apiRequest(`/consultas/${consultaId}/prioridad`, {
+      method: "PATCH",
+      headers: authHeaders(token),
+      body: JSON.stringify({ prioridad }),
     });
     const payload = await parseResponse(res);
     return payload.data as ConsultaWithUser;

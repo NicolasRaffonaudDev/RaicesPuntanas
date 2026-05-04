@@ -12,6 +12,23 @@ Formato sugerido por entrada:
 
 ---
 
+## 2026-05-04 - Prioridad y notas internas en CRM
+- Scope: `feat(crm)` + `prisma` + `docs`
+- Cambios:
+  - Se agrega `prioridad` a `Consulta` con valores operativos `baja`, `media`, `alta`.
+  - Nuevo endpoint `PATCH /api/consultas/:id/prioridad`.
+  - La bandeja muestra prioridad visual y reutiliza `ConsultaSeguimiento` para notas internas.
+- Motivo tecnico:
+  - Incorporar contexto operativo real sin crear un segundo sistema paralelo de notas.
+- Impacto en cliente:
+  - El equipo comercial puede decidir mas rapido que atender primero y dejar contexto interno por consulta.
+- Riesgos:
+  - La prioridad usa string controlado; si en el futuro crecen reglas mas complejas convendra formalizarla mas.
+- Validacion:
+  - La prioridad se puede editar desde la lista y las notas internas siguen viviendo en el historial.
+- Siguiente paso:
+  - Evaluar filtros por prioridad y vistas resumidas para supervisores.
+
 ## 2026-05-04 - Acciones operativas en la bandeja CRM
 - Scope: `feat(crm)` + `docs`
 - Cambios:

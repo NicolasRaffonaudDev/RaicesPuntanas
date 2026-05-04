@@ -174,6 +174,29 @@ const consultaService = {
     };
   },
 
+  updatePrioridad: async ({ actorUserId, id, prioridad }) => {
+    const existing = await prisma.consulta.findUnique({ where: { id } });
+    if (!existing) throw new AppError(404, "Consulta no encontrada");
+
+    const updated = await prisma.consulta.update({
+      where: { id },
+      data: { prioridad },
+      include: {
+        user: { select: { id: true, name: true, email: true, role: true } },
+        lote: true,
+        seguimientos: seguimientoInclude,
+      },
+    });
+
+    await auditService.create({
+      userId: actorUserId,
+      action: "consulta.prioridad.update",
+      meta: { consultaId: id, prioridad },
+    });
+
+    return updated;
+  },
+
   listSeguimientos: async ({ consultaId, actorUserId, actorRole }) => {
     const consulta = await prisma.consulta.findUnique({
       where: { id: consultaId },
