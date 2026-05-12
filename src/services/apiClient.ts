@@ -3,7 +3,17 @@ if (!rawApiUrl) {
   throw new Error("VITE_API_URL no esta definida. Configura tu .env con la base de la API.");
 }
 
-const API_URL = rawApiUrl.replace(/\/+$/, "");
+const resolveApiUrl = (value: string) => {
+  if (/^https?:\/\//i.test(value)) {
+    return value.replace(/\/+$/, "");
+  }
+
+  const baseOrigin =
+    typeof window !== "undefined" ? window.location.origin : "http://localhost";
+  return new URL(value, baseOrigin).toString().replace(/\/+$/, "");
+};
+
+const API_URL = resolveApiUrl(rawApiUrl);
 const API_ORIGIN = new URL(API_URL).origin;
 
 interface AuthHandlers {

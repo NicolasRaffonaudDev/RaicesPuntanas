@@ -12,6 +12,24 @@ Formato sugerido por entrada:
 
 ---
 
+## 2026-05-12 - Preparacion de deploy real con Nginx
+- Scope: `chore(deploy)` + `docker` + `nginx` + `docs`
+- Cambios:
+  - Se separan los Dockerfiles de desarrollo y produccion para frontend y backend.
+  - El frontend de produccion pasa a build estatico servido por `nginx`.
+  - Se agrega `docker-compose.prod.yml` con `postgres`, `backend` y `frontend-nginx`.
+  - Nginx resuelve SPA fallback y reverse proxy de `/api` y `/socket.io/`.
+- Motivo tecnico:
+  - Preparar una arquitectura realmente desplegable en VPS/Hostinger sin depender de Vite en modo desarrollo.
+- Impacto en cliente:
+  - Mejor base de performance, menor superficie de error en produccion y arquitectura mas cercana al entorno final.
+- Riesgos:
+  - La configuracion productiva usa `RUN_DB_SEED=true` por defecto para staging/local; antes de un deploy real debe revisarse segun el estado de la base.
+- Validacion:
+  - `docker compose -f docker-compose.prod.yml up --build`, frontend servido por Nginx y smoke CRM ejecutado a traves de `/api`.
+- Siguiente paso:
+  - Agregar pipeline de build/publish de imagenes y definir manejo seguro de secretos en VPS.
+
 ## 2026-05-12 - Stack Docker completo y smoke CRM
 - Scope: `chore(devops)` + `docker` + `smoke` + `docs`
 - Cambios:

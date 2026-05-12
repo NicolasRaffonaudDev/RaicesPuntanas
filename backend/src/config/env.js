@@ -9,7 +9,9 @@ const envSchema = z.object({
   REFRESH_TOKEN_EXPIRES_DAYS: z.coerce.number().int().min(1),
   MAX_LOGIN_ATTEMPTS: z.coerce.number().int().min(1),
   LOCKOUT_MINUTES: z.coerce.number().int().min(1),
+  FRONTEND_URL: z.string().url().optional(),
   FRONTEND_ORIGIN: z.string().url().default("http://localhost:5173"),
+  REFRESH_TOKEN_SECRET: z.string().min(12).optional(),
   SMTP_FROM: z.string().email().default("no-reply@raicespuntanas.local"),
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.coerce.number().int().positive().optional(),
@@ -32,6 +34,9 @@ if (!parsed.success) {
   throw new Error(`Configuracion de entorno invalida: ${details}`);
 }
 
-const env = parsed.data;
+const env = {
+  ...parsed.data,
+  FRONTEND_ORIGIN: parsed.data.FRONTEND_URL || parsed.data.FRONTEND_ORIGIN,
+};
 
 module.exports = env;

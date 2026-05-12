@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const compression = require("compression");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const { env } = require("./config");
@@ -46,6 +47,7 @@ app.use(
 );
 
 app.use(helmet());
+app.use(compression());
 app.use(express.json({ limit: "1mb" }));
 app.use("/api/auth/login", authLoginLimiter);
 app.use("/api/auth/refresh", refreshLimiter);

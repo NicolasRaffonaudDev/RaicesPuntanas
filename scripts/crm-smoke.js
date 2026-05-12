@@ -1,9 +1,33 @@
-const API_BASE_URL = process.env.CRM_SMOKE_API_BASE_URL || process.env.API_BASE_URL || "http://localhost:3000/api";
+const DEFAULT_API_BASES = [
+  process.env.CRM_SMOKE_API_BASE_URL,
+  process.env.API_BASE_URL,
+  "http://localhost:8080/api",
+  "http://localhost:3000/api",
+].filter(Boolean);
 const ADMIN_EMAIL = process.env.CRM_SMOKE_ADMIN_EMAIL || "admin@raicespuntanas.local";
 const ADMIN_PASSWORD = process.env.CRM_SMOKE_ADMIN_PASSWORD || "admin1234";
 
+let apiBaseUrl = DEFAULT_API_BASES[0];
+
+const pickReachableApiBase = async () => {
+  for (const candidate of DEFAULT_API_BASES) {
+    try {
+      const normalizedCandidate = candidate.replace(/\/+$/, "");
+      const healthUrl = new URL("/health", normalizedCandidate).toString();
+      const response = await fetch(healthUrl);
+      if (response.ok) {
+        return normalizedCandidate;
+      }
+    } catch {
+      // continuar con el siguiente candidato
+    }
+  }
+
+  return DEFAULT_API_BASES[0].replace(/\/+$/, "");
+};
+
 const request = async (path, options = {}) => {
-  const response = await fetch(`${API_BASE_URL}${path}`, options);
+  const response = await fetch(`${apiBaseUrl}${path}`, options);
   const text = await response.text();
   let body = null;
 
@@ -37,7 +61,8 @@ const getFirstLoteId = (body) => {
 };
 
 const run = async () => {
-  console.log(`Iniciando smoke CRM en ${API_BASE_URL}`);
+  apiBaseUrl = await pickReachableApiBase();
+  console.log(`Iniciando smoke CRM en ${apiBaseUrl}`);
 
   const lotesRes = await request("/lotes?limit=1");
   expectStatus("listar lotes publicos", lotesRes, 200);

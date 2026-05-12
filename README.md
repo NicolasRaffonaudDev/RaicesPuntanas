@@ -196,6 +196,30 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
 - Si necesitas otro destino:
   - `CRM_SMOKE_API_BASE_URL=http://host:puerto/api npm run crm:smoke`
 
+## Deploy produccion
+- Stack productivo:
+  - `docker compose -f docker-compose.prod.yml up --build -d`
+- Servicios expuestos en la configuracion actual:
+  - Nginx + frontend SPA: `http://localhost:8080`
+  - API solo via reverse proxy en `/api`
+- Componentes clave:
+  - frontend estatico generado con `npm run build`
+  - Nginx sirviendo la SPA con fallback a `index.html`
+  - reverse proxy de `/api` y `/socket.io/` hacia `backend:3000`
+  - backend en modo `start`, con `prisma migrate deploy` al iniciar
+- Archivos de referencia:
+  - frontend: `.env.production.example`
+  - backend: `backend/.env.production.example`
+  - proxy nginx: `nginx/default.conf`
+- Variables importantes:
+  - `VITE_API_URL=/api`
+  - `DATABASE_URL`
+  - `JWT_SECRET`
+  - `REFRESH_TOKEN_SECRET`
+  - `FRONTEND_URL`
+- Nota operativa:
+  - `RUN_DB_SEED=true` queda habilitado por defecto en `docker-compose.prod.yml` para staging/local. En despliegue real conviene apagarlo una vez inicializado el entorno.
+
 ## Fix navegacion admin
 - Se corrige un loop de navegacion por doble fuente de verdad (tab <-> URL).
 - La URL pasa a ser la unica fuente de verdad del tab en Gestion.
