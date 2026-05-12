@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "crm:smoke": "node scripts/crm-smoke.js",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed"
   },

@@ -169,6 +169,33 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
 - `POST /api/consultas/public` tiene rate limit especifico para mitigar spam.
 - Prisma ya incluye migracion para `prioridad` en consultas; en deploy usar `npm run prisma:deploy`.
 
+## Levantar stack completo con Docker
+- Comando principal:
+  - `docker compose up --build`
+- Servicios expuestos:
+  - Frontend: `http://localhost:5173`
+  - Backend: `http://localhost:3000`
+  - PostgreSQL: `localhost:5432`
+- `docker compose` usa `backend/.env.docker` como configuracion base del backend dentro de contenedores.
+- El contenedor backend:
+  - aplica migraciones Prisma
+  - ejecuta seed de datos base
+  - inicia la API en puerto `3000`
+- El contenedor frontend levanta Vite accesible desde la maquina host.
+
+## Smoke test CRM
+- Ejecutar con el stack arriba:
+  - `npm run crm:smoke`
+- El smoke valida extremo a extremo:
+  - creacion de consulta publica
+  - login admin
+  - cambio de estado
+  - cambio de prioridad
+  - agregado de nota interna
+- Por defecto usa `http://localhost:3000/api`.
+- Si necesitas otro destino:
+  - `CRM_SMOKE_API_BASE_URL=http://host:puerto/api npm run crm:smoke`
+
 ## Fix navegacion admin
 - Se corrige un loop de navegacion por doble fuente de verdad (tab <-> URL).
 - La URL pasa a ser la unica fuente de verdad del tab en Gestion.

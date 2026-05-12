@@ -12,6 +12,23 @@ Formato sugerido por entrada:
 
 ---
 
+## 2026-05-12 - Stack Docker completo y smoke CRM
+- Scope: `chore(devops)` + `docker` + `smoke` + `docs`
+- Cambios:
+  - Se unifica `docker compose` para levantar `postgres`, `backend` y `frontend` con una sola orden.
+  - Se agregan Dockerfiles para backend y frontend orientados a desarrollo real.
+  - Se crea `scripts/crm-smoke.js` para validar el flujo CRM critico de punta a punta.
+- Motivo tecnico:
+  - Reducir friccion de setup y asegurar que el camino principal del producto quede cubierto por una prueba operativa automatizada.
+- Impacto en cliente:
+  - Menor riesgo de despliegues incompletos y mayor confianza en el flujo de consultas comerciales.
+- Riesgos:
+  - El frontend dockerizado usa Vite en modo dev; para produccion convendra reemplazarlo por build estatico servido por nginx o similar.
+- Validacion:
+  - `docker compose up --build`, `npm run build` y `npm run crm:smoke`.
+- Siguiente paso:
+  - Integrar este smoke en CI o en una etapa de predeploy y evaluar imagenes de produccion separadas.
+
 ## 2026-05-04 - Setup de base y preparacion para deploy
 - Scope: `chore(setup)` + `infra` + `docs`
 - Cambios:
