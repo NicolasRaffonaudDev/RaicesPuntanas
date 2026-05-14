@@ -17,7 +17,8 @@ Formato sugerido por entrada:
 - Cambios:
   - Se agrega `nginx-health` para healthchecks de infraestructura en el frontend productivo.
   - El backend mejora sus logs de arranque para mostrar `NODE_ENV`, `PORT`, `FRONTEND_ORIGIN` y conexion de DB.
-  - Se documenta el deploy en Railway con variables, healthchecks y uso de Dockerfiles separados por servicio.
+  - Se documenta el deploy en Railway con variables, healthchecks, smoke remoto y uso de Dockerfiles separados por servicio.
+  - El frontend productivo pasa a escuchar el `PORT` inyectado por Railway a traves del template de Nginx.
 - Motivo tecnico:
   - Reducir incertidumbre al pasar de entorno local validado a un staging publico real en plataforma gestionada.
 - Impacto en cliente:

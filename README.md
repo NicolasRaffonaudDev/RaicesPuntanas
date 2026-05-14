@@ -241,6 +241,10 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
   - frontend: `Dockerfile`
   - backend: `backend/Dockerfile`
 - Railway permite definir una ruta custom al Dockerfile con `RAILWAY_DOCKERFILE_PATH`. Esto sirve para apuntar el servicio backend a `backend/Dockerfile`. Fuente: [Railway Dockerfiles](https://docs.railway.com/builds/dockerfiles)
+- Railway inyecta la variable `PORT` y espera que el servicio escuche en ese puerto. Este proyecto ya queda alineado:
+  - backend escucha `env.PORT`
+  - Nginx usa `${PORT}` en runtime
+  Fuente: [Railway Public Networking](https://docs.railway.com/public-networking)
 - Variables backend minimas:
   - `NODE_ENV=production`
   - `PORT=3000`
@@ -265,6 +269,102 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
   6. verificar `/health`, `/nginx-health` y el smoke CRM contra la URL publica de staging
 - Nota:
   - este repositorio ya queda preparado, pero este PR no despliega nada automaticamente.
+
+## Deploy real en Railway (staging)
+### 1. Crear proyecto
+1. Entrar a Railway y crear un proyecto nuevo.
+2. Conectar este repositorio de GitHub.
+3. Crear tres recursos:
+   - servicio `backend`
+   - servicio `frontend-nginx`
+   - PostgreSQL
+
+### 2. Crear PostgreSQL
+1. Agregar el plugin/base PostgreSQL desde Railway.
+2. Copiar la `DATABASE_URL` generada por Railway.
+3. Verificar que el backend use esa URL en sus variables.
+
+### 3. Variables del backend
+Configurar en Railway, como minimo:
+- `NODE_ENV=production`
+- `JWT_SECRET=<valor largo y aleatorio>`
+- `REFRESH_TOKEN_SECRET=<valor largo y aleatorio>`
+- `ACCESS_TOKEN_EXPIRES_IN=15m`
+- `REFRESH_TOKEN_EXPIRES_DAYS=14`
+- `MAX_LOGIN_ATTEMPTS=5`
+- `LOCKOUT_MINUTES=15`
+- `DATABASE_URL=<la que entrega Railway Postgres>`
+- `FRONTEND_URL=https://<dominio-publico-del-frontend>`
+- `FRONTEND_ORIGIN=https://<dominio-publico-del-frontend>`
+- `SETUP_ADMIN_KEY=<clave larga para bootstrap admin>`
+- `SMTP_FROM=<correo emisor>`
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_SECURE` si vas a enviar emails
+- `RUN_DB_SEED=false` para staging persistente despues del primer arranque
+
+### 4. Variables del frontend
+Configurar:
+- `VITE_API_URL=/api`
+- `VITE_GOOGLE_MAPS_API_KEY=<opcional pero recomendado si quieres mapas en staging>`
+
+### 5. Deploy backend
+1. En el servicio backend, definir:
+   - `RAILWAY_DOCKERFILE_PATH=backend/Dockerfile`
+2. Confirmar que Railway detecta el Dockerfile correcto en logs.
+3. Configurar healthcheck:
+   - path: `/health`
+4. Revisar logs de arranque esperados:
+   - `[startup] db=connected ...`
+   - `[startup] api=listening ...`
+
+### 6. Deploy frontend
+1. En el servicio frontend, usar el `Dockerfile` de la raiz.
+2. Railway expondrá un dominio publico para ese servicio.
+3. Configurar healthcheck:
+   - path: `/nginx-health`
+4. Verificar:
+   - `https://<frontend>/`
+   - `https://<frontend>/login`
+   - `https://<frontend>/health`
+
+### 7. Healthchecks
+- Backend:
+  - `GET /health` debe devolver `{"status":"ok"}`
+- Frontend:
+  - `GET /nginx-health` debe devolver `ok`
+- Si Railway marca el deploy como no saludable:
+  - revisar que el servicio escucha en `PORT`
+  - revisar logs del servicio
+  - revisar variables faltantes
+
+### 8. Logs
+- Backend:
+  - buscar `[startup] db=connected`
+  - buscar `[startup] api=listening`
+  - si aparece error de Prisma o env invalido, el deploy no esta listo
+- Frontend:
+  - verificar que Nginx inicie sin errores
+  - verificar que el template de config haya renderizado el `PORT`
+
+### 9. Como validar staging
+1. Abrir la URL publica del frontend.
+2. Abrir `/health` y `/nginx-health`.
+3. Entrar al catalogo y confirmar carga de lotes.
+4. Probar login admin.
+5. Crear una consulta publica desde la UI.
+
+### 10. Como correr smoke contra staging
+Usar cualquiera de estas variantes:
+- PowerShell:
+  - ``$env:API_URL="https://tu-frontend.up.railway.app/api"; npm run smoke:staging``
+- Bash:
+  - `API_URL=https://tu-frontend.up.railway.app/api npm run smoke:staging`
+
+El smoke valida:
+- creacion de consulta publica
+- login admin
+- cambio de estado
+- cambio de prioridad
+- nota interna
 
 ## Fix navegacion admin
 - Se corrige un loop de navegacion por doble fuente de verdad (tab <-> URL).
