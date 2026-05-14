@@ -27,6 +27,7 @@ Formato sugerido por entrada:
   - Railway puede requerir ajustes puntuales de red o dominios segun como se expongan los servicios, pero la base del stack queda preparada.
 - Validacion:
   - `docker compose -f docker-compose.prod.yml up --build -d`, `GET /health`, `GET /nginx-health` y smoke CRM.
+  - Queda listo el checklist para repetir exactamente esas pruebas contra la URL publica real de Railway.
 - Siguiente paso:
   - Crear el proyecto staging en Railway y conectar variables reales del entorno.
 

@@ -366,6 +366,56 @@ El smoke valida:
 - cambio de prioridad
 - nota interna
 
+## Checklist deploy staging exitoso
+### Backend
+- `https://tu-backend-o-frontend/health` responde `{"status":"ok"}`
+- logs muestran:
+  - `[startup] db=connected`
+  - `[startup] api=listening`
+- no hay errores de Prisma al iniciar
+
+### Frontend
+- la home carga sin pantalla en blanco
+- `/login` responde correctamente
+- rutas SPA profundas siguen funcionando al recargar
+- `https://tu-frontend.up.railway.app/nginx-health` responde `ok`
+
+### PostgreSQL
+- `DATABASE_URL` apunta a la base Railway real
+- el backend arranca sin `migrate deploy` fallido
+- el entorno no re-siembra datos si ya desactivaste `RUN_DB_SEED`
+
+### API
+- `GET /api/lotes?limit=1` responde `200`
+- login admin responde `200`
+- `POST /api/consultas/public` crea una consulta
+
+### Smoke
+- correr:
+  - PowerShell: ``$env:API_URL="https://tu-frontend.up.railway.app/api"; npm run smoke:staging``
+  - Bash: `API_URL=https://tu-frontend.up.railway.app/api npm run smoke:staging`
+- el resultado esperado termina con:
+  - `Smoke CRM completado.`
+
+### Logs
+- revisar logs del servicio backend en Railway si falla:
+  - variables faltantes
+  - errores de conexion a PostgreSQL
+  - healthcheck sin respuesta
+- revisar logs del frontend si falla:
+  - Nginx no inicia
+  - `PORT` no aplicado
+
+### Healthchecks
+- backend:
+  - `/health`
+- frontend:
+  - `/nginx-health`
+- si Railway no marca activo el deploy:
+  - verificar path configurado
+  - verificar que el servicio escucha en `PORT`
+  - revisar timeout del healthcheck
+
 ## Fix navegacion admin
 - Se corrige un loop de navegacion por doble fuente de verdad (tab <-> URL).
 - La URL pasa a ser la unica fuente de verdad del tab en Gestion.
