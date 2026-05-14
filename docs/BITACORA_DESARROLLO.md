@@ -12,6 +12,23 @@ Formato sugerido por entrada:
 
 ---
 
+## 2026-05-14 - CI basico con validacion automatica
+- Scope: `chore(ci)` + `github-actions` + `docs`
+- Cambios:
+  - Se actualiza `ci.yml` para validar frontend, backend, Prisma y el flujo CRM.
+  - Se agrega un job dedicado a levantar y verificar `docker-compose.prod.yml`.
+  - El smoke CRM pasa a ser una proteccion automatica contra regresiones del flujo comercial critico.
+- Motivo tecnico:
+  - Evitar merges a `main` que rompan build, migraciones o el camino principal de consultas sin deteccion temprana.
+- Impacto en cliente:
+  - Menor probabilidad de regresiones invisibles antes de staging/produccion.
+- Riesgos:
+  - La pipeline ahora es mas exigente y puede requerir ajustar tiempos si el runner tiene latencia alta al construir imagenes.
+- Validacion:
+  - El workflow corre build, backend smoke y compose prod con smoke CRM.
+- Siguiente paso:
+  - Agregar proteccion de rama y exigir CI verde antes de mergear a `main`.
+
 ## 2026-05-12 - Preparacion de deploy real con Nginx
 - Scope: `chore(deploy)` + `docker` + `nginx` + `docs`
 - Cambios:

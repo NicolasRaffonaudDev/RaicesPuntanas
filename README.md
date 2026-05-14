@@ -196,6 +196,18 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
 - Si necesitas otro destino:
   - `CRM_SMOKE_API_BASE_URL=http://host:puerto/api npm run crm:smoke`
 
+## CI/CD
+- GitHub Actions ejecuta validacion automatica sobre cada `push` y `pull_request` a `main`.
+- La pipeline cubre:
+  - instalacion de dependencias frontend y backend
+  - `prisma generate`
+  - `prisma migrate deploy`
+  - seed de datos base
+  - build del frontend
+  - arranque del backend y smoke test CRM
+  - validacion del stack productivo con `docker-compose.prod.yml`
+- Si falla build, Prisma, el backend o el smoke CRM, el workflow falla.
+
 ## Deploy produccion
 - Stack productivo:
   - `docker compose -f docker-compose.prod.yml up --build -d`
