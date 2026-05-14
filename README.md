@@ -232,6 +232,40 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
 - Nota operativa:
   - `RUN_DB_SEED=true` queda habilitado por defecto en `docker-compose.prod.yml` para staging/local. En despliegue real conviene apagarlo una vez inicializado el entorno.
 
+## Deploy en Railway
+- Objetivo recomendado:
+  - un servicio `backend`
+  - un servicio `frontend-nginx`
+  - una base PostgreSQL gestionada por Railway o externa
+- Dockerfiles a usar:
+  - frontend: `Dockerfile`
+  - backend: `backend/Dockerfile`
+- Railway permite definir una ruta custom al Dockerfile con `RAILWAY_DOCKERFILE_PATH`. Esto sirve para apuntar el servicio backend a `backend/Dockerfile`. Fuente: [Railway Dockerfiles](https://docs.railway.com/builds/dockerfiles)
+- Variables backend minimas:
+  - `NODE_ENV=production`
+  - `PORT=3000`
+  - `DATABASE_URL`
+  - `JWT_SECRET`
+  - `REFRESH_TOKEN_SECRET`
+  - `FRONTEND_URL`
+  - `FRONTEND_ORIGIN`
+- Variables frontend:
+  - `VITE_API_URL=/api`
+  - `VITE_GOOGLE_MAPS_API_KEY` si se quiere mantener mapas en staging
+- Healthchecks recomendados:
+  - backend: `/health`
+  - frontend nginx: `/nginx-health`
+  - Railway soporta healthchecks configurables a nivel de deployment. Fuente: [Railway Healthchecks](https://docs.railway.com/deployments/healthchecks)
+- Flujo sugerido:
+  1. crear proyecto en Railway
+  2. conectar el repositorio GitHub
+  3. crear servicio backend usando `backend/Dockerfile`
+  4. crear servicio frontend usando `Dockerfile`
+  5. cargar variables de entorno
+  6. verificar `/health`, `/nginx-health` y el smoke CRM contra la URL publica de staging
+- Nota:
+  - este repositorio ya queda preparado, pero este PR no despliega nada automaticamente.
+
 ## Fix navegacion admin
 - Se corrige un loop de navegacion por doble fuente de verdad (tab <-> URL).
 - La URL pasa a ser la unica fuente de verdad del tab en Gestion.

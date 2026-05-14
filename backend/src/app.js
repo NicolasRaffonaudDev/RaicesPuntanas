@@ -9,6 +9,8 @@ const { errorHandler } = require("./middlewares/error-handler");
 const { notFoundHandler } = require("./middlewares/not-found");
 
 const app = express();
+app.set("trust proxy", 1);
+
 const authLoginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 15,
@@ -65,7 +67,7 @@ app.use(
 );
 
 app.get("/health", (req, res) => {
-  res.json({ status: "ok", service: "Raices Puntanas API" });
+  res.json({ status: "ok" });
 });
 
 app.use("/api", apiRoutes);

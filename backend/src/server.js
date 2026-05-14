@@ -22,18 +22,22 @@ io.on("connection", (socket) => {
 
 const start = async () => {
   await prisma.$connect();
+  console.log(
+    `[startup] db=connected env=${env.NODE_ENV} port=${env.PORT} frontend_origin=${env.FRONTEND_ORIGIN}`,
+  );
   httpServer.listen(env.PORT, () => {
-    console.log(`Raices Puntanas API en http://localhost:${env.PORT}`);
+    console.log(`[startup] api=listening url=http://localhost:${env.PORT}`);
   });
 };
 
 start().catch(async (error) => {
-  console.error("No fue posible iniciar el servidor", error);
+  console.error("[startup] failed", error);
   await prisma.$disconnect();
   process.exit(1);
 });
 
 const shutdown = async () => {
+  console.log("[shutdown] closing prisma connection");
   await prisma.$disconnect();
   process.exit(0);
 };

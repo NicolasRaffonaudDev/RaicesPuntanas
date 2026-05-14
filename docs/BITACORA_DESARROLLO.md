@@ -12,6 +12,23 @@ Formato sugerido por entrada:
 
 ---
 
+## 2026-05-14 - Preparacion de staging en Railway
+- Scope: `chore(deploy)` + `railway` + `docs`
+- Cambios:
+  - Se agrega `nginx-health` para healthchecks de infraestructura en el frontend productivo.
+  - El backend mejora sus logs de arranque para mostrar `NODE_ENV`, `PORT`, `FRONTEND_ORIGIN` y conexion de DB.
+  - Se documenta el deploy en Railway con variables, healthchecks y uso de Dockerfiles separados por servicio.
+- Motivo tecnico:
+  - Reducir incertidumbre al pasar de entorno local validado a un staging publico real en plataforma gestionada.
+- Impacto en cliente:
+  - Menor riesgo de despliegues opacos y mejor capacidad de diagnostico ante fallas de arranque.
+- Riesgos:
+  - Railway puede requerir ajustes puntuales de red o dominios segun como se expongan los servicios, pero la base del stack queda preparada.
+- Validacion:
+  - `docker compose -f docker-compose.prod.yml up --build -d`, `GET /health`, `GET /nginx-health` y smoke CRM.
+- Siguiente paso:
+  - Crear el proyecto staging en Railway y conectar variables reales del entorno.
+
 ## 2026-05-14 - CI basico con validacion automatica
 - Scope: `chore(ci)` + `github-actions` + `docs`
 - Cambios:
