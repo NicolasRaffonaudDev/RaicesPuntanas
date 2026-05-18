@@ -42,7 +42,7 @@ const seed = async () => {
       price: 70000,
       size: 400,
       amenities: ["Pileta", "Seguridad 24h"],
-      image: "https://via.placeholder.com/300x200?text=Lote+3",
+      image: "https://placehold.co/300x200?text=Lote+3",
       lat: -34.6037,
       lng: -58.3816,
     },
