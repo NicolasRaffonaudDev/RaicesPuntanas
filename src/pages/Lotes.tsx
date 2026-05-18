@@ -13,6 +13,7 @@ import LotCard from "../components/LotCard/LotCard";
 import { useAuth } from "../context/useAuth";
 import { commercialApi } from "../services/commercialApi";
 import type { Amenity, Lote } from "../types/interfaces";
+import { resolveLoteImageUrl } from "../utils/resolveLoteImageUrl";
 import { hasPermission } from "../utils/permissions";
 
 interface LoteFormState {
@@ -22,6 +23,7 @@ interface LoteFormState {
   description: string;
   amenities: string[];
   image: string;
+  imageFile: File | null;
   address: string;
   lat: string;
   lng: string;
@@ -62,6 +64,7 @@ const emptyLoteForm: LoteFormState = {
   description: "",
   amenities: [],
   image: "",
+  imageFile: null,
   address: "",
   lat: "",
   lng: "",
@@ -82,6 +85,7 @@ const Lotes: React.FC = () => {
   const [contactLote, setContactLote] = useState<Lote | null>(null);
   const [editingLoteId, setEditingLoteId] = useState<number | null>(null);
   const [formState, setFormState] = useState<LoteFormState>(emptyLoteForm);
+  const [selectedImagePreview, setSelectedImagePreview] = useState<string | null>(null);
   const { favoriteSet: localFavoriteSet, toggleFavorite: toggleLocalFavorite, count: localFavoritesCount } = useFavorites();
 
   const amenitiesFromUrl = useMemo(() => normalizeAmenityIds(parseArrayParam(searchParams.get("amenities"))), [searchParams]);
@@ -166,7 +170,8 @@ const Lotes: React.FC = () => {
       price: number;
       size: number;
       amenities: string[];
-      image: string;
+      image?: string;
+      imageFile?: File | null;
       address?: string;
       lat: number;
       lng: number;
@@ -198,7 +203,8 @@ const Lotes: React.FC = () => {
       price: number;
       size: number;
       amenities: string[];
-      image: string;
+      image?: string;
+      imageFile?: File | null;
       address?: string;
       lat: number;
       lng: number;
@@ -326,6 +332,18 @@ const Lotes: React.FC = () => {
 
   const canManageLotes = !!token && hasPermission(user?.role, "lotes.write");
   const canDeleteLotes = !!token && hasPermission(user?.role, "lotes.delete");
+  const imagePreviewSrc = selectedImagePreview || resolveLoteImageUrl(formState.image);
+
+  const clearSelectedImagePreview = useCallback(() => {
+    setSelectedImagePreview((current) => {
+      if (current?.startsWith("blob:")) {
+        URL.revokeObjectURL(current);
+      }
+      return null;
+    });
+  }, []);
+
+  useEffect(() => () => clearSelectedImagePreview(), [clearSelectedImagePreview]);
 
   const toggleCompare = (loteId: number) => {
     setCompareError("");
@@ -356,6 +374,7 @@ const Lotes: React.FC = () => {
   };
 
   const openCreateModal = () => {
+    clearSelectedImagePreview();
     setEditingLoteId(null);
     setFormState(emptyLoteForm);
     setMutationError("");
@@ -373,6 +392,7 @@ const Lotes: React.FC = () => {
   };
 
   const openEditModal = (lote: Lote) => {
+    clearSelectedImagePreview();
     setEditingLoteId(lote.id);
     setFormState({
       title: lote.title,
@@ -381,6 +401,7 @@ const Lotes: React.FC = () => {
       description: lote.description || "",
       amenities: lote.amenities.map((amenity) => amenity.id),
       image: lote.image,
+      imageFile: null,
       address: lote.address || "",
       lat: String(lote.lat),
       lng: String(lote.lng),
@@ -390,10 +411,26 @@ const Lotes: React.FC = () => {
   };
 
   const closeModal = () => {
+    clearSelectedImagePreview();
     setIsModalOpen(false);
     setEditingLoteId(null);
     setFormState(emptyLoteForm);
     setMutationError("");
+  };
+
+  const handleImageFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+
+    clearSelectedImagePreview();
+
+    if (!file) {
+      setFormState((prev) => ({ ...prev, imageFile: null }));
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    setSelectedImagePreview(previewUrl);
+    setFormState((prev) => ({ ...prev, imageFile: file }));
   };
 
   const submitLote = async (e: React.FormEvent) => {
@@ -418,14 +455,20 @@ const Lotes: React.FC = () => {
       return;
     }
 
+    if (editingLoteId === null && !formState.imageFile && !formState.image.trim()) {
+      setMutationError("Selecciona una imagen valida para crear el lote.");
+      return;
+    }
+
     const payload = {
       title: formState.title.trim(),
       price: priceValue,
       size: sizeValue,
-      description: formState.description.trim() || undefined,
+      description: formState.description.trim(),
       amenities: formState.amenities,
-      image: formState.image.trim(),
-      address: formState.address.trim() || undefined,
+      image: formState.image.trim() || undefined,
+      imageFile: formState.imageFile,
+      address: formState.address.trim(),
       lat: latValue,
       lng: lngValue,
     };
@@ -818,15 +861,17 @@ const Lotes: React.FC = () => {
                   </div>
                   <div className="grid gap-1">
                     <label htmlFor="lote-image" className="text-sm text-[var(--color-text-muted)]">
-                      Imagen (URL)
+                      Imagen
                     </label>
                     <input
                       id="lote-image"
                       className="field"
-                      value={formState.image}
-                      onChange={(e) => setFormState((prev) => ({ ...prev, image: e.target.value }))}
-                      required
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      onChange={handleImageFileChange}
+                      required={editingLoteId === null && !formState.image}
                     />
+                    <p className="text-xs text-[var(--color-text-muted)]">PNG, JPG o WEBP. Maximo 5MB.</p>
                   </div>
                   <div className="grid gap-1 md:col-span-2">
                     <label htmlFor="lote-description" className="text-sm text-[var(--color-text-muted)]">
@@ -839,6 +884,18 @@ const Lotes: React.FC = () => {
                       value={formState.description}
                       onChange={(e) => setFormState((prev) => ({ ...prev, description: e.target.value }))}
                     />
+                  </div>
+                  <div className="grid gap-2 md:col-span-2">
+                    <span className="text-sm text-[var(--color-text-muted)]">Preview</span>
+                    {imagePreviewSrc ? (
+                      <div className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]">
+                        <img src={imagePreviewSrc} alt="Preview del lote" className="h-48 w-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="rounded-2xl border border-dashed border-[var(--color-border)] bg-[var(--color-surface-alt)] p-4 text-sm text-[var(--color-text-muted)]">
+                        Selecciona una imagen para previsualizarla antes de guardar.
+                      </div>
+                    )}
                   </div>
                 </div>
               </section>
@@ -873,7 +930,7 @@ const Lotes: React.FC = () => {
                         const match = allAmenities.find((item) => item.id === amenityId);
                         return match ?? { id: amenityId, name: amenityId };
                       }),
-                      image: formState.image || "",
+                      image: imagePreviewSrc || formState.image || "",
                       lat: Number(formState.lat),
                       lng: Number(formState.lng),
                       address: formState.address || null,

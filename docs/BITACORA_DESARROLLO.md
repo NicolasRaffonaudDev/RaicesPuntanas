@@ -12,6 +12,25 @@ Formato sugerido por entrada:
 
 ---
 
+## 2026-05-18 - Upload local de imagenes para lotes
+- Scope: `feat(storage)` + `backend` + `frontend` + `docs`
+- Cambios:
+  - Se agrega upload real de imagenes con `multer` para el CRUD de lotes.
+  - El backend persiste archivos en `backend/uploads/lotes` y los expone por `/uploads/...`.
+  - El panel admin pasa a usar `FormData`, preview local y reemplazo seguro de imagen.
+  - Al reemplazar o eliminar un lote se limpia el archivo fisico solo si pertenece al storage local.
+  - Nginx y Docker productivo quedan alineados para proxyar tambien `/uploads/`.
+- Motivo tecnico:
+  - Resolver la dependencia de placeholders externos y habilitar una operacion admin real sobre imagenes sin meter todavia un proveedor cloud.
+- Impacto en cliente:
+  - El equipo puede cargar imagenes reales para cada lote y verlas reflejadas inmediatamente en catalogo, favoritos y comparador.
+- Riesgos:
+  - En Railway, el filesystem local no persiste entre deploys si el servicio no tiene un Volume montado en `/app/uploads`.
+- Validacion:
+  - Build frontend OK, checks de backend OK y stack productivo preparado para servir `/uploads`.
+- Siguiente paso:
+  - Si staging Railway va a usar uploads reales, adjuntar un Volume al backend o planificar la migracion a Cloudinary/S3/R2.
+
 ## 2026-05-14 - Preparacion de staging en Railway
 - Scope: `chore(deploy)` + `railway` + `docs`
 - Cambios:

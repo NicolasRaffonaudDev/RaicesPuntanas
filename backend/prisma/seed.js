@@ -24,7 +24,7 @@ const seed = async () => {
       price: 50000,
       size: 500,
       amenities: ["Cerca playa", "Parrilla", "Electricidad"],
-      image: "https://via.placeholder.com/300x200?text=Lote+1",
+      image: "https://placehold.co/300x200?text=Lote+1",
       lat: -34.6037,
       lng: -58.3816,
     },
@@ -33,7 +33,7 @@ const seed = async () => {
       price: 30000,
       size: 800,
       amenities: ["Jardin amplio", "Cochera"],
-      image: "https://via.placeholder.com/300x200?text=Lote+2",
+      image: "https://placehold.co/300x200?text=Lote+2",
       lat: -34.6037,
       lng: -58.3816,
     },
@@ -62,17 +62,30 @@ const seed = async () => {
 
   for (const lote of lotes) {
     const existing = await prisma.lote.findFirst({ where: { title: lote.title } });
+    const { amenities, ...rest } = lote;
+    const amenityConnections = amenities.map((name) => ({ id: amenityMap.get(name) })).filter((item) => item.id);
+
     if (!existing) {
-      const { amenities, ...rest } = lote;
       await prisma.lote.create({
         data: {
           ...rest,
           amenities: {
-            connect: amenities.map((name) => ({ id: amenityMap.get(name) })).filter((item) => item.id),
+            connect: amenityConnections,
           },
         },
       });
+      continue;
     }
+
+    await prisma.lote.update({
+      where: { id: existing.id },
+      data: {
+        ...rest,
+        amenities: {
+          set: amenityConnections,
+        },
+      },
+    });
   }
 
   const clientes = [

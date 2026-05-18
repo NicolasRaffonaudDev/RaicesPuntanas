@@ -30,6 +30,8 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/raices_puntanas?schema=public
       RUN_DB_SEED: ${RUN_DB_SEED:-true}
+    volumes:
+      - backend_uploads_prod_data:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -57,6 +59,7 @@ services:
         condition: service_healthy
     environment:
       PORT: 80
+      BACKEND_UPSTREAM: http://backend:3000
     ports:
       - "8080:80"
     healthcheck:
@@ -69,6 +72,7 @@ services:
 
 volumes:
   pg_raices_prod_data:
+  backend_uploads_prod_data:
 
 networks:
   raices-prod-network:

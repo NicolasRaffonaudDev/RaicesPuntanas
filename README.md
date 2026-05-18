@@ -140,6 +140,15 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
 - La bandeja permite ajustar prioridad rapidamente desde la lista.
 - Las notas internas reutilizan `ConsultaSeguimiento`, evitando duplicar modelos o flujos.
 
+## Upload de imagenes
+- El CRUD de lotes ya soporta upload real de una imagen por lote usando `multer`.
+- Los archivos se guardan localmente en `backend/uploads/lotes`.
+- El backend sirve esos archivos en rutas publicas `/uploads/lotes/<archivo>`.
+- El panel admin crea y edita lotes con `FormData`, preview local y reemplazo de imagen existente.
+- Al eliminar un lote o reemplazar su imagen, el backend borra el archivo fisico solo si pertenece al storage local.
+- En Railway esto funciona bien para staging y MVP, pero el filesystem local no persiste entre deploys por defecto. Para persistencia real hay que montar un Volume en `/app/uploads`. Fuente: [Railway Volumes](https://docs.railway.com/volumes)
+- A futuro, la migracion natural es mover el storage a Cloudinary, S3 o R2 sin cambiar el resto del flujo admin.
+
 ## Setup local completo
 1. Requisito base:
    - Docker Desktop iniciado o una instancia local de PostgreSQL escuchando en `localhost:5432`.
@@ -225,6 +234,7 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
   - proxy nginx: `nginx/default.conf`
 - Variables importantes:
   - `VITE_API_URL=/api`
+  - `BACKEND_UPSTREAM=http://backend:3000`
   - `DATABASE_URL`
   - `JWT_SECRET`
   - `REFRESH_TOKEN_SECRET`
@@ -256,6 +266,7 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
 - Variables frontend:
   - `VITE_API_URL=/api`
   - `VITE_GOOGLE_MAPS_API_KEY` si se quiere mantener mapas en staging
+  - `BACKEND_UPSTREAM=https://<dominio-publico-del-backend>`
 - Healthchecks recomendados:
   - backend: `/health`
   - frontend nginx: `/nginx-health`
@@ -283,6 +294,7 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
 1. Agregar el plugin/base PostgreSQL desde Railway.
 2. Copiar la `DATABASE_URL` generada por Railway.
 3. Verificar que el backend use esa URL en sus variables.
+4. Si quieres que las imagenes subidas sobrevivan a los redeploys, adjuntar un Railway Volume al servicio backend con mount path `/app/uploads`.
 
 ### 3. Variables del backend
 Configurar en Railway, como minimo:
@@ -305,6 +317,7 @@ Configurar en Railway, como minimo:
 Configurar:
 - `VITE_API_URL=/api`
 - `VITE_GOOGLE_MAPS_API_KEY=<opcional pero recomendado si quieres mapas en staging>`
+- `BACKEND_UPSTREAM=https://<dominio-publico-del-backend>`
 
 ### 5. Deploy backend
 1. En el servicio backend, definir:
@@ -325,6 +338,10 @@ Configurar:
    - `https://<frontend>/`
    - `https://<frontend>/login`
    - `https://<frontend>/health`
+   - `https://<frontend>/uploads/...` para imagenes subidas localmente
+
+Nota:
+- el frontend productivo necesita `BACKEND_UPSTREAM` para que Nginx pueda proxyar `/api`, `/socket.io/` y `/uploads/`
 
 ### 7. Healthchecks
 - Backend:
@@ -485,9 +502,9 @@ El smoke valida:
 - Configuracion
 
 ### Gestion administrativa de lotes
-- Alta, edicion y eliminacion de lotes disponibles solo para `admin`.
-- `empleado` y `usuario` mantienen acceso de lectura al catalogo.
-- Primera version con formulario simple y una unica imagen por URL/path.
+- Alta, edicion y eliminacion de lotes disponibles solo para dmin.
+- empleado y usuario mantienen acceso de lectura al catalogo.
+- El formulario admin ya soporta upload local de imagenes con preview y una sola imagen principal por lote.
 - El modelo `Lote` ya soporta `description` opcional.
 
 ## Estado actual del proyecto
@@ -624,3 +641,4 @@ El smoke valida:
 3. Admin:
 - Todo lo de empleado.
 - Gestiona usuarios, roles, auditoria y panel comercial completo.
+

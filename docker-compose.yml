@@ -27,6 +27,8 @@ services:
     restart: unless-stopped
     env_file:
       - ./backend/.env.docker
+    volumes:
+      - backend_uploads_data:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -59,6 +61,7 @@ services:
 
 volumes:
   pg_raices_data:
+  backend_uploads_data:
 
 networks:
   raices-network:

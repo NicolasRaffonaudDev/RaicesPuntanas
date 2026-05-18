@@ -1,0 +1,74 @@
+const { AppError } = require("../utils/app-error");
+const { loteImageUpload, LOTE_UPLOADS_PUBLIC_PREFIX } = require("../config/multer");
+
+const normalizeStringArray = (value) => {
+  if (value === undefined) return undefined;
+  const source = Array.isArray(value) ? value : [value];
+
+  const values = source
+    .flatMap((item) => {
+      if (typeof item !== "string") return [];
+      const trimmed = item.trim();
+      if (!trimmed) return [];
+      if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          return trimmed.split(",");
+        }
+      }
+      return trimmed.split(",");
+    })
+    .map((item) => String(item).trim())
+    .filter(Boolean);
+
+  return values;
+};
+
+const normalizeNullableString = (value) => {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  const normalized = String(value).trim();
+  return normalized ? normalized : null;
+};
+
+const normalizeNumber = (value, fieldName) => {
+  if (value === undefined) return undefined;
+  if (typeof value === "number") return value;
+  const normalized = Number(String(value).trim());
+  if (!Number.isFinite(normalized)) {
+    throw new AppError(400, `El campo ${fieldName} debe ser numerico`);
+  }
+  return normalized;
+};
+
+const normalizeLoteMultipartBody = (req, _res, next) => {
+  try {
+    if (req.file) {
+      req.body.image = `${LOTE_UPLOADS_PUBLIC_PREFIX}${req.file.filename}`;
+    }
+
+    req.body = {
+      ...req.body,
+      amenities: normalizeStringArray(req.body.amenities),
+      title: req.body.title === undefined ? undefined : String(req.body.title).trim(),
+      image: req.body.image === undefined ? undefined : String(req.body.image).trim(),
+      address: normalizeNullableString(req.body.address),
+      description: normalizeNullableString(req.body.description),
+      price: normalizeNumber(req.body.price, "price"),
+      size: normalizeNumber(req.body.size, "size"),
+      lat: normalizeNumber(req.body.lat, "lat"),
+      lng: normalizeNumber(req.body.lng, "lng"),
+    };
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  loteImageUpload,
+  normalizeLoteMultipartBody,
+};

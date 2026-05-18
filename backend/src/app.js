@@ -1,3 +1,4 @@
+const path = require("node:path");
 const express = require("express");
 const cors = require("cors");
 const compression = require("compression");
@@ -10,6 +11,7 @@ const { notFoundHandler } = require("./middlewares/not-found");
 
 const app = express();
 app.set("trust proxy", 1);
+const uploadsRootDir = path.resolve(__dirname, "../uploads");
 
 const authLoginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -70,6 +72,7 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
+app.use("/uploads", express.static(uploadsRootDir));
 app.use("/api", apiRoutes);
 
 app.use(notFoundHandler);

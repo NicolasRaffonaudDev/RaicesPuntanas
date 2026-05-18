@@ -1,6 +1,7 @@
 import type { Lote } from "../../types/interfaces";
 import MapView from "../MapView/MapView";
 import { highlightText } from "../../utils/highlightText";
+import { resolveLoteImageUrl } from "../../utils/resolveLoteImageUrl";
 
 interface LotCardProps {
   lote: Lote;
@@ -27,7 +28,7 @@ const LotCard: React.FC<LotCardProps> = ({
       data-size={lote.size}
     >
       <img
-        src={lote.image}
+        src={resolveLoteImageUrl(lote.image)}
         alt={lote.title}
         className="h-48 w-full object-cover"
         loading={prioritizeImage ? "eager" : "lazy"}

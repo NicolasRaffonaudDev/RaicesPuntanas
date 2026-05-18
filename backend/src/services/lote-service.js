@@ -1,5 +1,6 @@
 const { AppError } = require("../utils/app-error");
 const { loteRepository } = require("../repositories/lote-repository");
+const { deleteLocalLoteImage, isLocalLoteImagePath } = require("../utils/upload-storage");
 const { auditService } = require("./audit-service");
 
 const buildAmenitiesForCreate = (amenityIds = []) => {
@@ -89,18 +90,44 @@ const loteService = {
   },
 
   create: async ({ actorUserId, data }) => {
-    const created = await loteRepository.create(buildCreatePayload(data));
-    await auditService.create({ userId: actorUserId, action: "lote.create", meta: { loteId: created.id } });
-    return created;
+    try {
+      const created = await loteRepository.create(buildCreatePayload(data));
+      await auditService.create({ userId: actorUserId, action: "lote.create", meta: { loteId: created.id } });
+      return created;
+    } catch (error) {
+      if (isLocalLoteImagePath(data.image)) {
+        await deleteLocalLoteImage(data.image);
+      }
+      throw error;
+    }
   },
 
   update: async ({ actorUserId, id, data }) => {
     const existing = await loteRepository.findById(id);
-    if (!existing) throw new AppError(404, "Lote no encontrado");
+    if (!existing) {
+      if (isLocalLoteImagePath(data.image)) {
+        await deleteLocalLoteImage(data.image);
+      }
+      throw new AppError(404, "Lote no encontrado");
+    }
 
-    const updated = await loteRepository.update(id, buildUpdatePayload(data));
-    await auditService.create({ userId: actorUserId, action: "lote.update", meta: { loteId: id } });
-    return updated;
+    const previousImage = existing.image;
+
+    try {
+      const updated = await loteRepository.update(id, buildUpdatePayload(data));
+      await auditService.create({ userId: actorUserId, action: "lote.update", meta: { loteId: id } });
+
+      if (data.image && data.image !== previousImage && isLocalLoteImagePath(previousImage)) {
+        await deleteLocalLoteImage(previousImage);
+      }
+
+      return updated;
+    } catch (error) {
+      if (isLocalLoteImagePath(data.image) && data.image !== previousImage) {
+        await deleteLocalLoteImage(data.image);
+      }
+      throw error;
+    }
   },
 
   remove: async ({ actorUserId, id }) => {
@@ -109,6 +136,9 @@ const loteService = {
 
     await loteRepository.remove(id);
     await auditService.create({ userId: actorUserId, action: "lote.delete", meta: { loteId: id } });
+    if (isLocalLoteImagePath(existing.image)) {
+      await deleteLocalLoteImage(existing.image);
+    }
   },
 };
 

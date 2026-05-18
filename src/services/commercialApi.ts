@@ -43,6 +43,43 @@ interface LotesResponse {
   meta: Pagination;
 }
 
+interface LoteUpsertInput {
+  title: string;
+  price: number;
+  size: number;
+  amenities: string[];
+  image?: string;
+  imageFile?: File | null;
+  address?: string;
+  lat: number;
+  lng: number;
+  description?: string;
+}
+
+const buildLoteFormData = (body: Partial<LoteUpsertInput>) => {
+  const formData = new FormData();
+  const hasImageFile = Boolean(body.imageFile);
+
+  if (body.title !== undefined) formData.append("title", body.title);
+  if (body.price !== undefined) formData.append("price", String(body.price));
+  if (body.size !== undefined) formData.append("size", String(body.size));
+  if (!hasImageFile && body.image !== undefined) formData.append("image", body.image);
+  if (body.address !== undefined) formData.append("address", body.address);
+  if (body.lat !== undefined) formData.append("lat", String(body.lat));
+  if (body.lng !== undefined) formData.append("lng", String(body.lng));
+  if (body.description !== undefined) formData.append("description", body.description);
+
+  body.amenities?.forEach((amenityId) => {
+    formData.append("amenities", amenityId);
+  });
+
+  if (body.imageFile) {
+    formData.append("image", body.imageFile);
+  }
+
+  return formData;
+};
+
 export const commercialApi = {
   listLotes: async (query: LotesQuery = {}): Promise<LotesResponse> => {
     const params = new URLSearchParams();
@@ -76,22 +113,12 @@ export const commercialApi = {
 
   createLote: async (
     token: string,
-    body: {
-      title: string;
-      price: number;
-      size: number;
-      amenities: string[];
-      image: string;
-      address?: string;
-      lat: number;
-      lng: number;
-      description?: string;
-    },
+    body: LoteUpsertInput,
   ): Promise<Lote> => {
     const res = await apiRequest("/lotes", {
       method: "POST",
-      headers: authHeaders(token),
-      body: JSON.stringify(body),
+      headers: { Authorization: `Bearer ${token}` },
+      body: buildLoteFormData(body),
     });
     const payload = await parseResponse(res);
     return payload.data as Lote;
@@ -100,22 +127,12 @@ export const commercialApi = {
   updateLote: async (
     token: string,
     id: number,
-    body: Partial<{
-      title: string;
-      price: number;
-      size: number;
-      amenities: string[];
-      image: string;
-      address?: string;
-      lat: number;
-      lng: number;
-      description?: string;
-    }>,
+    body: Partial<LoteUpsertInput>,
   ): Promise<Lote> => {
     const res = await apiRequest(`/lotes/${id}`, {
       method: "PUT",
-      headers: authHeaders(token),
-      body: JSON.stringify(body),
+      headers: { Authorization: `Bearer ${token}` },
+      body: buildLoteFormData(body),
     });
     const payload = await parseResponse(res);
     return payload.data as Lote;
