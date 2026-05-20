@@ -146,8 +146,16 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
 - El backend sirve esos archivos en rutas publicas `/uploads/lotes/<archivo>`.
 - El panel admin crea y edita lotes con `FormData`, preview local y reemplazo de imagen existente.
 - Al eliminar un lote o reemplazar su imagen, el backend borra el archivo fisico solo si pertenece al storage local.
+- En staging Railway, las imagenes locales se consumen siempre desde el dominio del frontend y Nginx las proxyea al backend en `/uploads/`.
 - En Railway esto funciona bien para staging y MVP, pero el filesystem local no persiste entre deploys por defecto. Para persistencia real hay que montar un Volume en `/app/uploads`. Fuente: [Railway Volumes](https://docs.railway.com/volumes)
 - A futuro, la migracion natural es mover el storage a Cloudinary, S3 o R2 sin cambiar el resto del flujo admin.
+
+### Serving de imagenes
+- El navegador no debe pedir imagenes al dominio backend directamente.
+- La ruta almacenada en DB para uploads locales es relativa: `/uploads/lotes/<archivo>`.
+- El frontend resuelve esas rutas contra `window.location.origin`.
+- Nginx recibe `/uploads/...` en el dominio del frontend y lo proxyea al backend staging.
+- Esto evita problemas de CORP/CORS en assets e unifica el serving de imagenes con el mismo dominio publico del frontend.
 
 ## Setup local completo
 1. Requisito base:
@@ -234,7 +242,6 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
   - proxy nginx: `nginx/default.conf`
 - Variables importantes:
   - `VITE_API_URL=/api`
-  - `BACKEND_UPSTREAM=http://backend:3000`
   - `DATABASE_URL`
   - `JWT_SECRET`
   - `REFRESH_TOKEN_SECRET`
@@ -266,7 +273,6 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
 - Variables frontend:
   - `VITE_API_URL=/api`
   - `VITE_GOOGLE_MAPS_API_KEY` si se quiere mantener mapas en staging
-  - `BACKEND_UPSTREAM=https://<dominio-publico-del-backend>`
 - Healthchecks recomendados:
   - backend: `/health`
   - frontend nginx: `/nginx-health`
@@ -279,6 +285,7 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
   5. cargar variables de entorno
   6. verificar `/health`, `/nginx-health` y el smoke CRM contra la URL publica de staging
 - Nota:
+- el serving de imagenes locales depende de que Nginx mantenga tambien el proxy de /uploads/`r
   - este repositorio ya queda preparado, pero este PR no despliega nada automaticamente.
 
 ## Deploy real en Railway (staging)
@@ -317,7 +324,6 @@ Configurar en Railway, como minimo:
 Configurar:
 - `VITE_API_URL=/api`
 - `VITE_GOOGLE_MAPS_API_KEY=<opcional pero recomendado si quieres mapas en staging>`
-- `BACKEND_UPSTREAM=https://<dominio-publico-del-backend>`
 
 ### 5. Deploy backend
 1. En el servicio backend, definir:
@@ -331,17 +337,18 @@ Configurar:
 
 ### 6. Deploy frontend
 1. En el servicio frontend, usar el `Dockerfile` de la raiz.
-2. Railway expondrá un dominio publico para ese servicio.
-3. Configurar healthcheck:
+2. El proxy de Nginx hoy apunta de forma explicita al backend staging en `nginx/default.conf`.
+3. Railway expondra un dominio publico para ese servicio.
+4. Configurar healthcheck:
    - path: `/nginx-health`
-4. Verificar:
+5. Verificar:
    - `https://<frontend>/`
    - `https://<frontend>/login`
    - `https://<frontend>/health`
    - `https://<frontend>/uploads/...` para imagenes subidas localmente
 
 Nota:
-- el frontend productivo necesita `BACKEND_UPSTREAM` para que Nginx pueda proxyar `/api`, `/socket.io/` y `/uploads/`
+- el serving de imagenes locales depende de que Nginx mantenga tambien el proxy de `/uploads/`
 
 ### 7. Healthchecks
 - Backend:
@@ -641,4 +648,5 @@ El smoke valida:
 3. Admin:
 - Todo lo de empleado.
 - Gestiona usuarios, roles, auditoria y panel comercial completo.
+
 

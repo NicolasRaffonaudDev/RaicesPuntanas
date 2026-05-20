@@ -59,7 +59,6 @@ services:
         condition: service_healthy
     environment:
       PORT: 80
-      BACKEND_UPSTREAM: http://backend:3000
     ports:
       - "8080:80"
     healthcheck:

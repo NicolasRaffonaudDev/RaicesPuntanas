@@ -17,7 +17,6 @@ RUN npm run build
 FROM nginx:1.29-alpine AS runtime
 
 ENV PORT=80
-ENV BACKEND_UPSTREAM=http://backend:3000
 
 COPY nginx/default.conf /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html

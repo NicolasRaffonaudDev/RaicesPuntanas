@@ -12,6 +12,24 @@ Formato sugerido por entrada:
 
 ---
 
+## 2026-05-20 - Estabilizacion de serving de imagenes
+- Scope: `fix(storage)` + `nginx` + `frontend` + `docs`
+- Cambios:
+  - Se agrega proxy explicito de `/uploads/` en Nginx para que el navegador consuma imagenes desde el dominio del frontend.
+  - Se corrige la resolucion de URLs para que cualquier upload local use `window.location.origin` y no derive al dominio backend.
+  - Se agrega fallback visual en `LotCard` para evitar imagen rota si un asset falla.
+  - Se limpia documentacion residual de variables de proxy no usadas en staging.
+- Motivo tecnico:
+  - Eliminar el comportamiento cross-origin de imagenes locales y consolidar una sola arquitectura de serving: navegador -> frontend -> Nginx -> backend -> uploads.
+- Impacto en cliente:
+  - Las imagenes de lotes cargan de forma mas estable y sin bloqueos CORP/CORS desde la misma URL publica del frontend.
+- Riesgos:
+  - La configuracion de upstream sigue hardcodeada al backend staging en `nginx/default.conf`; si cambia el dominio Railway hay que actualizarla.
+- Validacion:
+  - Build frontend OK, checks de backend OK y `nginx-health` publico vigente en Railway.
+- Siguiente paso:
+  - Si el staging se mantiene estable, conviene despues automatizar la sustitucion del upstream o pasar a una configuracion de infraestructura menos acoplada al dominio.
+
 ## 2026-05-18 - Upload local de imagenes para lotes
 - Scope: `feat(storage)` + `backend` + `frontend` + `docs`
 - Cambios:
