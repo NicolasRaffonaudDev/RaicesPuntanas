@@ -155,6 +155,7 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
 - La ruta almacenada en DB para uploads locales es relativa: `/uploads/lotes/<archivo>`.
 - El frontend resuelve esas rutas contra `window.location.origin`.
 - Nginx recibe `/uploads/...` en el dominio del frontend y lo proxyea al backend staging.
+- En Railway, el proxy tambien reenvia el `Host` del backend staging para que el enrutamiento por dominio publico no rompa `/api`, `/uploads/` ni `/socket.io/`.
 - Esto evita problemas de CORP/CORS en assets e unifica el serving de imagenes con el mismo dominio publico del frontend.
 
 ## Setup local completo

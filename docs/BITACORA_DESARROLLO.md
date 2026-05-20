@@ -17,6 +17,7 @@ Formato sugerido por entrada:
 - Cambios:
   - Se agrega proxy explicito de `/uploads/` en Nginx para que el navegador consuma imagenes desde el dominio del frontend.
   - Se corrige la resolucion de URLs para que cualquier upload local use `window.location.origin` y no derive al dominio backend.
+  - Se ajusta el `Host` reenviado por Nginx al backend staging para evitar `502` en Railway por routing de dominio publico.
   - Se agrega fallback visual en `LotCard` para evitar imagen rota si un asset falla.
   - Se limpia documentacion residual de variables de proxy no usadas en staging.
 - Motivo tecnico:
