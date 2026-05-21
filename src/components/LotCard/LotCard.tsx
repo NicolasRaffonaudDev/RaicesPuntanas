@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { Lote } from "../../types/interfaces";
 import MapView from "../MapView/MapView";
 import { highlightText } from "../../utils/highlightText";
-import { LOTE_IMAGE_FALLBACK_SRC, resolveLoteImageUrl } from "../../utils/resolveLoteImageUrl";
+import { LOTE_IMAGE_FALLBACK_SRC, resolvePrimaryLoteImageUrl } from "../../utils/resolveLoteImageUrl";
 
 interface LotCardProps {
   lote: Lote;
@@ -21,7 +21,7 @@ const LotCard: React.FC<LotCardProps> = ({
   onToggleFavorite,
   onContact,
 }) => {
-  const resolvedImageSrc = resolveLoteImageUrl(lote.image);
+  const resolvedImageSrc = resolvePrimaryLoteImageUrl(lote);
   const [imageSrc, setImageSrc] = useState(resolvedImageSrc);
 
   useEffect(() => {
@@ -38,7 +38,7 @@ const LotCard: React.FC<LotCardProps> = ({
       <img
         src={imageSrc}
         alt={lote.title}
-        className="h-48 w-full object-cover"
+        className="h-48 w-full bg-[var(--color-surface-alt)] object-cover"
         loading={prioritizeImage ? "eager" : "lazy"}
         decoding="async"
         fetchPriority={prioritizeImage ? "high" : "auto"}

@@ -13,7 +13,7 @@ import LotCard from "../components/LotCard/LotCard";
 import { useAuth } from "../context/useAuth";
 import { commercialApi } from "../services/commercialApi";
 import type { Amenity, Lote } from "../types/interfaces";
-import { resolveLoteImageUrl } from "../utils/resolveLoteImageUrl";
+import { getPrimaryLoteImagePath, resolveLoteImageUrl } from "../utils/resolveLoteImageUrl";
 import { hasPermission } from "../utils/permissions";
 
 interface LoteFormState {
@@ -332,7 +332,7 @@ const Lotes: React.FC = () => {
 
   const canManageLotes = !!token && hasPermission(user?.role, "lotes.write");
   const canDeleteLotes = !!token && hasPermission(user?.role, "lotes.delete");
-  const imagePreviewSrc = selectedImagePreview || resolveLoteImageUrl(formState.image);
+  const imagePreviewSrc = selectedImagePreview || (formState.image ? resolveLoteImageUrl(formState.image) : null);
 
   const clearSelectedImagePreview = useCallback(() => {
     setSelectedImagePreview((current) => {
@@ -400,7 +400,7 @@ const Lotes: React.FC = () => {
       size: String(lote.size),
       description: lote.description || "",
       amenities: lote.amenities.map((amenity) => amenity.id),
-      image: lote.image,
+      image: getPrimaryLoteImagePath(lote) || lote.image,
       imageFile: null,
       address: lote.address || "",
       lat: String(lote.lat),

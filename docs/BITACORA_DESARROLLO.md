@@ -444,6 +444,34 @@ Formato sugerido por entrada:
 - Siguiente paso:
   - Evaluar sincronizacion opcional con backend para multi-dispositivo.
 
+## 2026-05-20 - Estabilizacion de imagenes de lotes + base multi-imagen
+- Scope: `feat(media)` + `docs`
+- Cambios:
+  - Normalizacion completa de rutas de imagen en frontend (`blob:`, `/uploads/...`, `uploads/...`, URLs absolutas y vacias).
+  - Placeholder local `src/assets/lote-placeholder.webp` para evitar dependencia externa en runtime.
+  - `LotCard` ahora prioriza la imagen principal desde `lote.imagenes[0]` y hace fallback seguro si una imagen falla.
+  - Nuevo modelo `LoteImagen` en Prisma, manteniendo `Lote.image` por compatibilidad.
+  - Sincronizacion automatica de la imagen principal hacia `LoteImagen` al crear o editar lotes.
+  - Seed y migracion preparados para backfill de datos existentes.
+- Causa real del problema:
+  - El render mezclaba rutas relativas, blobs, placeholders externos y uploads locales sin una normalizacion unica.
+  - El modelo seguia siendo de imagen unica, lo que dejaba inconsistencias entre datos viejos y nuevos.
+- Decision tecnica:
+  - Mantener `image` temporalmente para no romper staging ni contratos actuales.
+  - Introducir `LoteImagen` como capa de compatibilidad hacia una futura galeria real.
+- Impacto en cliente:
+  - Las tarjetas muestran imagen de forma mas robusta.
+  - El admin sigue operando igual, pero el sistema queda listo para evolucionar a multiples imagenes.
+- Riesgos / limites:
+  - La migracion no pudo aplicarse en esta sesion porque PostgreSQL local no estaba levantado.
+  - Railway sigue necesitando Volume o storage cloud si se quiere persistencia real entre redeploys.
+- Validacion:
+  - `npm run build` OK.
+  - `prisma generate` OK.
+  - Chequeos de sintaxis backend OK.
+- Siguiente paso:
+  - Aplicar la migracion en la base activa y, despues, avanzar con UI de galeria sin tocar el contrato principal.
+
 ## 2026-02-26 - Performance de frontend
 - Scope: `perf(frontend)`
 - Cambios:

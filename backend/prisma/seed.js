@@ -66,12 +66,27 @@ const seed = async () => {
     const amenityConnections = amenities.map((name) => ({ id: amenityMap.get(name) })).filter((item) => item.id);
 
     if (!existing) {
-      await prisma.lote.create({
+      const created = await prisma.lote.create({
         data: {
           ...rest,
           amenities: {
             connect: amenityConnections,
           },
+        },
+      });
+
+      await prisma.loteImagen.upsert({
+        where: {
+          loteId_orden: {
+            loteId: created.id,
+            orden: 0,
+          },
+        },
+        update: { url: rest.image },
+        create: {
+          loteId: created.id,
+          url: rest.image,
+          orden: 0,
         },
       });
       continue;
@@ -84,6 +99,21 @@ const seed = async () => {
         amenities: {
           set: amenityConnections,
         },
+      },
+    });
+
+    await prisma.loteImagen.upsert({
+      where: {
+        loteId_orden: {
+          loteId: existing.id,
+          orden: 0,
+        },
+      },
+      update: { url: rest.image },
+      create: {
+        loteId: existing.id,
+        url: rest.image,
+        orden: 0,
       },
     });
   }

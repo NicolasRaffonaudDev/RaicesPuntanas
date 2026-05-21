@@ -33,6 +33,22 @@ const buildUpdatePayload = (data) => {
   };
 };
 
+const collectLocalLoteImagePaths = (lote) => {
+  const imagePaths = new Set();
+
+  if (isLocalLoteImagePath(lote?.image)) {
+    imagePaths.add(lote.image);
+  }
+
+  lote?.imagenes?.forEach((image) => {
+    if (isLocalLoteImagePath(image?.url)) {
+      imagePaths.add(image.url);
+    }
+  });
+
+  return Array.from(imagePaths);
+};
+
 const loteService = {
   list: async ({ page, limit, minPrice, amenities, sort, q }) => {
     const where = {};
@@ -133,11 +149,12 @@ const loteService = {
   remove: async ({ actorUserId, id }) => {
     const existing = await loteRepository.findById(id);
     if (!existing) throw new AppError(404, "Lote no encontrado");
+    const localImagePaths = collectLocalLoteImagePaths(existing);
 
     await loteRepository.remove(id);
     await auditService.create({ userId: actorUserId, action: "lote.delete", meta: { loteId: id } });
-    if (isLocalLoteImagePath(existing.image)) {
-      await deleteLocalLoteImage(existing.image);
+    for (const imagePath of localImagePaths) {
+      await deleteLocalLoteImage(imagePath);
     }
   },
 };

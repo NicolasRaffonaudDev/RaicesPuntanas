@@ -158,6 +158,14 @@ Esto permite compartir vistas filtradas y mantener consistencia UX.
 - En Railway, el proxy tambien reenvia el `Host` del backend staging para que el enrutamiento por dominio publico no rompa `/api`, `/uploads/` ni `/socket.io/`.
 - Esto evita problemas de CORP/CORS en assets e unifica el serving de imagenes con el mismo dominio publico del frontend.
 
+### Arquitectura de imagenes de lotes
+- `Lote.image` sigue existiendo como imagen principal para no romper el contrato actual.
+- `LoteImagen` queda agregado como estructura preparada para galeria futura, con `url`, `orden` y relacion por lote.
+- Cada create/update sincroniza automaticamente la imagen principal en `LoteImagen` con `orden = 0`.
+- El frontend prioriza `lote.imagenes[0]` y mantiene fallback a `lote.image` para datos viejos o migraciones parciales.
+- El placeholder visual ya no depende de servicios externos en runtime: se usa `src/assets/lote-placeholder.webp`.
+- Esto deja el proyecto listo para evolucionar a multi-imagen o storage cloud sin romper staging.
+
 ## Setup local completo
 1. Requisito base:
    - Docker Desktop iniciado o una instancia local de PostgreSQL escuchando en `localhost:5432`.

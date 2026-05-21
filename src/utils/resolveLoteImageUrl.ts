@@ -1,16 +1,15 @@
-const SVG_PLACEHOLDER = encodeURIComponent(`
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
-    <rect width="800" height="500" fill="#0f0f10" />
-    <rect x="28" y="28" width="744" height="444" rx="28" fill="#18181b" stroke="#2f2f33" stroke-width="4" />
-    <circle cx="230" cy="205" r="48" fill="#2d2d31" />
-    <path d="M112 366l142-124 92 86 106-114 145 152H112z" fill="#3b3b40" />
-    <text x="50%" y="82%" text-anchor="middle" fill="#d4af37" font-family="Arial, sans-serif" font-size="34">
-      Imagen no disponible
-    </text>
-  </svg>
-`);
+import lotePlaceholderSrc from "../assets/lote-placeholder.webp";
 
-export const LOTE_IMAGE_FALLBACK_SRC = `data:image/svg+xml;charset=UTF-8,${SVG_PLACEHOLDER}`;
+interface LoteImageCandidate {
+  url?: string | null;
+}
+
+interface LoteWithImagesLike {
+  image?: string | null;
+  imagenes?: Array<LoteImageCandidate | null> | null;
+}
+
+export const LOTE_IMAGE_FALLBACK_SRC = lotePlaceholderSrc;
 
 const getFrontendOrigin = () => {
   if (typeof window !== "undefined" && window.location?.origin) {
@@ -20,23 +19,43 @@ const getFrontendOrigin = () => {
   return "http://localhost";
 };
 
-export const resolveLoteImageUrl = (image: string | null | undefined) => {
-  if (!image) return LOTE_IMAGE_FALLBACK_SRC;
+const normalizeUploadsPath = (value: string) => {
+  if (value.startsWith("/uploads/")) return value;
+  if (value.startsWith("uploads/")) return `/${value}`;
+  return value;
+};
 
+const getNormalizedImageValue = (image: string | null | undefined) => {
+  if (typeof image !== "string") return null;
   const trimmed = image.trim();
-  if (!trimmed) return LOTE_IMAGE_FALLBACK_SRC;
+  if (!trimmed) return null;
+  return normalizeUploadsPath(trimmed);
+};
 
-  if (/^(data:|blob:)/i.test(trimmed)) return trimmed;
+export const getPrimaryLoteImagePath = (lote: LoteWithImagesLike | null | undefined) => {
+  if (!lote) return null;
+
+  const firstGalleryImage = lote.imagenes?.find((image) => typeof image?.url === "string" && image.url.trim())?.url;
+  return getNormalizedImageValue(firstGalleryImage) ?? getNormalizedImageValue(lote.image);
+};
+
+export const resolveLoteImageUrl = (image: string | null | undefined) => {
+  const normalized = getNormalizedImageValue(image);
+  if (!normalized) return LOTE_IMAGE_FALLBACK_SRC;
+
+  if (/^(data:|blob:)/i.test(normalized)) {
+    return normalized;
+  }
 
   const frontendOrigin = getFrontendOrigin();
 
-  if (trimmed.startsWith("/uploads/")) {
-    return `${frontendOrigin}${trimmed}`;
+  if (normalized.startsWith("/uploads/")) {
+    return `${frontendOrigin}${normalized}`;
   }
 
-  if (/^https?:\/\//i.test(trimmed)) {
+  if (/^https?:\/\//i.test(normalized)) {
     try {
-      const parsed = new URL(trimmed);
+      const parsed = new URL(normalized);
       if (parsed.pathname.startsWith("/uploads/")) {
         return `${frontendOrigin}${parsed.pathname}${parsed.search}`;
       }
@@ -46,9 +65,12 @@ export const resolveLoteImageUrl = (image: string | null | undefined) => {
     }
   }
 
-  if (trimmed.startsWith("/")) {
-    return `${frontendOrigin}${trimmed}`;
+  if (normalized.startsWith("/")) {
+    return `${frontendOrigin}${normalized}`;
   }
 
-  return `${frontendOrigin}/${trimmed.replace(/^\/+/, "")}`;
+  return `${frontendOrigin}/${normalized.replace(/^\/+/, "")}`;
 };
+
+export const resolvePrimaryLoteImageUrl = (lote: LoteWithImagesLike | null | undefined) =>
+  resolveLoteImageUrl(getPrimaryLoteImagePath(lote));

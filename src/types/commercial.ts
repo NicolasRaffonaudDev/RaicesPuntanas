@@ -87,6 +87,13 @@ export interface LoteFavorito {
     size: number;
     amenities: Amenity[];
     image: string;
+    imagenes?: Array<{
+      id: number;
+      loteId: number;
+      url: string;
+      orden: number;
+      createdAt: string;
+    }>;
     lat: number;
     lng: number;
     createdAt: string;

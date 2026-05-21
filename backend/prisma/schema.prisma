@@ -45,20 +45,33 @@ model User {
 }
 
 model Lote {
-  id        Int      @id @default(autoincrement())
-  title     String
-  price     Int
-  size      Int
-  amenities Amenity[]
-  image     String
-  address   String?
-  lat       Float
-  lng       Float
+  id          Int          @id @default(autoincrement())
+  title       String
+  price       Int
+  size        Int
+  amenities   Amenity[]
+  image       String
+  imagenes    LoteImagen[]
+  address     String?
+  lat         Float
+  lng         Float
   description String?
+  createdAt   DateTime     @default(now())
+  favoritos   LoteFavorito[]
+  consultas   Consulta[]
+  inquiries   Inquiry[]
+}
+
+model LoteImagen {
+  id        Int      @id @default(autoincrement())
+  loteId    Int
+  url       String
+  orden     Int      @default(0)
   createdAt DateTime @default(now())
-  favoritos LoteFavorito[]
-  consultas Consulta[]
-  inquiries Inquiry[]
+  lote      Lote     @relation(fields: [loteId], references: [id], onDelete: Cascade)
+
+  @@index([loteId, createdAt])
+  @@unique([loteId, orden])
 }
 
 model Amenity {
