@@ -527,3 +527,23 @@ Formato sugerido por entrada:
   - smoke backend con prueba de endpoint telemetry.
 - Siguiente paso:
   - persistencia agregada de metricas (almacenamiento + dashboard interno).
+
+## 2026-05-23 - Reordenamiento de sidebar y visibilidad por rol
+- Scope: `feat(ui)` + `docs`
+- Cambios:
+  - Reorganizacion de sidebar por taxonomia de negocio: `Dashboard`, `Comercial`, `CRM`, `Operaciones`, `Administracion`, `Configuracion` y `Usuario`.
+  - Separacion de experiencia entre roles operativos (`admin`, `empleado`) y usuario final (`usuario`).
+  - `Leads legacy` se renombra a `Archivo legacy` para reforzar su estado transicional.
+  - `Favoritos` deja de figurar como acceso principal en roles operativos.
+  - Modulos de configuracion prematuros para admin quedan etiquetados como `Beta`.
+- Decision UX:
+  - Reducir mezcla de contexto en backoffice y priorizar rutas segun objetivo operativo real.
+  - Mantener rutas existentes para compatibilidad sin romper accesos directos.
+- Impacto:
+  - Sidebar mas claro, menos extenso por rol y con jerarquia mas profesional.
+  - Mejor comprension de que modulos son core y cuales estan en transicion.
+- Validacion:
+  - Build frontend OK.
+  - Rutas y permisos existentes preservados.
+- Siguiente paso:
+  - Limpiar Dashboard para ocultar permisos tecnicos crudos y reforzar lectura ejecutiva.

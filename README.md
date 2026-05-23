@@ -658,4 +658,11 @@ El smoke valida:
 - Todo lo de empleado.
 - Gestiona usuarios, roles, auditoria y panel comercial completo.
 
+### Reordenamiento de navegacion del backoffice
+- Se reorganizo el sidebar en grupos funcionales: `Dashboard`, `Comercial`, `CRM`, `Operaciones`, `Administracion`, `Configuracion` y `Usuario`.
+- Se separo la experiencia de usuario final frente a la experiencia operativa/admin para reducir mezcla de contexto.
+- `Favoritos` deja de mostrarse como acceso principal para roles operativos (`admin` y `empleado`) y queda centrado en `usuario`.
+- `Leads legacy` pasa a mostrarse como `Archivo legacy` para marcar su caracter transicional sin romper rutas existentes.
+- Los modulos placeholder administrativos (`Identidad de marca`, `Editor del sitio`) quedan visibles para admin, pero etiquetados como `Beta`.
+
 

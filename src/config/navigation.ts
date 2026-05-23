@@ -13,64 +13,82 @@ export interface NavigationSection {
   items: NavigationItem[];
 }
 
-const canAccessGestion = (role: UserRole | undefined) =>
-  hasPermission(role, "clientes.read") ||
-  hasPermission(role, "productos.read") ||
-  hasPermission(role, "ventas.read") ||
-  hasPermission(role, "inventario.read") ||
-  hasPermission(role, "users.read") ||
-  hasPermission(role, "audit.read");
-
 export const getSidebarSections = (role: UserRole | undefined): NavigationSection[] => {
-  const sections: NavigationSection[] = [
-    {
+  if (!role) return [];
+
+  const sections: NavigationSection[] = [];
+
+  if (role === "admin" || role === "empleado") {
+    sections.push({
       id: "dashboard",
+      label: "Dashboard",
       items: [{ id: "dashboard", label: "Dashboard", to: "/dashboard" }],
-    },
-  ];
+    });
 
-  const comercial: NavigationItem[] = [];
-  if (hasPermission(role, "lotes.read")) {
-    comercial.push({ id: "lotes", label: "Lotes", to: "/lotes" });
-    comercial.push({ id: "favoritos", label: "Mis favoritos", to: "/favoritos" });
-  }
-  if (role === "usuario" && hasPermission(role, "consultas.read")) {
-    comercial.push({ id: "mis-consultas", label: "Mis consultas", to: "/mi-panel" });
-  }
-  if ((role === "admin" || role === "empleado") && hasPermission(role, "consultas.manage")) {
-    comercial.push({ id: "consultas", label: "Consultas CRM", to: "/consultas" });
-    comercial.push({ id: "inquiries", label: "Leads legacy", to: "/admin/inquiries" });
-  }
-  if (hasPermission(role, "clientes.read")) {
-    comercial.push({ id: "clientes", label: "Clientes", to: "/gestion?tab=clientes" });
-  }
-  if (comercial.length > 0) {
-    sections.push({ id: "comercial", label: "Comercial", items: comercial });
+    const comercial: NavigationItem[] = [];
+    if (hasPermission(role, "lotes.read")) {
+      comercial.push({ id: "lotes", label: "Lotes", to: "/lotes" });
+    }
+    if (hasPermission(role, "clientes.read")) {
+      comercial.push({ id: "clientes", label: "Clientes", to: "/gestion?tab=clientes" });
+    }
+    if (comercial.length > 0) {
+      sections.push({ id: "comercial", label: "Comercial", items: comercial });
+    }
+
+    if (hasPermission(role, "consultas.manage")) {
+      sections.push({
+        id: "crm",
+        label: "CRM",
+        items: [
+          { id: "consultas", label: "Consultas CRM", to: "/consultas" },
+          { id: "inquiries", label: "Archivo legacy", to: "/admin/inquiries" },
+        ],
+      });
+    }
+
+    const operaciones: NavigationItem[] = [];
+    if (hasPermission(role, "ventas.read")) {
+      operaciones.push({ id: "ventas", label: "Ventas", to: "/gestion?tab=ventas" });
+    }
+    if (hasPermission(role, "productos.read")) {
+      operaciones.push({ id: "productos", label: "Productos", to: "/gestion?tab=productos" });
+    }
+    if (hasPermission(role, "inventario.read")) {
+      operaciones.push({ id: "inventario", label: "Inventario", to: "/gestion?tab=inventario" });
+    }
+    if (operaciones.length > 0) {
+      sections.push({ id: "operaciones", label: "Operaciones", items: operaciones });
+    }
+
+    if (role === "admin") {
+      const administracion: NavigationItem[] = [];
+      if (hasPermission(role, "users.read")) {
+        administracion.push({ id: "usuarios", label: "Usuarios", to: "/gestion?tab=usuarios" });
+      }
+      if (hasPermission(role, "audit.read")) {
+        administracion.push({ id: "auditoria", label: "Auditoria", to: "/gestion?tab=auditoria" });
+      }
+      if (administracion.length > 0) {
+        sections.push({ id: "administracion", label: "Administracion", items: administracion });
+      }
+    }
   }
 
-  const operaciones: NavigationItem[] = [];
-  if (hasPermission(role, "ventas.read")) {
-    operaciones.push({ id: "ventas", label: "Ventas", to: "/gestion?tab=ventas" });
-  }
-  if (hasPermission(role, "productos.read")) {
-    operaciones.push({ id: "productos", label: "Productos", to: "/gestion?tab=productos" });
-  }
-  if (hasPermission(role, "inventario.read")) {
-    operaciones.push({ id: "inventario", label: "Inventario", to: "/gestion?tab=inventario" });
-  }
-  if (operaciones.length > 0) {
-    sections.push({ id: "operaciones", label: "Operaciones", items: operaciones });
-  }
-
-  const gestion: NavigationItem[] = [];
-  if (hasPermission(role, "users.read")) {
-    gestion.push({ id: "usuarios", label: "Usuarios", to: "/gestion?tab=usuarios" });
-  }
-  if (hasPermission(role, "audit.read")) {
-    gestion.push({ id: "auditoria", label: "Auditoria", to: "/gestion?tab=auditoria" });
-  }
-  if (gestion.length > 0) {
-    sections.push({ id: "gestion", label: "Gestion", items: gestion });
+  if (role === "usuario") {
+    const usuario: NavigationItem[] = [];
+    if (hasPermission(role, "consultas.read")) {
+      usuario.push({ id: "mi-panel", label: "Mi panel", to: "/mi-panel" });
+    }
+    if (hasPermission(role, "favoritos.read")) {
+      usuario.push({ id: "favoritos", label: "Favoritos", to: "/favoritos" });
+    }
+    if (hasPermission(role, "lotes.read")) {
+      usuario.push({ id: "lotes", label: "Lotes", to: "/lotes" });
+    }
+    if (usuario.length > 0) {
+      sections.push({ id: "usuario", label: "Usuario", items: usuario });
+    }
   }
 
   const configuracion: NavigationItem[] = [
@@ -79,14 +97,10 @@ export const getSidebarSections = (role: UserRole | undefined): NavigationSectio
     { id: "preferencias", label: "Preferencias", to: "/preferencias" },
   ];
   if (role === "admin") {
-    configuracion.push({ id: "marca", label: "Identidad de marca", to: "/marca" });
-    configuracion.push({ id: "editor-sitio", label: "Editor del sitio", to: "/editor-sitio" });
+    configuracion.push({ id: "marca", label: "Identidad de marca (Beta)", to: "/marca" });
+    configuracion.push({ id: "editor-sitio", label: "Editor del sitio (Beta)", to: "/editor-sitio" });
   }
   sections.push({ id: "configuracion", label: "Configuracion", items: configuracion });
-
-  if (!canAccessGestion(role) && role !== "usuario" && role !== "admin" && role !== "empleado") {
-    return sections.filter((section) => section.items.length > 0);
-  }
 
   return sections.filter((section) => section.items.length > 0);
 };
