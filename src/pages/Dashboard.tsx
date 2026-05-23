@@ -10,7 +10,6 @@ import { hasPermission } from "../utils/permissions";
 interface DashboardData {
   summary: string;
   widgets: string[];
-  permissions?: string[];
   metrics?: {
     clientes: number;
     productosActivos: number;
@@ -27,6 +26,10 @@ const Dashboard: React.FC = () => {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const canManageConsultas = hasPermission(user?.role, "consultas.manage");
+  const canReadClientes = hasPermission(user?.role, "clientes.read");
+  const canReadVentas = hasPermission(user?.role, "ventas.read");
+  const canReadLotes = hasPermission(user?.role, "lotes.read");
+  const canReadMiPanel = hasPermission(user?.role, "consultas.read");
 
   useEffect(() => {
     if (!token) return;
@@ -92,6 +95,28 @@ const Dashboard: React.FC = () => {
     }));
   }, [data]);
 
+  const quickActions = useMemo(() => {
+    const actions: Array<{ label: string; to: string; tone?: "primary" | "outline" }> = [];
+
+    if (canReadLotes) {
+      actions.push({ label: "Gestionar lotes", to: "/lotes", tone: "primary" });
+    }
+    if (canManageConsultas) {
+      actions.push({ label: "Ver consultas CRM", to: "/consultas", tone: "primary" });
+    }
+    if (canReadClientes) {
+      actions.push({ label: "Ver clientes", to: "/gestion?tab=clientes" });
+    }
+    if (canReadVentas) {
+      actions.push({ label: "Ver ventas", to: "/gestion?tab=ventas" });
+    }
+    if (!canManageConsultas && canReadMiPanel) {
+      actions.push({ label: "Ir a mi panel", to: "/mi-panel", tone: "primary" });
+    }
+
+    return actions;
+  }, [canReadLotes, canManageConsultas, canReadClientes, canReadVentas, canReadMiPanel]);
+
   const handleLogoutAll = async () => {
     try {
       await logoutAll();
@@ -123,27 +148,24 @@ const Dashboard: React.FC = () => {
               </div>
 
               <div className="grid w-full gap-2 sm:grid-cols-2 lg:w-[24rem]">
-                {(user?.role === "admin" || user?.role === "empleado") && (
-                  <>
-                    <Link
-                      className="rounded-[0.9rem] border border-[rgba(212,175,55,0.24)] bg-[rgba(212,175,55,0.06)] px-4 py-3 text-sm font-medium text-[rgba(255,255,255,0.94)] transition-[border-color,background-color,color,transform,box-shadow] duration-180 hover:border-[rgba(212,175,55,0.4)] hover:bg-[rgba(212,175,55,0.12)] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(212,175,55,0.34)] focus-visible:ring-offset-2 focus-visible:ring-offset-black active:translate-y-[1px] active:border-[rgba(191,154,47,0.42)] active:bg-[rgba(191,154,47,0.14)]"
-                      to="/gestion"
-                    >
-                      Ir a Gestion
-                    </Link>
-                    <Link
-                      className="flex items-center justify-between gap-3 rounded-[0.9rem] border border-[rgba(212,175,55,0.28)] bg-[linear-gradient(180deg,rgba(212,175,55,0.12),rgba(212,175,55,0.08))] px-4 py-3 text-sm font-medium text-white shadow-[0_10px_22px_rgba(0,0,0,0.16)] transition-[border-color,background-color,color,transform,box-shadow] duration-180 hover:border-[rgba(212,175,55,0.46)] hover:bg-[linear-gradient(180deg,rgba(212,175,55,0.16),rgba(212,175,55,0.11))] hover:shadow-[0_14px_28px_rgba(0,0,0,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(212,175,55,0.38)] focus-visible:ring-offset-2 focus-visible:ring-offset-black active:translate-y-[1px] active:border-[rgba(191,154,47,0.48)] active:bg-[linear-gradient(180deg,rgba(191,154,47,0.18),rgba(191,154,47,0.12))]"
-                      to="/consultas"
-                    >
-                      <span>Consultas en la bandeja de entrada</span>
-                      {pendingConsultas > 0 && (
-                        <span className="inline-flex min-w-7 items-center justify-center rounded-full border border-[rgba(212,175,55,0.3)] bg-[rgba(0,0,0,0.22)] px-2 py-0.5 text-xs font-semibold text-[var(--color-primary)]">
-                          {pendingConsultas}
-                        </span>
-                      )}
-                    </Link>
-                  </>
-                )}
+                {quickActions.slice(0, 2).map((action) => (
+                  <Link
+                    key={action.to}
+                    className={
+                      action.tone === "primary"
+                        ? "flex items-center justify-between gap-3 rounded-[0.9rem] border border-[rgba(212,175,55,0.28)] bg-[linear-gradient(180deg,rgba(212,175,55,0.12),rgba(212,175,55,0.08))] px-4 py-3 text-sm font-medium text-white shadow-[0_10px_22px_rgba(0,0,0,0.16)] transition-[border-color,background-color,color,transform,box-shadow] duration-180 hover:border-[rgba(212,175,55,0.46)] hover:bg-[linear-gradient(180deg,rgba(212,175,55,0.16),rgba(212,175,55,0.11))] hover:shadow-[0_14px_28px_rgba(0,0,0,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(212,175,55,0.38)] focus-visible:ring-offset-2 focus-visible:ring-offset-black active:translate-y-[1px] active:border-[rgba(191,154,47,0.48)] active:bg-[linear-gradient(180deg,rgba(191,154,47,0.18),rgba(191,154,47,0.12))]"
+                        : "rounded-[0.9rem] border border-[rgba(212,175,55,0.24)] bg-[rgba(212,175,55,0.06)] px-4 py-3 text-sm font-medium text-[rgba(255,255,255,0.94)] transition-[border-color,background-color,color,transform,box-shadow] duration-180 hover:border-[rgba(212,175,55,0.4)] hover:bg-[rgba(212,175,55,0.12)] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(212,175,55,0.34)] focus-visible:ring-offset-2 focus-visible:ring-offset-black active:translate-y-[1px] active:border-[rgba(191,154,47,0.42)] active:bg-[rgba(191,154,47,0.14)]"
+                    }
+                    to={action.to}
+                  >
+                    <span>{action.label}</span>
+                    {action.to === "/consultas" && pendingConsultas > 0 && (
+                      <span className="inline-flex min-w-7 items-center justify-center rounded-full border border-[rgba(212,175,55,0.3)] bg-[rgba(0,0,0,0.22)] px-2 py-0.5 text-xs font-semibold text-[var(--color-primary)]">
+                        {pendingConsultas}
+                      </span>
+                    )}
+                  </Link>
+                ))}
                 <button
                   className="rounded-[0.9rem] border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.025)] px-4 py-3 text-left text-sm font-medium text-[rgba(255,255,255,0.9)] transition-[border-color,background-color,color,transform,box-shadow] duration-180 hover:border-[rgba(212,175,55,0.26)] hover:bg-[rgba(212,175,55,0.06)] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(212,175,55,0.28)] focus-visible:ring-offset-2 focus-visible:ring-offset-black active:translate-y-[1px] active:border-[rgba(191,154,47,0.3)] active:bg-[rgba(191,154,47,0.08)]"
                   type="button"
@@ -190,7 +212,7 @@ const Dashboard: React.FC = () => {
 
               <section className="space-y-3">
                 <div className="space-y-1">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">Operacion</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">Actividad</p>
                   <h2 className="text-xl font-semibold text-white">Actividad comercial</h2>
                 </div>
                 <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
@@ -223,25 +245,31 @@ const Dashboard: React.FC = () => {
               <section className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
                 <article className="rounded-[0.95rem] border border-[rgba(255,255,255,0.08)] bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(18,18,18,0.96))] p-5">
                   <div className="space-y-1">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">Permisos</p>
-                    <h2 className="text-xl font-semibold text-white">Permisos del rol</h2>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">Accesos rapidos</p>
+                    <h2 className="text-xl font-semibold text-white">Acciones recomendadas</h2>
                   </div>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {(data.permissions || []).map((permission) => (
-                      <span
-                        key={permission}
-                        className="rounded-full border border-[rgba(212,175,55,0.18)] bg-[rgba(255,255,255,0.03)] px-3 py-1.5 text-xs font-medium text-[var(--color-text-muted)]"
+                  <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {quickActions.map((action) => (
+                      <Link
+                        key={`${action.to}-quick`}
+                        to={action.to}
+                        className="rounded-[0.85rem] border border-[rgba(212,175,55,0.2)] bg-[rgba(255,255,255,0.03)] px-3.5 py-2.5 text-sm text-white transition-[border-color,background-color] duration-150 hover:border-[rgba(212,175,55,0.38)] hover:bg-[rgba(212,175,55,0.09)]"
                       >
-                        {permission}
-                      </span>
+                        {action.label}
+                      </Link>
                     ))}
                   </div>
+                  {quickActions.length === 0 && (
+                    <p className="mt-4 text-sm text-[var(--color-text-muted)]">
+                      No hay acciones rapidas configuradas para tu rol.
+                    </p>
+                  )}
                 </article>
 
                 <article className="rounded-[0.95rem] border border-[rgba(255,255,255,0.08)] bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(18,18,18,0.96))] p-5">
                   <div className="space-y-1">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">Configuracion</p>
-                    <h2 className="text-xl font-semibold text-white">Widgets habilitados</h2>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">Estado operativo</p>
+                    <h2 className="text-xl font-semibold text-white">Modulos activos</h2>
                   </div>
                   <ul className="mt-4 space-y-2 text-sm text-[var(--color-text-muted)]">
                     {data.widgets.map((widget) => (

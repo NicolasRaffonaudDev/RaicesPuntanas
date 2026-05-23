@@ -665,4 +665,10 @@ El smoke valida:
 - `Leads legacy` pasa a mostrarse como `Archivo legacy` para marcar su caracter transicional sin romper rutas existentes.
 - Los modulos placeholder administrativos (`Identidad de marca`, `Editor del sitio`) quedan visibles para admin, pero etiquetados como `Beta`.
 
+### Dashboard orientado a negocio
+- El dashboard prioriza lectura ejecutiva: KPIs, actividad comercial, accesos rapidos y estado operativo.
+- Se elimino la exposicion de permisos tecnicos crudos del panel principal para reducir ruido y evitar mezcla con informacion de debugging.
+- Las acciones principales ahora usan lenguaje de operacion: gestionar lotes, ver consultas CRM, clientes y ventas.
+- Se mantiene compatibilidad total con backend y rutas existentes, sin cambios de contrato API.
+
 

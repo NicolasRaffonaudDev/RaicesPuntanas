@@ -547,3 +547,21 @@ Formato sugerido por entrada:
   - Rutas y permisos existentes preservados.
 - Siguiente paso:
   - Limpiar Dashboard para ocultar permisos tecnicos crudos y reforzar lectura ejecutiva.
+
+## 2026-05-23 - Dashboard orientado a negocio
+- Scope: `feat(ui)` + `docs`
+- Cambios:
+  - Se removio del dashboard principal la lista de permisos tecnicos crudos.
+  - Reorden de bloques con prioridad ejecutiva: KPIs, actividad comercial, accesos rapidos y estado operativo.
+  - Acciones rapidas con lenguaje de negocio para operacion diaria (lotes, consultas CRM, clientes, ventas, mi panel segun rol).
+- Decision UX:
+  - Evitar mezcla entre datos de negocio y datos de debugging en la vista principal.
+  - Mantener el dashboard como panel de lectura y accion, no como inspeccion tecnica.
+- Impacto:
+  - Mejora de claridad para perfiles no tecnicos.
+  - Menor friccion para equipos comerciales en desktop y mobile.
+- Validacion:
+  - Build frontend OK.
+  - Sin cambios de backend ni contratos API.
+- Siguiente paso:
+  - Mejorar microcopy de resumen por rol y, en PR separado, consolidar metricas CRM (pendientes y recientes) si ya existen en API.
