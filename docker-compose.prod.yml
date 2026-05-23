@@ -30,6 +30,7 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/raices_puntanas?schema=public
       RUN_DB_SEED: ${RUN_DB_SEED:-true}
+      UPLOADS_DIR: /app/uploads
     volumes:
       - backend_uploads_prod_data:/app/uploads
     depends_on:

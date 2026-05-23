@@ -676,3 +676,19 @@ Formato sugerido por entrada:
 - Compatibilidad:
   - Flujo viejo con `image` sigue funcionando.
   - Estructura preparada para migracion futura a storage cloud.
+## 2026-05-23 - Persistencia de uploads con Railway Volume
+- Scope: `chore(storage)` + `backend` + `docker` + `docs`
+- Problema:
+  - El filesystem del contenedor era efimero en redeploy/restart, por lo que se perdian imagenes subidas.
+- Decision tecnica:
+  - Introducir `UPLOADS_DIR` como ruta fisica configurable de storage, manteniendo rutas publicas `/uploads/...`.
+- Cambios:
+  - `env` valida y expone `UPLOADS_DIR` (default local `uploads`).
+  - `multer` y `express.static` pasan a usar la misma carpeta raiz configurable.
+  - Se actualizan `.env` de referencia y compose para usar `/app/uploads` en contenedor.
+  - Documentacion de Railway Volume con pasos operativos.
+- Impacto:
+  - Local y Docker siguen funcionando.
+  - Railway queda listo para persistencia real montando volumen sin romper endpoints ni UI.
+- Siguiente paso:
+  - Mantener esta base para futura migracion a object storage (S3/R2/Cloudinary) sin acoplar UX actual.

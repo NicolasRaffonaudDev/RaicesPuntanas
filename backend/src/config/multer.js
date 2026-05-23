@@ -3,8 +3,10 @@ const path = require("node:path");
 const crypto = require("node:crypto");
 const multer = require("multer");
 const { AppError } = require("../utils/app-error");
+const env = require("./env");
 
-const UPLOADS_ROOT_DIR = path.resolve(__dirname, "../../uploads");
+const DEFAULT_UPLOADS_DIR = path.resolve(__dirname, "../../uploads");
+const UPLOADS_ROOT_DIR = path.resolve(env.UPLOADS_DIR || DEFAULT_UPLOADS_DIR);
 const LOTE_UPLOADS_DIR = path.join(UPLOADS_ROOT_DIR, "lotes");
 const LOTE_UPLOADS_PUBLIC_PREFIX = "/uploads/lotes/";
 const ALLOWED_IMAGE_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);

@@ -714,3 +714,18 @@ El smoke valida:
   - PATCH /api/lotes/:loteId/imagenes/:imagenId/principal`n  - DELETE /api/lotes/:loteId/imagenes/:imagenId`n- En detalle (/lotes/:id) se muestra imagen principal + miniaturas clickeables.
 - El listado sigue compacto y usa siempre la imagen principal.
 
+
+### Persistencia de uploads con Railway Volume
+- El backend ahora usa UPLOADS_DIR para definir la ruta fisica de almacenamiento de imagenes.
+- En local, UPLOADS_DIR puede quedar en uploads (default) y sigue funcionando igual.
+- En Docker/Railway se recomienda UPLOADS_DIR=/app/uploads para usar volumen persistente.
+
+Pasos en Railway:
+1. Abrir el servicio ackend en Railway.
+2. Crear un Volume.
+3. Montarlo en /app/uploads.
+4. Configurar variable UPLOADS_DIR=/app/uploads.
+5. Hacer redeploy del backend.
+6. Subir una imagen nueva desde admin.
+7. Verificar que la imagen sigue disponible luego de otro redeploy.
+

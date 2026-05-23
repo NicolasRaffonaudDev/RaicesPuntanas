@@ -11,6 +11,7 @@ const envSchema = z.object({
   LOCKOUT_MINUTES: z.coerce.number().int().min(1),
   FRONTEND_URL: z.string().url().optional(),
   FRONTEND_ORIGIN: z.string().url().default("http://localhost:5173"),
+  UPLOADS_DIR: z.string().min(1).default("uploads"),
   REFRESH_TOKEN_SECRET: z.string().min(12).optional(),
   SMTP_FROM: z.string().email().default("no-reply@raicespuntanas.local"),
   SMTP_HOST: z.string().optional(),

@@ -27,6 +27,8 @@ services:
     restart: unless-stopped
     env_file:
       - ./backend/.env.docker
+    environment:
+      UPLOADS_DIR: /app/uploads
     volumes:
       - backend_uploads_data:/app/uploads
     depends_on:

@@ -1,17 +1,16 @@
-const path = require("node:path");
 const express = require("express");
 const cors = require("cors");
 const compression = require("compression");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const { env } = require("./config");
+const { UPLOADS_ROOT_DIR } = require("./config/multer");
 const { apiRoutes } = require("./routes");
 const { errorHandler } = require("./middlewares/error-handler");
 const { notFoundHandler } = require("./middlewares/not-found");
 
 const app = express();
 app.set("trust proxy", 1);
-const uploadsRootDir = path.resolve(__dirname, "../uploads");
 
 const authLoginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -72,7 +71,7 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-app.use("/uploads", express.static(uploadsRootDir));
+app.use("/uploads", express.static(UPLOADS_ROOT_DIR));
 app.use("/api", apiRoutes);
 
 app.use(notFoundHandler);
