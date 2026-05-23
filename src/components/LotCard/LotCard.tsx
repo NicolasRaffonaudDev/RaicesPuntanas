@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import type { Lote } from "../../types/interfaces";
 import MapView from "../MapView/MapView";
 import { highlightText } from "../../utils/highlightText";
-import { LOTE_IMAGE_FALLBACK_SRC, resolvePrimaryLoteImageUrl } from "../../utils/resolveLoteImageUrl";
+import { getPrimaryLoteImage, LOTE_IMAGE_FALLBACK_SRC, resolveLoteImageUrl } from "../../utils/resolveLoteImageUrl";
 
 interface LotCardProps {
   lote: Lote;
@@ -22,7 +22,7 @@ const LotCard: React.FC<LotCardProps> = ({
   onToggleFavorite,
   onContact,
 }) => {
-  const resolvedImageSrc = resolvePrimaryLoteImageUrl(lote);
+  const resolvedImageSrc = resolveLoteImageUrl(getPrimaryLoteImage(lote));
   const [imageSrc, setImageSrc] = useState(resolvedImageSrc);
   const totalPhotos = lote.imagenes?.length ?? 0;
   const visibleAmenities = lote.amenities.slice(0, 3);
@@ -46,7 +46,11 @@ const LotCard: React.FC<LotCardProps> = ({
           loading={prioritizeImage ? "eager" : "lazy"}
           decoding="async"
           fetchPriority={prioritizeImage ? "high" : "auto"}
-          onError={() => setImageSrc(LOTE_IMAGE_FALLBACK_SRC)}
+          onError={() => {
+            if (imageSrc !== LOTE_IMAGE_FALLBACK_SRC) {
+              setImageSrc(LOTE_IMAGE_FALLBACK_SRC);
+            }
+          }}
         />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
         <div className="absolute left-3 top-3 flex flex-wrap gap-2">

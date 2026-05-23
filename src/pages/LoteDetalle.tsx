@@ -1,11 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import ContactModal from "../components/ContactModal";
 import { SectionEmpty, SectionError, SectionLoading } from "../components/Feedback";
 import MapView from "../components/MapView/MapView";
 import { commercialApi } from "../services/commercialApi";
-import { resolvePrimaryLoteImageUrl } from "../utils/resolveLoteImageUrl";
+import { getPrimaryLoteImage, LOTE_IMAGE_FALLBACK_SRC, resolveLoteImageUrl } from "../utils/resolveLoteImageUrl";
 
 const LoteDetalle: React.FC = () => {
   const navigate = useNavigate();
@@ -26,8 +26,13 @@ const LoteDetalle: React.FC = () => {
 
   const mainImage = useMemo(() => {
     if (!lote) return "";
-    return resolvePrimaryLoteImageUrl(lote);
+    return resolveLoteImageUrl(getPrimaryLoteImage(lote));
   }, [lote]);
+  const [imageSrc, setImageSrc] = useState(mainImage);
+
+  useEffect(() => {
+    setImageSrc(mainImage);
+  }, [mainImage]);
 
   if (!hasValidId) {
     return (
@@ -76,7 +81,17 @@ const LoteDetalle: React.FC = () => {
           <>
             <article className="card overflow-hidden">
               <div className="relative">
-                <img src={mainImage} alt={lote.title} className="h-64 w-full object-cover md:h-[420px]" loading="eager" />
+                <img
+                  src={imageSrc}
+                  alt={lote.title}
+                  className="h-64 w-full object-cover md:h-[420px]"
+                  loading="eager"
+                  onError={() => {
+                    if (imageSrc !== LOTE_IMAGE_FALLBACK_SRC) {
+                      setImageSrc(LOTE_IMAGE_FALLBACK_SRC);
+                    }
+                  }}
+                />
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/15 to-transparent" />
                 <div className="absolute left-4 top-4 flex flex-wrap gap-2">
                   <span className="rounded-full border border-emerald-300/40 bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-100">

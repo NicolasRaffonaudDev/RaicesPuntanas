@@ -691,3 +691,9 @@ El smoke valida:
 - La vista detalle incluye imagen principal, datos completos, amenities, mapa y CTA principal de consulta.
 - Se mantiene compatibilidad con lote.image y lote.imagenes[] para preparacion multi-imagen.
 
+
+### Resolucion consistente de imagenes
+- Se unifica la seleccion de imagen principal con getPrimaryLoteImage(lote) para listado y detalle.
+- Soporta imagenes[0].url, imagenes[0] string, image y fallback local.
+- Las rutas /uploads/... se resuelven siempre contra window.location.origin para mantener serving desde el dominio frontend.
+

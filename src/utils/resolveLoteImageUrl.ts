@@ -6,7 +6,7 @@ interface LoteImageCandidate {
 
 interface LoteWithImagesLike {
   image?: string | null;
-  imagenes?: Array<LoteImageCandidate | null> | null;
+  imagenes?: Array<LoteImageCandidate | string | null> | null;
 }
 
 export const LOTE_IMAGE_FALLBACK_SRC = lotePlaceholderSrc;
@@ -32,12 +32,20 @@ const getNormalizedImageValue = (image: string | null | undefined) => {
   return normalizeUploadsPath(trimmed);
 };
 
-export const getPrimaryLoteImagePath = (lote: LoteWithImagesLike | null | undefined) => {
+const getImageValueFromCandidate = (candidate: LoteImageCandidate | string | null | undefined) => {
+  if (!candidate) return null;
+  if (typeof candidate === "string") return getNormalizedImageValue(candidate);
+  return getNormalizedImageValue(candidate.url);
+};
+
+export const getPrimaryLoteImage = (lote: LoteWithImagesLike | null | undefined) => {
   if (!lote) return null;
 
-  const firstGalleryImage = lote.imagenes?.find((image) => typeof image?.url === "string" && image.url.trim())?.url;
-  return getNormalizedImageValue(firstGalleryImage) ?? getNormalizedImageValue(lote.image);
+  const firstGalleryImage = lote.imagenes?.map((candidate) => getImageValueFromCandidate(candidate)).find(Boolean) ?? null;
+  return firstGalleryImage ?? getNormalizedImageValue(lote.image);
 };
+
+export const getPrimaryLoteImagePath = getPrimaryLoteImage;
 
 export const resolveLoteImageUrl = (image: string | null | undefined) => {
   const normalized = getNormalizedImageValue(image);
@@ -73,4 +81,4 @@ export const resolveLoteImageUrl = (image: string | null | undefined) => {
 };
 
 export const resolvePrimaryLoteImageUrl = (lote: LoteWithImagesLike | null | undefined) =>
-  resolveLoteImageUrl(getPrimaryLoteImagePath(lote));
+  resolveLoteImageUrl(getPrimaryLoteImage(lote));

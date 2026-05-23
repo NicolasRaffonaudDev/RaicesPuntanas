@@ -603,3 +603,21 @@ Formato sugerido por entrada:
   - Build frontend OK y endpoint detalle disponible para consumo publico.
 - Siguiente paso:
   - Evolucionar a galeria multi-imagen en la vista detalle sin romper compatibilidad actual.
+## 2026-05-23 - Fix critico de imagenes en listado y detalle
+- Scope: `fix(lotes)` + `frontend` + `docs`
+- Bug:
+  - Despues de agregar la vista detalle, algunas imagenes dejaron de renderizar en staging por diferencias de shape en `imagenes` y por fallback no unificado.
+- Causa real:
+  - El helper principal aceptaba solo `imagenes` como objetos `{ url }` y no contemplaba casos legacy con string directo.
+  - El detalle no compartia un flujo de fallback protegido contra error de carga.
+- Cambios:
+  - Se consolida `getPrimaryLoteImage(lote)` como fuente unica para imagen principal.
+  - Se soportan en orden: `imagenes[0].url`, `imagenes[0]` string, `image`, fallback local.
+  - `LotCard` y `LoteDetalle` pasan a resolver imagen con el mismo helper + `resolveLoteImageUrl`.
+  - Fallback en `onError` protegido para evitar loops de seteo repetido.
+- Impacto:
+  - Render estable en listado y detalle para uploads locales, URLs externas y datos legacy.
+- Validacion:
+  - `npm run build` OK.
+- Siguiente paso:
+  - Con el render estable, avanzar a galeria multi-imagen sin duplicar logica de resolucion.
