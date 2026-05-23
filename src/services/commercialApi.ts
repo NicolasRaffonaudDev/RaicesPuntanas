@@ -50,6 +50,7 @@ interface LoteUpsertInput {
   amenities: string[];
   image?: string;
   imageFile?: File | null;
+  imageFiles?: File[];
   address?: string;
   lat: number;
   lng: number;
@@ -59,11 +60,12 @@ interface LoteUpsertInput {
 const buildLoteFormData = (body: Partial<LoteUpsertInput>) => {
   const formData = new FormData();
   const hasImageFile = Boolean(body.imageFile);
+  const hasImageFiles = Array.isArray(body.imageFiles) && body.imageFiles.length > 0;
 
   if (body.title !== undefined) formData.append("title", body.title);
   if (body.price !== undefined) formData.append("price", String(body.price));
   if (body.size !== undefined) formData.append("size", String(body.size));
-  if (!hasImageFile && body.image !== undefined) formData.append("image", body.image);
+  if (!hasImageFile && !hasImageFiles && body.image !== undefined) formData.append("image", body.image);
   if (body.address !== undefined) formData.append("address", body.address);
   if (body.lat !== undefined) formData.append("lat", String(body.lat));
   if (body.lng !== undefined) formData.append("lng", String(body.lng));
@@ -76,6 +78,10 @@ const buildLoteFormData = (body: Partial<LoteUpsertInput>) => {
   if (body.imageFile) {
     formData.append("image", body.imageFile);
   }
+
+  body.imageFiles?.forEach((file) => {
+    formData.append("imagenes", file);
+  });
 
   return formData;
 };
@@ -383,6 +389,24 @@ export const commercialApi = {
     const res = await apiRequest("/favoritos", { headers: authHeaders(token) });
     const payload = await parseResponse(res);
     return payload.data as LoteFavorito[];
+  },
+
+  deleteLoteImage: async (token: string, loteId: number, imagenId: number): Promise<Lote> => {
+    const res = await apiRequest(`/lotes/${loteId}/imagenes/${imagenId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const payload = await parseResponse(res);
+    return payload.data as Lote;
+  },
+
+  setLoteImageAsPrimary: async (token: string, loteId: number, imagenId: number): Promise<Lote> => {
+    const res = await apiRequest(`/lotes/${loteId}/imagenes/${imagenId}/principal`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const payload = await parseResponse(res);
+    return payload.data as Lote;
   },
 
   getFavoritos: async (token: string): Promise<number[]> => {

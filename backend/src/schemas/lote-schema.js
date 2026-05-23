@@ -24,6 +24,7 @@ const loteCreateSchema = z.object({
   lat: z.number().finite().min(-90).max(90),
   lng: z.number().finite().min(-180).max(180),
   description: z.string().trim().max(1200).optional().nullable(),
+  uploadedImages: z.array(imageFieldSchema).max(12).optional(),
 });
 
 const loteUpdateSchema = z
@@ -37,6 +38,7 @@ const loteUpdateSchema = z
     lat: z.number().finite().min(-90).max(90).optional(),
     lng: z.number().finite().min(-180).max(180).optional(),
     description: z.string().trim().max(1200).optional().nullable(),
+    uploadedImages: z.array(imageFieldSchema).max(12).optional(),
   })
   .refine((data) => Object.keys(data).length > 0, "Debes enviar al menos un campo a actualizar");
 

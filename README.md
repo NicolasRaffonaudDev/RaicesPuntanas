@@ -706,3 +706,11 @@ El smoke valida:
 - Cuando el usuario tiene permisos de gestion (lotes.write / lotes.delete) se muestra una zona Modo admin dentro de cada card con acciones Editar y Eliminar.
 - El fallback de imagen vuelve a ser local en frontend (sin dependencia visual de placeholders externos).
 
+
+### Galeria multi-imagen de lotes
+- El backend acepta multiples archivos en imagenes (ademas del campo image para compatibilidad).
+- Al crear/editar, las imagenes se guardan en LoteImagen y se mantiene sincronizado Lote.image como imagen principal.
+- Nuevos endpoints admin:
+  - PATCH /api/lotes/:loteId/imagenes/:imagenId/principal`n  - DELETE /api/lotes/:loteId/imagenes/:imagenId`n- En detalle (/lotes/:id) se muestra imagen principal + miniaturas clickeables.
+- El listado sigue compacto y usa siempre la imagen principal.
+

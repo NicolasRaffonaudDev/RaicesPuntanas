@@ -654,3 +654,25 @@ Formato sugerido por entrada:
   - build frontend OK.
 - Nota:
   - Si el archivo local no existe en runtime, la tarjeta muestra fallback local del frontend (asset del proyecto).
+## 2026-05-23 - Galeria multi-imagen real para lotes
+- Scope: `feat(lotes)` + `backend` + `frontend` + `docs`
+- Evolucion:
+  - Se pasa de flujo de imagen unica a galeria funcional reutilizando `LoteImagen` sin romper `Lote.image`.
+- Backend:
+  - Upload multiparte ahora acepta `image` y `imagenes[]`.
+  - En create/update se persisten multiples imagenes en `LoteImagen`.
+  - Se mantiene `Lote.image` sincronizado con la principal para compatibilidad.
+  - Nuevos endpoints:
+    - `PATCH /api/lotes/:loteId/imagenes/:imagenId/principal`
+    - `DELETE /api/lotes/:loteId/imagenes/:imagenId`
+  - Al borrar principal se reordena galeria y se elige nueva principal.
+- Frontend admin:
+  - Formulario de lotes permite seleccionar multiples imagenes.
+  - Preview de nuevas imagenes antes de guardar.
+  - En edicion se muestra galeria actual con acciones: `Principal` y `Eliminar` por imagen.
+- Frontend publico:
+  - `LoteDetalle` ahora muestra miniaturas clickeables para cambiar visualmente la imagen principal.
+  - `LotCard` mantiene imagen principal y badge de cantidad.
+- Compatibilidad:
+  - Flujo viejo con `image` sigue funcionando.
+  - Estructura preparada para migracion futura a storage cloud.

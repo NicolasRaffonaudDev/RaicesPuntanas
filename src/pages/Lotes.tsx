@@ -24,6 +24,7 @@ interface LoteFormState {
   amenities: string[];
   image: string;
   imageFile: File | null;
+  imageFiles: File[];
   address: string;
   lat: string;
   lng: string;
@@ -65,6 +66,7 @@ const emptyLoteForm: LoteFormState = {
   amenities: [],
   image: "",
   imageFile: null,
+  imageFiles: [],
   address: "",
   lat: "",
   lng: "",
@@ -86,6 +88,8 @@ const Lotes: React.FC = () => {
   const [editingLoteId, setEditingLoteId] = useState<number | null>(null);
   const [formState, setFormState] = useState<LoteFormState>(emptyLoteForm);
   const [selectedImagePreview, setSelectedImagePreview] = useState<string | null>(null);
+  const [selectedImagePreviews, setSelectedImagePreviews] = useState<string[]>([]);
+  const [editingGallery, setEditingGallery] = useState<NonNullable<Lote["imagenes"]>>([]);
   const { favoriteSet: localFavoriteSet, toggleFavorite: toggleLocalFavorite, count: localFavoritesCount } = useFavorites();
 
   const amenitiesFromUrl = useMemo(() => normalizeAmenityIds(parseArrayParam(searchParams.get("amenities"))), [searchParams]);
@@ -172,6 +176,7 @@ const Lotes: React.FC = () => {
       amenities: string[];
       image?: string;
       imageFile?: File | null;
+      imageFiles?: File[];
       address?: string;
       lat: number;
       lng: number;
@@ -205,6 +210,7 @@ const Lotes: React.FC = () => {
       amenities: string[];
       image?: string;
       imageFile?: File | null;
+      imageFiles?: File[];
       address?: string;
       lat: number;
       lng: number;
@@ -341,6 +347,12 @@ const Lotes: React.FC = () => {
       }
       return null;
     });
+    setSelectedImagePreviews((prev) => {
+      prev.forEach((value) => {
+        if (value.startsWith("blob:")) URL.revokeObjectURL(value);
+      });
+      return [];
+    });
   }, []);
 
   useEffect(() => () => clearSelectedImagePreview(), [clearSelectedImagePreview]);
@@ -377,6 +389,7 @@ const Lotes: React.FC = () => {
     clearSelectedImagePreview();
     setEditingLoteId(null);
     setFormState(emptyLoteForm);
+    setEditingGallery([]);
     setMutationError("");
     setIsModalOpen(true);
   };
@@ -402,10 +415,12 @@ const Lotes: React.FC = () => {
       amenities: lote.amenities.map((amenity) => amenity.id),
       image: getPrimaryLoteImagePath(lote) || lote.image,
       imageFile: null,
+      imageFiles: [],
       address: lote.address || "",
       lat: String(lote.lat),
       lng: String(lote.lng),
     });
+    setEditingGallery(lote.imagenes ?? []);
     setMutationError("");
     setIsModalOpen(true);
   };
@@ -415,6 +430,7 @@ const Lotes: React.FC = () => {
     setIsModalOpen(false);
     setEditingLoteId(null);
     setFormState(emptyLoteForm);
+    setEditingGallery([]);
     setMutationError("");
   };
 
@@ -431,6 +447,58 @@ const Lotes: React.FC = () => {
     const previewUrl = URL.createObjectURL(file);
     setSelectedImagePreview(previewUrl);
     setFormState((prev) => ({ ...prev, imageFile: file }));
+  };
+
+  const handleImageFilesChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? []);
+    setSelectedImagePreviews((prev) => {
+      prev.forEach((value) => {
+        if (value.startsWith("blob:")) URL.revokeObjectURL(value);
+      });
+      return files.map((file) => URL.createObjectURL(file));
+    });
+    setFormState((prev) => ({ ...prev, imageFiles: files }));
+  };
+
+  const syncLoteInCache = useCallback(
+    (updatedLote: Lote) => {
+      queryClient.setQueriesData({ queryKey: ["lotes"] }, (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          data: old.data.map((item: Lote) => (item.id === updatedLote.id ? updatedLote : item)),
+        };
+      });
+    },
+    [queryClient],
+  );
+
+  const deleteGalleryImage = async (loteId: number, imagenId: number) => {
+    if (!token || !canManageLotes) return;
+    setMutationError("");
+    try {
+      const updated = await commercialApi.deleteLoteImage(token, loteId, imagenId);
+      setEditingGallery(updated.imagenes ?? []);
+      setFormState((prev) => ({ ...prev, image: getPrimaryLoteImagePath(updated) || updated.image || "" }));
+      syncLoteInCache(updated);
+      await queryClient.invalidateQueries({ queryKey: ["lotes"] });
+    } catch (err) {
+      setMutationError(err instanceof Error ? err.message : "No se pudo eliminar la imagen");
+    }
+  };
+
+  const setPrimaryGalleryImage = async (loteId: number, imagenId: number) => {
+    if (!token || !canManageLotes) return;
+    setMutationError("");
+    try {
+      const updated = await commercialApi.setLoteImageAsPrimary(token, loteId, imagenId);
+      setEditingGallery(updated.imagenes ?? []);
+      setFormState((prev) => ({ ...prev, image: getPrimaryLoteImagePath(updated) || updated.image || "" }));
+      syncLoteInCache(updated);
+      await queryClient.invalidateQueries({ queryKey: ["lotes"] });
+    } catch (err) {
+      setMutationError(err instanceof Error ? err.message : "No se pudo marcar imagen principal");
+    }
   };
 
   const submitLote = async (e: React.FormEvent) => {
@@ -455,7 +523,12 @@ const Lotes: React.FC = () => {
       return;
     }
 
-    if (editingLoteId === null && !formState.imageFile && !formState.image.trim()) {
+    if (
+      editingLoteId === null &&
+      !formState.imageFile &&
+      formState.imageFiles.length === 0 &&
+      !formState.image.trim()
+    ) {
       setMutationError("Selecciona una imagen valida para crear el lote.");
       return;
     }
@@ -468,6 +541,7 @@ const Lotes: React.FC = () => {
       amenities: formState.amenities,
       image: formState.image.trim() || undefined,
       imageFile: formState.imageFile,
+      imageFiles: formState.imageFiles,
       address: formState.address.trim(),
       lat: latValue,
       lng: lngValue,
@@ -863,6 +937,20 @@ const Lotes: React.FC = () => {
                     />
                     <p className="text-xs text-[var(--color-text-muted)]">PNG, JPG o WEBP. Maximo 5MB.</p>
                   </div>
+                  <div className="grid gap-1">
+                    <label htmlFor="lote-images" className="text-sm text-[var(--color-text-muted)]">
+                      Galeria (multiples)
+                    </label>
+                    <input
+                      id="lote-images"
+                      className="field"
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      multiple
+                      onChange={handleImageFilesChange}
+                    />
+                    <p className="text-xs text-[var(--color-text-muted)]">Puedes agregar varias imagenes al lote.</p>
+                  </div>
                   <div className="grid gap-1 md:col-span-2">
                     <label htmlFor="lote-description" className="text-sm text-[var(--color-text-muted)]">
                       Descripcion
@@ -887,6 +975,48 @@ const Lotes: React.FC = () => {
                       </div>
                     )}
                   </div>
+                  {selectedImagePreviews.length > 0 && (
+                    <div className="grid gap-2 md:col-span-2">
+                      <span className="text-sm text-[var(--color-text-muted)]">Nuevas imagenes</span>
+                      <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+                        {selectedImagePreviews.map((preview, index) => (
+                          <img key={`${preview}-${index}`} src={preview} alt={`Nueva imagen ${index + 1}`} className="h-24 w-full rounded-lg object-cover" />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {editingLoteId !== null && editingGallery.length > 0 && (
+                    <div className="grid gap-2 md:col-span-2">
+                      <span className="text-sm text-[var(--color-text-muted)]">Galeria actual</span>
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                        {editingGallery.map((image) => (
+                          <div key={image.id} className="rounded-lg border border-[var(--color-border)] p-2">
+                            <img
+                              src={resolveLoteImageUrl(image.url)}
+                              alt={`Imagen ${image.id}`}
+                              className="h-28 w-full rounded object-cover"
+                            />
+                            <div className="mt-2 flex gap-2">
+                              <button
+                                type="button"
+                                className="btn btn-outline flex-1 text-xs"
+                                onClick={() => void setPrimaryGalleryImage(editingLoteId, image.id)}
+                              >
+                                Principal
+                              </button>
+                              <button
+                                type="button"
+                                className="btn btn-outline flex-1 text-xs"
+                                onClick={() => void deleteGalleryImage(editingLoteId, image.id)}
+                              >
+                                Eliminar
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </section>
 

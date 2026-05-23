@@ -15,9 +15,15 @@ const buildAmenitiesForUpdate = (amenityIds) => {
 };
 
 const buildCreatePayload = (data) => {
-  const { amenities, ...rest } = data;
+  const { amenities, uploadedImages, ...rest } = data;
+  const normalizedUploadedImages = Array.isArray(uploadedImages)
+    ? uploadedImages.map((item) => String(item).trim()).filter(Boolean)
+    : [];
+  const imageFromPayload = normalizedUploadedImages[0] || rest.image;
   return {
     ...rest,
+    image: imageFromPayload || "",
+    uploadedImages: normalizedUploadedImages,
     amenities: buildAmenitiesForCreate(amenities),
     address: data.address || null,
     description: data.description || null,
@@ -25,9 +31,15 @@ const buildCreatePayload = (data) => {
 };
 
 const buildUpdatePayload = (data) => {
-  const { amenities, ...rest } = data;
+  const { amenities, uploadedImages, ...rest } = data;
+  const normalizedUploadedImages = Array.isArray(uploadedImages)
+    ? uploadedImages.map((item) => String(item).trim()).filter(Boolean)
+    : [];
+  const imageFromPayload = normalizedUploadedImages[0] || rest.image;
   return {
     ...rest,
+    image: imageFromPayload,
+    uploadedImages: normalizedUploadedImages,
     amenities: buildAmenitiesForUpdate(amenities),
     address: data.address === undefined ? undefined : data.address || null,
     description: data.description === undefined ? undefined : data.description || null,
@@ -153,13 +165,16 @@ const loteService = {
   },
 
   create: async ({ actorUserId, data }) => {
+    const uploadedImages = Array.isArray(data.uploadedImages) ? data.uploadedImages : [];
     try {
       const created = await loteRepository.create(buildCreatePayload(data));
       await auditService.create({ userId: actorUserId, action: "lote.create", meta: { loteId: created.id } });
-      return created;
+      return normalizeLoteImagesForResponse(created);
     } catch (error) {
-      if (isLocalLoteImagePath(data.image)) {
-        await deleteLocalLoteImage(data.image);
+      for (const imagePath of uploadedImages) {
+        if (isLocalLoteImagePath(imagePath)) {
+          await deleteLocalLoteImage(imagePath);
+        }
       }
       throw error;
     }
@@ -168,13 +183,17 @@ const loteService = {
   update: async ({ actorUserId, id, data }) => {
     const existing = await loteRepository.findById(id);
     if (!existing) {
-      if (isLocalLoteImagePath(data.image)) {
-        await deleteLocalLoteImage(data.image);
+      const uploadedImages = Array.isArray(data.uploadedImages) ? data.uploadedImages : [];
+      for (const imagePath of uploadedImages) {
+        if (isLocalLoteImagePath(imagePath)) {
+          await deleteLocalLoteImage(imagePath);
+        }
       }
       throw new AppError(404, "Lote no encontrado");
     }
 
     const previousImage = existing.image;
+    const uploadedImages = Array.isArray(data.uploadedImages) ? data.uploadedImages : [];
 
     try {
       const updated = await loteRepository.update(id, buildUpdatePayload(data));
@@ -184,10 +203,12 @@ const loteService = {
         await deleteLocalLoteImage(previousImage);
       }
 
-      return updated;
+      return normalizeLoteImagesForResponse(updated);
     } catch (error) {
-      if (isLocalLoteImagePath(data.image) && data.image !== previousImage) {
-        await deleteLocalLoteImage(data.image);
+      for (const imagePath of uploadedImages) {
+        if (isLocalLoteImagePath(imagePath)) {
+          await deleteLocalLoteImage(imagePath);
+        }
       }
       throw error;
     }
@@ -203,6 +224,42 @@ const loteService = {
     for (const imagePath of localImagePaths) {
       await deleteLocalLoteImage(imagePath);
     }
+  },
+
+  removeImage: async ({ actorUserId, loteId, imageId }) => {
+    const lote = await loteRepository.findById(loteId);
+    if (!lote) throw new AppError(404, "Lote no encontrado");
+
+    const result = await loteRepository.removeImage(loteId, imageId);
+    if (!result) throw new AppError(404, "Imagen no encontrada");
+
+    if (isLocalLoteImagePath(result.removed.url)) {
+      await deleteLocalLoteImage(result.removed.url);
+    }
+
+    await auditService.create({
+      userId: actorUserId,
+      action: "lote.image.delete",
+      meta: { loteId, imageId },
+    });
+
+    return normalizeLoteImagesForResponse(result.lote);
+  },
+
+  setPrimaryImage: async ({ actorUserId, loteId, imageId }) => {
+    const lote = await loteRepository.findById(loteId);
+    if (!lote) throw new AppError(404, "Lote no encontrado");
+
+    const updated = await loteRepository.markImageAsPrimary(loteId, imageId);
+    if (!updated) throw new AppError(404, "Imagen no encontrada");
+
+    await auditService.create({
+      userId: actorUserId,
+      action: "lote.image.primary",
+      meta: { loteId, imageId },
+    });
+
+    return normalizeLoteImagesForResponse(updated);
   },
 };
 

@@ -45,8 +45,24 @@ const normalizeNumber = (value, fieldName) => {
 
 const normalizeLoteMultipartBody = (req, _res, next) => {
   try {
-    if (req.file) {
-      req.body.image = `${LOTE_UPLOADS_PUBLIC_PREFIX}${req.file.filename}`;
+    const fieldFiles = req.files && typeof req.files === "object" && !Array.isArray(req.files) ? req.files : {};
+    const singleImageFile = req.file || fieldFiles.image?.[0];
+    const galleryFiles = fieldFiles.imagenes || [];
+    const uploadedPaths = [];
+
+    if (singleImageFile?.filename) {
+      uploadedPaths.push(`${LOTE_UPLOADS_PUBLIC_PREFIX}${singleImageFile.filename}`);
+    }
+
+    galleryFiles.forEach((file) => {
+      if (file?.filename) {
+        uploadedPaths.push(`${LOTE_UPLOADS_PUBLIC_PREFIX}${file.filename}`);
+      }
+    });
+
+    if (uploadedPaths.length > 0) {
+      req.body.image = uploadedPaths[0];
+      req.body.uploadedImages = uploadedPaths;
     }
 
     req.body = {

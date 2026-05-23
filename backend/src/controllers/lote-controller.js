@@ -89,6 +89,24 @@ const loteController = {
     });
     res.status(204).send();
   },
+
+  removeImage: async (req, res) => {
+    const data = await loteService.removeImage({
+      actorUserId: req.auth.sub,
+      loteId: parseId(req.params.loteId),
+      imageId: parseId(req.params.imagenId),
+    });
+    res.json({ data });
+  },
+
+  setPrimaryImage: async (req, res) => {
+    const data = await loteService.setPrimaryImage({
+      actorUserId: req.auth.sub,
+      loteId: parseId(req.params.loteId),
+      imageId: parseId(req.params.imagenId),
+    });
+    res.json({ data });
+  },
 };
 
 module.exports = { loteController };

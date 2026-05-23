@@ -29,6 +29,14 @@ const LoteDetalle: React.FC = () => {
     return resolveLoteImageUrl(getPrimaryLoteImage(lote));
   }, [lote]);
   const [imageSrc, setImageSrc] = useState(mainImage);
+  const galleryImages = useMemo(() => {
+    if (!lote) return [];
+    const fromGallery = (lote.imagenes ?? [])
+      .map((img) => resolveLoteImageUrl(img.url))
+      .filter((value, index, array) => value && array.indexOf(value) === index);
+    if (fromGallery.length > 0) return fromGallery;
+    return [resolveLoteImageUrl(lote.image)];
+  }, [lote]);
 
   useEffect(() => {
     setImageSrc(mainImage);
@@ -111,6 +119,20 @@ const LoteDetalle: React.FC = () => {
                   {lote.address && <p className="text-sm text-[var(--color-text-muted)] md:text-base">{lote.address}</p>}
                 </div>
               </div>
+              {galleryImages.length > 1 && (
+                <div className="grid grid-cols-4 gap-2 border-t border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3 md:grid-cols-6">
+                  {galleryImages.map((image, index) => (
+                    <button
+                      key={`${image}-${index}`}
+                      type="button"
+                      className={`overflow-hidden rounded border ${image === imageSrc ? "border-[var(--color-primary)]" : "border-transparent"}`}
+                      onClick={() => setImageSrc(image)}
+                    >
+                      <img src={image} alt={`Miniatura ${index + 1}`} className="h-16 w-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
             </article>
 
             <div className="grid gap-4 md:grid-cols-4">
