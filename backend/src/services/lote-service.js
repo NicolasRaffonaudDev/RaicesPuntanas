@@ -1,7 +1,10 @@
 const { AppError } = require("../utils/app-error");
 const { loteRepository } = require("../repositories/lote-repository");
-const { deleteLocalLoteImage, isLocalLoteImagePath } = require("../utils/upload-storage");
+const { deleteLocalLoteImage, getAbsolutePathFromPublicUpload, isLocalLoteImagePath } = require("../utils/upload-storage");
 const { auditService } = require("./audit-service");
+const fs = require("node:fs/promises");
+
+const MISSING_IMAGE_FALLBACK = "https://placehold.co/1200x800?text=Sin+imagen";
 
 const buildAmenitiesForCreate = (amenityIds = []) => {
   if (!Array.isArray(amenityIds) || amenityIds.length === 0) return undefined;
@@ -49,6 +52,45 @@ const collectLocalLoteImagePaths = (lote) => {
   return Array.from(imagePaths);
 };
 
+const localImageExists = async (imagePath) => {
+  if (!isLocalLoteImagePath(imagePath)) return true;
+  const absolutePath = getAbsolutePathFromPublicUpload(imagePath);
+  if (!absolutePath) return false;
+
+  try {
+    await fs.access(absolutePath);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const normalizeLoteImagesForResponse = async (lote) => {
+  if (!lote) return lote;
+
+  const nextLote = {
+    ...lote,
+    imagenes: Array.isArray(lote.imagenes) ? [...lote.imagenes] : [],
+  };
+
+  if (!(await localImageExists(nextLote.image))) {
+    nextLote.image = MISSING_IMAGE_FALLBACK;
+  }
+
+  nextLote.imagenes = await Promise.all(
+    nextLote.imagenes.map(async (img) => {
+      if (!img?.url) return img;
+      if (await localImageExists(img.url)) return img;
+      return { ...img, url: MISSING_IMAGE_FALLBACK };
+    }),
+  );
+
+  return nextLote;
+};
+
+const normalizeManyLotesImagesForResponse = async (lotes) =>
+  Promise.all((lotes || []).map((lote) => normalizeLoteImagesForResponse(lote)));
+
 const loteService = {
   list: async ({ page, limit, minPrice, amenities, sort, q }) => {
     const where = {};
@@ -85,7 +127,7 @@ const loteService = {
     ]);
 
     return {
-      data,
+      data: await normalizeManyLotesImagesForResponse(data),
       meta: {
         total,
         page,
@@ -97,13 +139,14 @@ const loteService = {
 
   getByIds: async (ids) => {
     if (!Array.isArray(ids) || ids.length === 0) return [];
-    return loteRepository.findByIds(ids);
+    const lotes = await loteRepository.findByIds(ids);
+    return normalizeManyLotesImagesForResponse(lotes);
   },
 
   getById: async (id) => {
     const lote = await loteRepository.findById(id);
     if (!lote) throw new AppError(404, "Lote no encontrado");
-    return lote;
+    return normalizeLoteImagesForResponse(lote);
   },
 
   getFilters: async () => {

@@ -621,3 +621,20 @@ Formato sugerido por entrada:
   - `npm run build` OK.
 - Siguiente paso:
   - Con el render estable, avanzar a galeria multi-imagen sin duplicar logica de resolucion.
+## 2026-05-23 - Fix bloqueante de visualizacion de imagenes en staging
+- Scope: `fix(lotes)` + `backend` + `staging-debug`
+- Evidencia:
+  - En staging, los requests de imagen a `/uploads/lotes/...` devolvian `404` desde frontend y backend.
+  - La UI no tenia problema de CSS ni de helper; el recurso fisico faltaba en runtime.
+- Causa real:
+  - Referencias en DB a archivos locales que ya no estaban presentes en filesystem del contenedor.
+- Fix aplicado:
+  - En `lote-service`, antes de responder listado/detalle/by-ids se valida existencia de imagen local.
+  - Si la ruta local no existe, se reemplaza por placeholder (`https://placehold.co/1200x800?text=Sin+imagen`).
+  - Se normaliza tambien `imagenes[]` para evitar roturas en card, detalle y comparador.
+- Impacto:
+  - La UI vuelve a mostrar imagen valida en todos los casos (real o fallback), sin imagen rota.
+- Validacion:
+  - `npm run build` OK.
+- Nota operativa:
+  - Para conservar uploads reales entre redeploys en Railway sigue siendo necesario Volume o storage cloud.

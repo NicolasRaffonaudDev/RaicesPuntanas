@@ -697,3 +697,6 @@ El smoke valida:
 - Soporta imagenes[0].url, imagenes[0] string, image y fallback local.
 - Las rutas /uploads/... se resuelven siempre contra window.location.origin para mantener serving desde el dominio frontend.
 
+
+- Resiliencia en imágenes locales: si un lote referencia /uploads/... pero el archivo no existe en runtime (404), el backend ahora devuelve un placeholder para evitar imagen rota en UI.
+
