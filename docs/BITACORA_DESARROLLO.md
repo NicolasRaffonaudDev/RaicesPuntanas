@@ -565,3 +565,24 @@ Formato sugerido por entrada:
   - Sin cambios de backend ni contratos API.
 - Siguiente paso:
   - Mejorar microcopy de resumen por rol y, en PR separado, consolidar metricas CRM (pendientes y recientes) si ya existen en API.
+
+## 2026-05-23 - Rediseño UX de lotes (mobile-first)
+- Scope: `feat(ui)` + `docs`
+- Cambios:
+  - Rediseño de `LotCard` con foco en imagen, precio y CTA principal.
+  - Compactacion visual para reducir ruido: menos texto, menos densidad y jerarquia clara.
+  - Limite visual de amenities con badges y conteo adicional (`+N`) cuando hay mas.
+  - Indicador de multi-imagen (`Fotos: X`) cuando el lote ya trae `imagenes[]`.
+  - `MapView` ajustado a mobile-first: en mobile se muestra `Ver ubicacion` y en desktop un mapa compacto.
+- Decision UX:
+  - Priorizar conversion y lectura rapida antes de sumar nuevas features visuales complejas.
+  - Preparar el terreno para galeria futura sin romper el flujo actual de upload ni APIs.
+- Impacto:
+  - Cards mas limpias y premium.
+  - Mejor experiencia en mobile/tablet con menos saturacion visual.
+- Validacion:
+  - Build frontend OK.
+  - Compatibilidad mantenida con `image` + `imagenes[]`.
+  - Sin cambios de backend ni contratos.
+- Siguiente paso:
+  - Implementar vista detalle de lote para mover informacion secundaria fuera de la card.

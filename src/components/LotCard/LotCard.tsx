@@ -23,6 +23,8 @@ const LotCard: React.FC<LotCardProps> = ({
 }) => {
   const resolvedImageSrc = resolvePrimaryLoteImageUrl(lote);
   const [imageSrc, setImageSrc] = useState(resolvedImageSrc);
+  const totalPhotos = lote.imagenes?.length ?? 0;
+  const visibleAmenities = lote.amenities.slice(0, 3);
 
   useEffect(() => {
     setImageSrc(resolvedImageSrc);
@@ -30,26 +32,39 @@ const LotCard: React.FC<LotCardProps> = ({
 
   return (
     <article
-      className="card relative overflow-hidden"
+      className="card group relative overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_12px_28px_rgba(0,0,0,0.2)] transition-transform duration-200 md:hover:-translate-y-0.5"
       data-testid={`lote-card-${lote.id}`}
       data-price={lote.price}
       data-size={lote.size}
     >
-      <img
-        src={imageSrc}
-        alt={lote.title}
-        className="h-48 w-full bg-[var(--color-surface-alt)] object-cover"
-        loading={prioritizeImage ? "eager" : "lazy"}
-        decoding="async"
-        fetchPriority={prioritizeImage ? "high" : "auto"}
-        onError={() => setImageSrc(LOTE_IMAGE_FALLBACK_SRC)}
-      />
+      <div className="relative">
+        <img
+          src={imageSrc}
+          alt={lote.title}
+          className="h-52 w-full bg-[var(--color-surface-alt)] object-cover sm:h-56"
+          loading={prioritizeImage ? "eager" : "lazy"}
+          decoding="async"
+          fetchPriority={prioritizeImage ? "high" : "auto"}
+          onError={() => setImageSrc(LOTE_IMAGE_FALLBACK_SRC)}
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+        <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+          {totalPhotos > 1 && (
+            <span className="rounded-full border border-white/25 bg-black/55 px-2.5 py-1 text-[11px] font-medium text-white">
+              {`Fotos: ${totalPhotos}`}
+            </span>
+          )}
+          <span className="rounded-full border border-emerald-300/40 bg-emerald-500/15 px-2.5 py-1 text-[11px] font-medium text-emerald-100">
+            {`${lote.size} m2`}
+          </span>
+        </div>
+      </div>
       <button
         type="button"
         aria-pressed={isFavorite}
         aria-label={isFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
         onClick={onToggleFavorite}
-        className={`absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border text-sm transition ${
+        className={`absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border text-sm transition ${
           isFavorite
             ? "border-amber-300/60 bg-amber-400/20 text-amber-200"
             : "border-white/15 bg-black/40 text-white hover:border-white/40 hover:bg-black/60"
@@ -68,20 +83,35 @@ const LotCard: React.FC<LotCardProps> = ({
           <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 22l7.8-8.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
         </svg>
       </button>
-      <div className="space-y-2 p-4">
-        <h2 className="text-xl font-bold text-[var(--color-primary)]">{highlightText(lote.title, highlightQuery)}</h2>
-        <p className="text-[var(--color-text-muted)]">Precio: ${lote.price.toLocaleString("es-AR")} USD</p>
-        <p className="text-[var(--color-text-muted)]">Tamano: {lote.size} m2</p>
+      <div className="space-y-3 p-3 sm:p-4">
+        <div className="space-y-1">
+          <p className="text-lg font-semibold text-[var(--color-primary)]">${lote.price.toLocaleString("es-AR")} USD</p>
+          <h2 className="line-clamp-1 text-base font-semibold text-white sm:text-lg">
+            {highlightText(lote.title, highlightQuery)}
+          </h2>
+        </div>
         {lote.address && (
-          <p className="text-[var(--color-text-muted)]">{highlightText(lote.address, highlightQuery)}</p>
+          <p className="line-clamp-1 text-sm text-[var(--color-text-muted)]">
+            {highlightText(lote.address, highlightQuery)}
+          </p>
         )}
-        <ul className="list-disc space-y-1 pl-5 text-sm text-[var(--color-text-muted)]">
-          {lote.amenities.map((amenity) => (
-            <li key={amenity.id}>{amenity.name}</li>
+        <div className="flex flex-wrap gap-2">
+          {visibleAmenities.map((amenity) => (
+            <span
+              key={amenity.id}
+              className="rounded-full border border-white/15 bg-white/5 px-2 py-1 text-[11px] text-[var(--color-text-muted)]"
+            >
+              {amenity.name}
+            </span>
           ))}
-        </ul>
+          {lote.amenities.length > 3 && (
+            <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1 text-[11px] text-[var(--color-text-muted)]">
+              {`+${lote.amenities.length - 3}`}
+            </span>
+          )}
+        </div>
         {onContact && (
-          <button type="button" className="btn btn-primary w-full text-sm" onClick={onContact}>
+          <button type="button" className="btn btn-primary w-full text-sm sm:w-auto" onClick={onContact}>
             Consultar
           </button>
         )}

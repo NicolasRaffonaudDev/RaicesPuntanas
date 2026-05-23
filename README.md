@@ -671,4 +671,16 @@ El smoke valida:
 - Las acciones principales ahora usan lenguaje de operacion: gestionar lotes, ver consultas CRM, clientes y ventas.
 - Se mantiene compatibilidad total con backend y rutas existentes, sin cambios de contrato API.
 
+### Rediseño UX de lotes
+- `LotCard` se compacto para mejorar escaneo visual y conversion: imagen protagonista, precio destacado y CTA claro.
+- Se redujo densidad de contenido: titulo, ubicacion corta, tamano y hasta 3 badges de amenities.
+- La experiencia es mobile-first:
+  - cards en una columna con spacing mas limpio
+  - mapa grande removido en mobile y reemplazado por `Ver ubicacion`
+  - mapa compacto mantenido para desktop
+- Se preparo el frente para multi-imagen:
+  - badge de cantidad de fotos cuando `imagenes[]` tiene mas de una
+  - fallback compatible con `imagenes[0]`, `image` y placeholder local
+- No hubo cambios de backend ni contratos API.
+
 
