@@ -684,3 +684,10 @@ El smoke valida:
 - No hubo cambios de backend ni contratos API.
 
 
+
+## Vista detalle de lote
+- Se agrega la ruta publica /lotes/:id para concentrar informacion completa del lote.
+- El listado mantiene cards resumidas y ahora deriva a detalle con CTA Ver detalle.
+- La vista detalle incluye imagen principal, datos completos, amenities, mapa y CTA principal de consulta.
+- Se mantiene compatibilidad con lote.image y lote.imagenes[] para preparacion multi-imagen.
+

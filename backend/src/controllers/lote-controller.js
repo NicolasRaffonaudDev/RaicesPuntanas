@@ -57,6 +57,12 @@ const loteController = {
     res.json(data);
   },
 
+  getById: async (req, res) => {
+    const id = parseId(req.params.id);
+    const data = await loteService.getById(id);
+    res.json({ data });
+  },
+
   getFilters: async (req, res) => {
     const data = await loteService.getFilters();
     res.json(data);

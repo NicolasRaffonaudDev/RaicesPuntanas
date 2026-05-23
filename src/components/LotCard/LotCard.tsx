@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import type { Lote } from "../../types/interfaces";
 import MapView from "../MapView/MapView";
 import { highlightText } from "../../utils/highlightText";
@@ -110,11 +111,16 @@ const LotCard: React.FC<LotCardProps> = ({
             </span>
           )}
         </div>
-        {onContact && (
-          <button type="button" className="btn btn-primary w-full text-sm sm:w-auto" onClick={onContact}>
-            Consultar
-          </button>
-        )}
+        <div className="flex flex-wrap gap-2">
+          <Link to={`/lotes/${lote.id}`} className="btn btn-primary w-full text-sm sm:w-auto">
+            Ver detalle
+          </Link>
+          {onContact && (
+            <button type="button" className="btn btn-outline w-full text-sm sm:w-auto" onClick={onContact}>
+              Consultar
+            </button>
+          )}
+        </div>
       </div>
       <MapView lote={lote} />
     </article>

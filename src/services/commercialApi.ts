@@ -105,6 +105,12 @@ export const commercialApi = {
     return res.json();
   },
 
+  getLoteById: async (id: number): Promise<Lote> => {
+    const res = await apiRequest(`/lotes/${id}`, { skipAuth: true });
+    const payload = await parseResponse(res);
+    return payload.data as Lote;
+  },
+
   getLoteFilters: async (): Promise<{ amenities: Amenity[] }> => {
     const res = await apiRequest("/lotes/filters", { skipAuth: true });
     if (!res.ok) throw new Error("No se pudieron cargar los filtros");

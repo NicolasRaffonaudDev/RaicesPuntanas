@@ -10,6 +10,7 @@ const loteRoutes = Router();
 
 loteRoutes.get("/by-ids", asyncHandler(loteController.getByIds));
 loteRoutes.get("/filters", asyncHandler(loteController.getFilters));
+loteRoutes.get("/:id", asyncHandler(loteController.getById));
 loteRoutes.get("/", asyncHandler(loteController.getAll));
 loteRoutes.post(
   "/",

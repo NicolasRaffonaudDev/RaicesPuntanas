@@ -14,6 +14,7 @@ import {
   HomePage,
   InquiriesAdminPage,
   LoginPage,
+  LoteDetallePage,
   LotesPage,
   FavoritosPage,
   MiPanelUsuarioPage,
@@ -32,6 +33,7 @@ function App() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/lotes" element={<LotesPage />} />
+      <Route path="/lotes/:id" element={<LoteDetallePage />} />
       <Route path="/favoritos" element={<FavoritosPage />} />
       <Route path="/comparar" element={<CompararLotesPage />} />
       <Route path="/contact" element={<ContactPage />} />

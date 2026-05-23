@@ -586,3 +586,20 @@ Formato sugerido por entrada:
   - Sin cambios de backend ni contratos.
 - Siguiente paso:
   - Implementar vista detalle de lote para mover informacion secundaria fuera de la card.
+## 2026-05-23 - Vista detalle profesional de lote
+- Scope: `feat(lotes)` + `frontend` + `backend` + `docs`
+- Cambios:
+  - Se agrega ruta publica `/lotes/:id` con pagina `LoteDetalle`.
+  - Se incorpora endpoint `GET /api/lotes/:id` en arquitectura por capas (`routes -> controller -> service -> repository`).
+  - `LotCard` pasa a mostrar CTA principal `Ver detalle` y mantiene `Consultar` como accion secundaria.
+  - La vista detalle concentra imagen principal, precio, superficie, ubicacion, descripcion, amenities, mapa y CTA de contacto.
+- Motivo tecnico:
+  - Descargar densidad del listado y mover informacion pesada a una pantalla orientada a conversion.
+- Impacto en cliente:
+  - Navegacion mas clara: listado rapido para exploracion y detalle completo para decision.
+- Riesgos:
+  - Bajos; se mantiene compatibilidad con `image` y `imagenes[]` sin cambios de schema.
+- Validacion:
+  - Build frontend OK y endpoint detalle disponible para consumo publico.
+- Siguiente paso:
+  - Evolucionar a galeria multi-imagen en la vista detalle sin romper compatibilidad actual.

@@ -100,6 +100,12 @@ const loteService = {
     return loteRepository.findByIds(ids);
   },
 
+  getById: async (id) => {
+    const lote = await loteRepository.findById(id);
+    if (!lote) throw new AppError(404, "Lote no encontrado");
+    return lote;
+  },
+
   getFilters: async () => {
     const amenities = await loteRepository.getAllAmenities();
     return { amenities };
