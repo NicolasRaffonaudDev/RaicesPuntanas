@@ -4,8 +4,6 @@ const { deleteLocalLoteImage, getAbsolutePathFromPublicUpload, isLocalLoteImageP
 const { auditService } = require("./audit-service");
 const fs = require("node:fs/promises");
 
-const MISSING_IMAGE_FALLBACK = "https://placehold.co/1200x800?text=Sin+imagen";
-
 const buildAmenitiesForCreate = (amenityIds = []) => {
   if (!Array.isArray(amenityIds) || amenityIds.length === 0) return undefined;
   return { connect: amenityIds.map((id) => ({ id })) };
@@ -74,14 +72,14 @@ const normalizeLoteImagesForResponse = async (lote) => {
   };
 
   if (!(await localImageExists(nextLote.image))) {
-    nextLote.image = MISSING_IMAGE_FALLBACK;
+    nextLote.image = "";
   }
 
   nextLote.imagenes = await Promise.all(
     nextLote.imagenes.map(async (img) => {
       if (!img?.url) return img;
       if (await localImageExists(img.url)) return img;
-      return { ...img, url: MISSING_IMAGE_FALLBACK };
+      return { ...img, url: "" };
     }),
   );
 

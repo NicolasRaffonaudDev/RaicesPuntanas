@@ -12,6 +12,8 @@ interface LotCardProps {
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
   onContact?: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
 const LotCard: React.FC<LotCardProps> = ({
@@ -21,11 +23,14 @@ const LotCard: React.FC<LotCardProps> = ({
   isFavorite = false,
   onToggleFavorite,
   onContact,
+  onEdit,
+  onDelete,
 }) => {
   const resolvedImageSrc = resolveLoteImageUrl(getPrimaryLoteImage(lote));
   const [imageSrc, setImageSrc] = useState(resolvedImageSrc);
   const totalPhotos = lote.imagenes?.length ?? 0;
   const visibleAmenities = lote.amenities.slice(0, 3);
+  const showAdminActions = Boolean(onEdit || onDelete);
 
   useEffect(() => {
     setImageSrc(resolvedImageSrc);
@@ -125,6 +130,23 @@ const LotCard: React.FC<LotCardProps> = ({
             </button>
           )}
         </div>
+        {showAdminActions && (
+          <div className="rounded-lg border border-dashed border-amber-400/30 bg-amber-500/10 p-2">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-amber-200">Modo admin</p>
+            <div className="flex gap-2">
+              {onEdit && (
+                <button type="button" className="btn btn-outline flex-1 text-xs" onClick={onEdit}>
+                  Editar
+                </button>
+              )}
+              {onDelete && (
+                <button type="button" className="btn btn-outline flex-1 text-xs" onClick={onDelete}>
+                  Eliminar
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
       <MapView lote={lote} />
     </article>

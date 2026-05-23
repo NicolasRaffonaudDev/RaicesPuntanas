@@ -638,3 +638,19 @@ Formato sugerido por entrada:
   - `npm run build` OK.
 - Nota operativa:
   - Para conservar uploads reales entre redeploys en Railway sigue siendo necesario Volume o storage cloud.
+## 2026-05-23 - Restauracion de acciones admin + ajuste final de imagenes
+- Scope: `fix(lotes)` + `frontend` + `backend` + `docs`
+- Regresion detectada:
+  - Las acciones admin quedaban fuera del bloque principal de card y se percibian como ocultas en el flujo visual nuevo.
+  - El backend inyectaba fallback externo (`placehold.co`) cuando faltaba archivo local.
+- Cambios aplicados:
+  - Se agrega zona `Modo admin` dentro de `LotCard` (solo con permisos): `Editar` y `Eliminar`.
+  - `Lotes.tsx` pasa acciones admin al componente via props, manteniendo card publica compacta.
+  - El backend deja de forzar placeholder remoto cuando falta un upload local: ahora limpia a valor vacio para que el frontend aplique placeholder local estable.
+- Impacto:
+  - Admin vuelve a tener edición/eliminación visibles y consistentes.
+  - UI evita dependencia visual externa y no muestra imagen rota.
+- Validacion:
+  - build frontend OK.
+- Nota:
+  - Si el archivo local no existe en runtime, la tarjeta muestra fallback local del frontend (asset del proyecto).

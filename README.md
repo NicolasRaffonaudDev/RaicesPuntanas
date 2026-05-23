@@ -700,3 +700,9 @@ El smoke valida:
 
 - Resiliencia en imágenes locales: si un lote referencia /uploads/... pero el archivo no existe en runtime (404), el backend ahora devuelve un placeholder para evitar imagen rota en UI.
 
+
+### Acciones admin de lotes
+- La card publica se mantiene compacta para usuarios finales.
+- Cuando el usuario tiene permisos de gestion (lotes.write / lotes.delete) se muestra una zona Modo admin dentro de cada card con acciones Editar y Eliminar.
+- El fallback de imagen vuelve a ser local en frontend (sin dependencia visual de placeholders externos).
+

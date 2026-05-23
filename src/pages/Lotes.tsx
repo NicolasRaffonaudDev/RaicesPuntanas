@@ -705,6 +705,8 @@ const Lotes: React.FC = () => {
                   isFavorite={localFavoriteSet.has(String(lote.id))}
                   onToggleFavorite={() => toggleLocalFavorite(lote.id)}
                   onContact={() => openContactModal(lote)}
+                  onEdit={canManageLotes ? () => openEditModal(lote) : undefined}
+                  onDelete={canManageLotes && canDeleteLotes ? () => void removeLote(lote.id) : undefined}
                 />
                 <div className="flex gap-2">
                   <button
@@ -716,18 +718,6 @@ const Lotes: React.FC = () => {
                     {compareIds.has(lote.id) ? "En comparador" : "Comparar"}
                   </button>
                 </div>
-                {canManageLotes && (
-                  <div className="flex gap-2">
-                    <button type="button" className="btn btn-outline flex-1 text-sm" onClick={() => openEditModal(lote)}>
-                      Editar
-                    </button>
-                    {canDeleteLotes && (
-                      <button type="button" className="btn btn-outline flex-1 text-sm" onClick={() => void removeLote(lote.id)}>
-                        Eliminar
-                      </button>
-                    )}
-                  </div>
-                )}
               </div>
             ))}
           </div>
