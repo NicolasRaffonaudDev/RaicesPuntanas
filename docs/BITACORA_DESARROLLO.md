@@ -788,3 +788,13 @@ Formato sugerido por entrada:
   - Copy comercial actualizado para orientar a visita y asesoramiento.
 - Validacion:
   - `npm run build` OK.
+## 2026-05-24 - Fix regresion de mapa en detalle
+- Scope: `fix(ui)` + `frontend`
+- Regresion detectada:
+  - El mapa de `Ubicacion y entorno` no se mostraba en desktop.
+- Causa real:
+  - Se perdio la clase responsiva `md:block` en el contenedor del mapa (`MapView`), quedando `hidden` en todos los breakpoints.
+- Fix aplicado:
+  - Se restaura `md:block` y se mantiene `desktopHeightClass` como override de altura.
+- Validacion:
+  - `npm run build` OK.

@@ -102,7 +102,7 @@ const MapView: React.FC<MapViewProps> = ({ lote, desktopHeightClass = "md:h-56" 
     <div className="w-full border-t border-[var(--color-border)] bg-[var(--color-surface-alt)]">
       {renderMobileLocationButton()}
       <div
-        className={`group relative hidden h-56 w-full overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3 ${desktopHeightClass}`}
+        className={`group relative hidden h-56 w-full overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3 md:block ${desktopHeightClass}`}
         role="button"
         tabIndex={0}
         onClick={openGoogleMaps}

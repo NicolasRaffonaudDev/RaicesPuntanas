@@ -768,3 +768,7 @@ Pasos en Railway:
 - El panel comercial incorpora contacto rapido con accesos visuales (WhatsApp, Email, Instagram).
 - Se elimina la ubicacion duplicada del panel y se concentra la informacion completa en `Ubicacion y entorno`.
 - El mapa se muestra en formato mas util, con mayor area visual y acceso directo a Google Maps.
+
+### Fix mapa en detalle
+- Se corrige regresion de visibilidad en desktop del mapa en `Ubicacion y entorno`.
+- El contenedor recupera `md:block`, manteniendo comportamiento mobile sin romper otros contextos.
