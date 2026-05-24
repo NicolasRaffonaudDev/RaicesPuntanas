@@ -798,3 +798,21 @@ Formato sugerido por entrada:
   - Se restaura `md:block` y se mantiene `desktopHeightClass` como override de altura.
 - Validacion:
   - `npm run build` OK.
+## 2026-05-24 - Home publico orientado a conversion
+- Scope: `feat(ui)` + `frontend`
+- Cambios:
+  - Hero comercial con propuesta de valor, CTA principal a lotes y CTA secundario de contacto.
+  - Seccion `Lotes destacados` conectada a la API existente (`listLotes`) sin cambios de backend.
+  - Estados de carga, error y vacio en destacados usando componentes de feedback.
+  - Bloques de valor y CTA final para aumentar conversion en el primer recorrido.
+  - Acceso discreto al panel para `admin/empleado` sin mezclar Home publico con dashboard interno.
+- Motivo tecnico:
+  - Mejorar primera impresion y reducir dependencia de un unico boton de entrada al catalogo.
+- Impacto en cliente:
+  - Landing mas clara, mas comercial y con acceso rapido a propiedades reales desde el primer viewport.
+- Riesgos:
+  - Bajos; se reutiliza API y rutas existentes sin cambios de contrato.
+- Validacion:
+  - `npm run build` OK.
+- Siguiente paso:
+  - Evolucionar a destacados curados por criterio comercial (sin hardcodear) en PR separado.

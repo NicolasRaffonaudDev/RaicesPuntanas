@@ -772,3 +772,9 @@ Pasos en Railway:
 ### Fix mapa en detalle
 - Se corrige regresion de visibilidad en desktop del mapa en `Ubicacion y entorno`.
 - El contenedor recupera `md:block`, manteniendo comportamiento mobile sin romper otros contextos.
+
+### Home publico orientado a conversion
+- Se rediseno el Home como landing inmobiliaria con hero comercial, doble CTA y propuesta de valor clara.
+- Se agrega seccion `Lotes destacados` consumiendo la API existente de lotes, con estados de carga/error/vacio.
+- Se suma bloque final de conversion con acceso directo a catalogo completo y contacto.
+- Para usuarios operativos (`admin`, `empleado`) se mantiene acceso discreto al panel sin convertir el Home en dashboard.
