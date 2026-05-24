@@ -734,3 +734,15 @@ Formato sugerido por entrada:
   - `LoteImagen[]` es fuente principal de galeria; `Lote.image` queda como campo legado sincronizado.
 - Validacion:
   - `npm run build` OK.
+## 2026-05-24 - Pulido UX de vista detalle de lote
+- Scope: `feat(ui)` + `frontend`
+- Objetivo:
+  - Mejorar percepcion premium y conversion en `/lotes/:id` sin cambiar backend.
+- Cambios:
+  - Hero visual mejorado con badges, imagen principal contenida y miniaturas mas claras.
+  - Layout desktop en dos columnas: galeria a la izquierda, resumen + CTA a la derecha.
+  - Navegacion superior refinada con enlace `Volver a lotes`.
+  - Secciones inferiores ordenadas: detalles, amenities, ubicacion, mapa.
+  - CTA principal de consulta mantenido e integrado en panel lateral para acceso rapido.
+- Validacion:
+  - `npm run build` OK.

@@ -745,3 +745,8 @@ Pasos en Railway:
 - La galeria editable toma como fuente principal `LoteImagen[]` y evita duplicar portada legacy en la grilla.
 - Las imagenes nuevas quedan separadas en `Imagenes a subir` hasta confirmar guardado.
 - Las acciones de portada/eliminar refrescan el lote desde backend para evitar estado stale en UI.
+
+### Pulido visual de detalle de lote
+- La vista `/lotes/:id` se reorganiza en un layout de conversion: hero visual + panel lateral de resumen y CTA.
+- Se mejora navegacion superior con enlace sutil `Volver a lotes`.
+- Se pulen miniaturas, secciones informativas y bloque de mapa para una experiencia mas inmobiliaria y mobile-first.

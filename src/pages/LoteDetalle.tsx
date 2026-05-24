@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import ContactModal from "../components/ContactModal";
 import { SectionEmpty, SectionError, SectionLoading } from "../components/Feedback";
 import MapView from "../components/MapView/MapView";
@@ -55,10 +55,6 @@ const LoteDetalle: React.FC = () => {
   return (
     <section className="page">
       <div className="container space-y-5">
-        <button type="button" className="btn btn-outline text-sm" onClick={() => navigate("/lotes")}>
-          Volver a lotes
-        </button>
-
         {isLoading && (
           <SectionLoading
             title="Cargando detalle del lote"
@@ -87,77 +83,140 @@ const LoteDetalle: React.FC = () => {
 
         {!isLoading && !error && lote && (
           <>
-            <article className="card overflow-hidden">
-              <div className="relative">
-                <img
-                  src={imageSrc}
-                  alt={lote.title}
-                  className="h-64 w-full object-cover md:h-[420px]"
-                  loading="eager"
-                  onError={() => {
-                    if (imageSrc !== LOTE_IMAGE_FALLBACK_SRC) {
-                      setImageSrc(LOTE_IMAGE_FALLBACK_SRC);
-                    }
-                  }}
-                />
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/15 to-transparent" />
-                <div className="absolute left-4 top-4 flex flex-wrap gap-2">
-                  <span className="rounded-full border border-emerald-300/40 bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-100">
-                    Disponible
-                  </span>
-                  {(lote.imagenes?.length ?? 0) > 1 && (
-                    <span className="rounded-full border border-white/20 bg-black/45 px-3 py-1 text-xs font-semibold text-white">
-                      {`${lote.imagenes?.length} fotos`}
+            <div className="pt-1">
+              <Link
+                to="/lotes"
+                className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-text-muted)] transition hover:text-white"
+              >
+                <span aria-hidden="true">{"<-"}</span>
+                Volver a lotes
+              </Link>
+            </div>
+
+            <section className="grid gap-5 lg:grid-cols-[1.45fr_1fr]">
+              <article className="card overflow-hidden border border-white/10">
+                <div className="relative overflow-hidden rounded-xl">
+                  <img
+                    src={imageSrc}
+                    alt={lote.title}
+                    className="h-64 w-full object-cover md:h-[380px]"
+                    loading="eager"
+                    onError={() => {
+                      if (imageSrc !== LOTE_IMAGE_FALLBACK_SRC) {
+                        setImageSrc(LOTE_IMAGE_FALLBACK_SRC);
+                      }
+                    }}
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
+                  <div className="absolute left-4 top-4 flex flex-wrap gap-2">
+                    <span className="rounded-full border border-emerald-300/40 bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-100">
+                      Disponible
                     </span>
+                    {(lote.imagenes?.length ?? 0) > 1 && (
+                      <span className="rounded-full border border-white/20 bg-black/45 px-3 py-1 text-xs font-semibold text-white">
+                        {`${lote.imagenes?.length} fotos`}
+                      </span>
+                    )}
+                  </div>
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <h1 className="text-2xl font-bold text-white md:text-3xl">{lote.title}</h1>
+                    {lote.address && <p className="mt-1 text-sm text-gray-200 md:text-base">{lote.address}</p>}
+                  </div>
+                </div>
+                {galleryImages.length > 1 && (
+                  <div className="overflow-x-auto border-t border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3">
+                    <div className="flex min-w-max gap-2">
+                      {galleryImages.map((image, index) => (
+                        <button
+                          key={`${image}-${index}`}
+                          type="button"
+                          className={`overflow-hidden rounded-lg border transition ${
+                            image === imageSrc
+                              ? "border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]/50"
+                              : "border-white/10 hover:border-white/30"
+                          }`}
+                          onClick={() => setImageSrc(image)}
+                        >
+                          <img src={image} alt={`Miniatura ${index + 1}`} className="h-16 w-24 object-cover md:h-20 md:w-28" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </article>
+
+              <aside className="card flex h-fit flex-col gap-4 p-5">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Precio</p>
+                  <p className="mt-2 text-3xl font-bold text-[var(--color-primary)]">${lote.price.toLocaleString("es-AR")} USD</p>
+                </div>
+
+                <div className="grid gap-2 text-sm text-[var(--color-text-muted)]">
+                  <div className="flex items-center justify-between rounded-lg border border-white/10 bg-black/20 px-3 py-2">
+                    <span>Superficie</span>
+                    <strong className="text-white">{lote.size} m2</strong>
+                  </div>
+                  <div className="rounded-lg border border-white/10 bg-black/20 px-3 py-2">
+                    <p className="text-xs uppercase tracking-[0.14em] text-[var(--color-text-muted)]">Ubicacion</p>
+                    <p className="mt-1 text-sm text-white">{lote.address || "Sin direccion disponible"}</p>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-xs uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Amenities destacadas</p>
+                  {lote.amenities.length > 0 ? (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {lote.amenities.slice(0, 6).map((amenity) => (
+                        <span
+                          key={amenity.id}
+                          className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-[var(--color-text-muted)]"
+                        >
+                          {amenity.name}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-sm text-[var(--color-text-muted)]">Sin amenities informadas.</p>
                   )}
                 </div>
-                <div className="absolute bottom-4 left-4 space-y-1">
-                  <p className="text-2xl font-bold text-[var(--color-primary)] md:text-3xl">
-                    ${lote.price.toLocaleString("es-AR")} USD
-                  </p>
-                  <h1 className="text-2xl font-bold text-white md:text-3xl">{lote.title}</h1>
-                  {lote.address && <p className="text-sm text-[var(--color-text-muted)] md:text-base">{lote.address}</p>}
-                </div>
-              </div>
-              {galleryImages.length > 1 && (
-                <div className="grid grid-cols-4 gap-2 border-t border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3 md:grid-cols-6">
-                  {galleryImages.map((image, index) => (
-                    <button
-                      key={`${image}-${index}`}
-                      type="button"
-                      className={`overflow-hidden rounded border ${image === imageSrc ? "border-[var(--color-primary)]" : "border-transparent"}`}
-                      onClick={() => setImageSrc(image)}
-                    >
-                      <img src={image} alt={`Miniatura ${index + 1}`} className="h-16 w-full object-cover" />
-                    </button>
-                  ))}
-                </div>
+
+                <button type="button" className="btn btn-primary w-full" onClick={() => setIsContactOpen(true)}>
+                  Consultar por este lote
+                </button>
+
+                <p className="text-xs text-[var(--color-text-muted)]">
+                  Recibe atencion comercial personalizada y coordinamos una visita.
+                </p>
+              </aside>
+            </section>
+
+            <section className="grid gap-4 md:grid-cols-4">
+              <article className="card p-4">
+                <p className="text-xs uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Precio</p>
+                <p className="mt-2 text-xl font-semibold text-white">${lote.price.toLocaleString("es-AR")} USD</p>
+              </article>
+              <article className="card p-4">
+                <p className="text-xs uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Superficie</p>
+                <p className="mt-2 text-xl font-semibold text-white">{lote.size} m2</p>
+              </article>
+              <article className="card p-4 md:col-span-2">
+                <p className="text-xs uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Estado operativo</p>
+                <p className="mt-2 text-base text-white">Disponible para consulta comercial.</p>
+              </article>
+            </section>
+
+            <article className="card p-5">
+              <h2 className="text-lg font-semibold text-white">Detalles del lote</h2>
+              {lote.description ? (
+                <p className="mt-2 text-sm leading-relaxed text-[var(--color-text-muted)]">{lote.description}</p>
+              ) : (
+                <p className="mt-2 text-sm text-[var(--color-text-muted)]">
+                  Este lote no tiene descripcion extendida por el momento.
+                </p>
               )}
             </article>
 
-            <div className="grid gap-4 md:grid-cols-4">
-              <div className="card p-4">
-                <p className="text-xs uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Precio</p>
-                <p className="mt-2 text-xl font-semibold text-white">${lote.price.toLocaleString("es-AR")} USD</p>
-              </div>
-              <div className="card p-4">
-                <p className="text-xs uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Superficie</p>
-                <p className="mt-2 text-xl font-semibold text-white">{lote.size} m2</p>
-              </div>
-              <div className="card p-4 md:col-span-2">
-                <p className="text-xs uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Ubicacion</p>
-                <p className="mt-2 text-base text-white">{lote.address || "Sin direccion disponible"}</p>
-              </div>
-            </div>
-
-            {lote.description && (
-              <article className="card p-4">
-                <h2 className="text-lg font-semibold text-white">Descripcion</h2>
-                <p className="mt-2 text-sm leading-relaxed text-[var(--color-text-muted)]">{lote.description}</p>
-              </article>
-            )}
-
-            <article className="card p-4">
+            <article className="card p-5">
               <h2 className="text-lg font-semibold text-white">Amenities</h2>
               {lote.amenities.length > 0 ? (
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -175,20 +234,17 @@ const LoteDetalle: React.FC = () => {
               )}
             </article>
 
-            <article className="space-y-3">
+            <article className="card p-5">
               <h2 className="text-lg font-semibold text-white">Ubicacion</h2>
-              <MapView lote={lote} />
+              <p className="mt-2 text-sm text-[var(--color-text-muted)]">{lote.address || "Sin direccion disponible"}</p>
             </article>
 
-            <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
-              <div>
-                <p className="text-sm text-[var(--color-text-muted)]">Interesado en este lote?</p>
-                <p className="text-base font-semibold text-white">Recibe atencion comercial personalizada.</p>
+            <article className="card p-4">
+              <h2 className="mb-3 text-lg font-semibold text-white">Mapa</h2>
+              <div className="overflow-hidden rounded-xl border border-[var(--color-border)]">
+                <MapView lote={lote} />
               </div>
-              <button type="button" className="btn btn-primary" onClick={() => setIsContactOpen(true)}>
-                Consultar por este lote
-              </button>
-            </div>
+            </article>
           </>
         )}
       </div>
