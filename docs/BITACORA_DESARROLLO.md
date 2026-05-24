@@ -767,3 +767,14 @@ Formato sugerido por entrada:
   - Vista detalle coherente, sin repeticiones y con mejor jerarquia de lectura.
 - Validacion:
   - `npm run build` OK.
+## 2026-05-24 - Detalle de lote orientado a contacto y mapa compacto
+- Scope: `feat(ui)` + `frontend`
+- Cambios:
+  - Panel comercial reforzado con CTA principal y canales de contacto rapido (WhatsApp, Email, Instagram).
+  - Ubicacion en panel lateral reducida a contexto breve para evitar repeticion.
+  - Seccion de mapa compactada con soporte textual y contenedor de ancho controlado en desktop.
+  - Se mantiene separacion entre resumen comercial y contenido extendido.
+- Resultado:
+  - Mayor foco de conversion y lectura mas limpia para cliente final.
+- Validacion:
+  - `npm run build` OK.

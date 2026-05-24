@@ -758,3 +758,8 @@ Pasos en Railway:
 ### Cierre UX de detalle sin redundancias
 - El panel lateral queda enfocado en conversion (precio, superficie, estado y CTA).
 - Las comodidades y la ubicacion completa viven solo en secciones inferiores dedicadas.
+
+### Contacto rapido en detalle de lote
+- El panel lateral del detalle prioriza conversion: precio, superficie, estado y CTA principal.
+- Se agregan accesos rapidos a WhatsApp, Email e Instagram como vias secundarias de contacto.
+- Se mantiene ubicacion breve en resumen y ubicacion completa solo en su seccion dedicada.

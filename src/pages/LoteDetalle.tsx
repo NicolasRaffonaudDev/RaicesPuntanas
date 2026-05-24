@@ -7,6 +7,20 @@ import MapView from "../components/MapView/MapView";
 import { commercialApi } from "../services/commercialApi";
 import { getPrimaryLoteImage, LOTE_IMAGE_FALLBACK_SRC, resolveLoteImageUrl } from "../utils/resolveLoteImageUrl";
 
+const WHATSAPP_URL = "https://wa.me/5490000000000";
+const CONTACT_EMAIL = "ventas@raicespuntanas.com";
+const INSTAGRAM_URL = "https://instagram.com/raicespuntanas";
+
+const getShortLocation = (address?: string | null) => {
+  if (!address) return "";
+  const parts = address
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  if (parts.length >= 2) return `${parts[0]}, ${parts[1]}`;
+  return parts[0] ?? "";
+};
+
 const LoteDetalle: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -29,6 +43,7 @@ const LoteDetalle: React.FC = () => {
     return resolveLoteImageUrl(getPrimaryLoteImage(lote));
   }, [lote]);
   const [imageSrc, setImageSrc] = useState(mainImage);
+  const shortLocation = useMemo(() => getShortLocation(lote?.address), [lote?.address]);
   const galleryImages = useMemo(() => {
     if (!lote) return [];
     const fromGallery = (lote.imagenes ?? [])
@@ -161,14 +176,42 @@ const LoteDetalle: React.FC = () => {
                     <span>Superficie</span>
                     <strong className="text-white">{lote.size} m2</strong>
                   </div>
-                  {lote.address && (
-                    <p className="text-xs text-[var(--color-text-muted)]">{lote.address}</p>
+                  {shortLocation && (
+                    <p className="text-xs text-[var(--color-text-muted)]">{shortLocation}</p>
                   )}
                 </div>
 
                 <button type="button" className="btn btn-primary w-full" onClick={() => setIsContactOpen(true)}>
                   Consultar por este lote
                 </button>
+
+                <div className="space-y-2">
+                  <p className="text-xs text-[var(--color-text-muted)]">Tambien podes contactarnos por:</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <a
+                      href={WHATSAPP_URL}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-lg border border-white/10 bg-black/20 px-2 py-2 text-center text-xs text-[var(--color-text-muted)] transition hover:border-white/25 hover:text-white"
+                    >
+                      WhatsApp
+                    </a>
+                    <a
+                      href={`mailto:${CONTACT_EMAIL}`}
+                      className="rounded-lg border border-white/10 bg-black/20 px-2 py-2 text-center text-xs text-[var(--color-text-muted)] transition hover:border-white/25 hover:text-white"
+                    >
+                      Email
+                    </a>
+                    <a
+                      href={INSTAGRAM_URL}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-lg border border-white/10 bg-black/20 px-2 py-2 text-center text-xs text-[var(--color-text-muted)] transition hover:border-white/25 hover:text-white"
+                    >
+                      Instagram
+                    </a>
+                  </div>
+                </div>
 
                 <p className="text-xs text-[var(--color-text-muted)]">
                   Recibe atencion comercial personalizada y coordinamos una visita.
@@ -207,13 +250,24 @@ const LoteDetalle: React.FC = () => {
 
             <article className="card p-5">
               <h2 className="text-lg font-semibold text-white">Ubicacion</h2>
-              <p className="mt-2 text-sm text-[var(--color-text-muted)]">{lote.address || "Sin direccion disponible"}</p>
+              <p className="mt-2 text-sm text-[var(--color-text-muted)]">
+                {lote.address || "Sin direccion disponible"}
+              </p>
             </article>
 
             <article className="card p-4">
               <h2 className="mb-3 text-lg font-semibold text-white">Mapa</h2>
-              <div className="overflow-hidden rounded-xl border border-[var(--color-border)]">
-                <MapView lote={lote} />
+              <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-start">
+                <div className="text-sm text-[var(--color-text-muted)]">
+                  <p>
+                    Visualiza la ubicacion exacta del lote y abre Google Maps para trazar tu ruta o compartirla.
+                  </p>
+                </div>
+                <div className="w-full md:w-[420px]">
+                  <div className="overflow-hidden rounded-xl border border-[var(--color-border)]">
+                    <MapView lote={lote} />
+                  </div>
+                </div>
               </div>
             </article>
           </>
