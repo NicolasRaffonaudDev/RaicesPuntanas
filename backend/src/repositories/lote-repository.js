@@ -78,14 +78,17 @@ const loteRepository = {
         });
       }
 
-      if (uploadedImages.length > 0) {
+      const galleryImagesToAppend =
+        data.image !== undefined ? uploadedImages.filter((_, index) => index > 0) : uploadedImages;
+
+      if (galleryImagesToAppend.length > 0) {
         const currentMaxOrder = await tx.loteImagen.aggregate({
           where: { loteId: id },
           _max: { orden: true },
         });
         let nextOrder = (currentMaxOrder._max.orden ?? -1) + 1;
         await tx.loteImagen.createMany({
-          data: uploadedImages.map((url) => {
+          data: galleryImagesToAppend.map((url) => {
             const current = { loteId: id, url, orden: nextOrder };
             nextOrder += 1;
             return current;

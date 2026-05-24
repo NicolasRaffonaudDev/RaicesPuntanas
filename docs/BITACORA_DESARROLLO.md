@@ -721,3 +721,16 @@ Formato sugerido por entrada:
   - Selector de amenities con mejor espaciado visual, chips mas claros y seleccion multiple fluida.
 - Validacion:
   - `npm run build` OK.
+## 2026-05-24 - Fix de duplicados y estado inconsistente en galeria admin
+- Scope: `fix(lotes)` + `backend` + `frontend`
+- Causa real:
+  - En update de backend, la primera imagen subida podia insertarse dos veces (como `image` legacy y como item de `uploadedImages`).
+  - En frontend, el estado local podia quedar desfasado tras acciones de portada/eliminar.
+- Fix aplicado:
+  - Backend: en update se evita reinsertar como galeria la imagen ya usada para sincronizar `Lote.image`.
+  - Frontend: separacion estricta entre `Imagenes actuales` (persistidas) y `Imagenes a subir` (previews locales).
+  - Frontend: refresh puntual del lote editado (`getLoteById`) despues de marcar portada o eliminar imagen para asegurar estado consistente.
+- Regla aplicada:
+  - `LoteImagen[]` es fuente principal de galeria; `Lote.image` queda como campo legado sincronizado.
+- Validacion:
+  - `npm run build` OK.

@@ -87,7 +87,6 @@ const Lotes: React.FC = () => {
   const [contactLote, setContactLote] = useState<Lote | null>(null);
   const [editingLoteId, setEditingLoteId] = useState<number | null>(null);
   const [formState, setFormState] = useState<LoteFormState>(emptyLoteForm);
-  const [selectedImagePreview, setSelectedImagePreview] = useState<string | null>(null);
   const [selectedImagePreviews, setSelectedImagePreviews] = useState<string[]>([]);
   const [editingGallery, setEditingGallery] = useState<NonNullable<Lote["imagenes"]>>([]);
   const [galleryActionKey, setGalleryActionKey] = useState<string | null>(null);
@@ -340,15 +339,11 @@ const Lotes: React.FC = () => {
 
   const canManageLotes = !!token && hasPermission(user?.role, "lotes.write");
   const canDeleteLotes = !!token && hasPermission(user?.role, "lotes.delete");
-  const imagePreviewSrc = selectedImagePreview || (formState.image ? resolveLoteImageUrl(formState.image) : null);
+  const imagePreviewSrc = formState.image
+    ? resolveLoteImageUrl(formState.image)
+    : selectedImagePreviews[0] ?? null;
 
   const clearSelectedImagePreview = useCallback(() => {
-    setSelectedImagePreview((current) => {
-      if (current?.startsWith("blob:")) {
-        URL.revokeObjectURL(current);
-      }
-      return null;
-    });
     setSelectedImagePreviews((prev) => {
       prev.forEach((value) => {
         if (value.startsWith("blob:")) URL.revokeObjectURL(value);
@@ -427,6 +422,18 @@ const Lotes: React.FC = () => {
     setMutationError("");
     setGalleryFeedback("");
     setIsModalOpen(true);
+    void (async () => {
+      try {
+        const fresh = await commercialApi.getLoteById(lote.id);
+        setFormState((prev) => ({
+          ...prev,
+          image: getPrimaryLoteImagePath(fresh) || fresh.image || "",
+        }));
+        setEditingGallery(fresh.imagenes ?? []);
+      } catch {
+        // Si falla el refresh puntual, mantenemos snapshot local sin romper el modal.
+      }
+    })();
   };
 
   const closeModal = () => {
@@ -445,7 +452,6 @@ const Lotes: React.FC = () => {
     const previewUrls = files.map((file) => URL.createObjectURL(file));
     setSelectedImagePreviews(previewUrls);
     const firstFile = files[0] ?? null;
-    setSelectedImagePreview(previewUrls[0] ?? null);
     setFormState((prev) => ({ ...prev, imageFile: firstFile, imageFiles: files }));
     setGalleryFeedback(files.length > 0 ? `${files.length} imagen${files.length > 1 ? "es" : ""} lista${files.length > 1 ? "s" : ""} para subir.` : "");
   };
@@ -468,7 +474,8 @@ const Lotes: React.FC = () => {
     setMutationError("");
     setGalleryActionKey(`delete-${imagenId}`);
     try {
-      const updated = await commercialApi.deleteLoteImage(token, loteId, imagenId);
+      await commercialApi.deleteLoteImage(token, loteId, imagenId);
+      const updated = await commercialApi.getLoteById(loteId);
       setEditingGallery(updated.imagenes ?? []);
       setFormState((prev) => ({ ...prev, image: getPrimaryLoteImagePath(updated) || updated.image || "" }));
       syncLoteInCache(updated);
@@ -486,7 +493,8 @@ const Lotes: React.FC = () => {
     setMutationError("");
     setGalleryActionKey(`primary-${imagenId}`);
     try {
-      const updated = await commercialApi.setLoteImageAsPrimary(token, loteId, imagenId);
+      await commercialApi.setLoteImageAsPrimary(token, loteId, imagenId);
+      const updated = await commercialApi.getLoteById(loteId);
       setEditingGallery(updated.imagenes ?? []);
       setFormState((prev) => ({ ...prev, image: getPrimaryLoteImagePath(updated) || updated.image || "" }));
       syncLoteInCache(updated);
@@ -965,8 +973,24 @@ const Lotes: React.FC = () => {
                   {selectedImagePreviews.length > 0 && (
                     <div className="grid gap-2 md:col-span-2">
                       <span className="text-sm text-[var(--color-text-muted)]">Imagenes a subir</span>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-[var(--color-text-muted)]">
+                          Estas imagenes se agregaran al guardar.
+                        </p>
+                        <button
+                          type="button"
+                          className="rounded border border-white/10 px-2 py-1 text-xs text-[var(--color-text-muted)] transition hover:text-white"
+                          onClick={() => {
+                            clearSelectedImagePreview();
+                            setFormState((prev) => ({ ...prev, imageFile: null, imageFiles: [] }));
+                            setGalleryFeedback("Carga de imagenes nuevas limpiada.");
+                          }}
+                        >
+                          Limpiar seleccion
+                        </button>
+                      </div>
                       <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-                        {selectedImagePreviews.map((preview, index) => (
+                        {selectedImagePreviews.slice(formState.image ? 0 : 1).map((preview, index) => (
                           <img key={`${preview}-${index}`} src={preview} alt={`Nueva imagen ${index + 1}`} className="h-24 w-full rounded-lg object-cover" />
                         ))}
                       </div>

@@ -740,3 +740,8 @@ Pasos en Railway:
 - El editor de lotes unifica la carga en un solo bloque de imagenes (una o multiples) para reducir confusion.
 - Se prioriza lenguaje operativo: `Portada del lote`, `Portada`, `Usar como portada`.
 - Se elimina informacion tecnica de orden en la UI y se refuerza feedback visual de acciones.
+
+### Estado consistente de galeria admin
+- La galeria editable toma como fuente principal `LoteImagen[]` y evita duplicar portada legacy en la grilla.
+- Las imagenes nuevas quedan separadas en `Imagenes a subir` hasta confirmar guardado.
+- Las acciones de portada/eliminar refrescan el lote desde backend para evitar estado stale en UI.
