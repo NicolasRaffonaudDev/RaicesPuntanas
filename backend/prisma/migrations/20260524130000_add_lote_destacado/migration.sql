@@ -1,0 +1,2 @@
+ALTER TABLE "Lote"
+ADD COLUMN "destacado" BOOLEAN NOT NULL DEFAULT false;

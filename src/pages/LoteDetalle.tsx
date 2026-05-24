@@ -4,7 +4,9 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import ContactModal from "../components/ContactModal";
 import { SectionEmpty, SectionError, SectionLoading } from "../components/Feedback";
 import MapView from "../components/MapView/MapView";
+import { useAuth } from "../context/useAuth";
 import { commercialApi } from "../services/commercialApi";
+import { hasPermission } from "../utils/permissions";
 import { getPrimaryLoteImage, LOTE_IMAGE_FALLBACK_SRC, resolveLoteImageUrl } from "../utils/resolveLoteImageUrl";
 
 const WHATSAPP_URL = "https://wa.me/5490000000000";
@@ -14,6 +16,7 @@ const INSTAGRAM_URL = "https://instagram.com/raicespuntanas";
 const LoteDetalle: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { user } = useAuth();
   const [isContactOpen, setIsContactOpen] = useState(false);
   const loteId = Number(id);
   const hasValidId = Number.isInteger(loteId) && loteId > 0;
@@ -41,6 +44,7 @@ const LoteDetalle: React.FC = () => {
     if (!lote) return false;
     return Number.isFinite(Number(lote.lat)) && Number.isFinite(Number(lote.lng));
   }, [lote]);
+  const canEditLotes = hasPermission(user?.role, "lotes.write");
   const galleryImages = useMemo(() => {
     if (!lote) return [];
     const fromGallery = (lote.imagenes ?? [])
@@ -96,13 +100,20 @@ const LoteDetalle: React.FC = () => {
         {!isLoading && !error && lote && (
           <>
             <div className="pt-1">
-              <Link
-                to="/lotes"
-                className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-text-muted)] transition hover:text-white"
-              >
-                <span aria-hidden="true">{"<-"}</span>
-                Volver a lotes
-              </Link>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <Link
+                  to="/lotes"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-text-muted)] transition hover:text-white"
+                >
+                  <span aria-hidden="true">{"<-"}</span>
+                  Volver a lotes
+                </Link>
+                {canEditLotes && (
+                  <Link className="btn btn-outline text-sm" to={`/lotes?edit=${lote.id}`}>
+                    Editar lote
+                  </Link>
+                )}
+              </div>
             </div>
 
             <section className="grid gap-5 lg:grid-cols-[1.45fr_1fr]">

@@ -16,6 +16,7 @@ export interface Lote {
     title: string;
     price: number;
     size: number;
+    destacado?: boolean;
     amenities: Amenity[];
     image: string;
     imagenes?: LoteImagen[];

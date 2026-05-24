@@ -778,3 +778,9 @@ Pasos en Railway:
 - Se agrega seccion `Lotes destacados` consumiendo la API existente de lotes, con estados de carga/error/vacio.
 - Se suma bloque final de conversion con acceso directo a catalogo completo y contacto.
 - Para usuarios operativos (`admin`, `empleado`) se mantiene acceso discreto al panel sin convertir el Home en dashboard.
+
+### ? Lotes destacados en Home
+- Los lotes ahora pueden marcarse como `destacados` desde el editor admin.
+- El Home consulta primero `GET /api/lotes?destacado=true` y muestra hasta 3 resultados.
+- Si no hay destacados, el Home aplica fallback elegante al listado general para no quedar vacio.
+- Desde la vista detalle (`/lotes/:id`), usuarios con permiso `lotes.write` pueden abrir edicion directa con el boton `Editar lote`.

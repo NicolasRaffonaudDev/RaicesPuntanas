@@ -15,11 +15,25 @@ const Home: React.FC = () => {
     isLoading: featuredLoading,
     error: featuredError,
   } = useQuery({
-    queryKey: ["home-featured-lotes"],
+    queryKey: ["home-featured-lotes", "destacados"],
+    queryFn: () => commercialApi.listLotes({ page: 1, limit: 3, destacado: true, sort: "price_desc" }),
+  });
+
+  const highlightedLotes = featuredResponse?.data ?? [];
+  const shouldFallback = !featuredLoading && !featuredError && highlightedLotes.length === 0;
+  const {
+    data: fallbackResponse,
+    isLoading: fallbackLoading,
+    error: fallbackError,
+  } = useQuery({
+    queryKey: ["home-featured-lotes", "fallback"],
+    enabled: shouldFallback,
     queryFn: () => commercialApi.listLotes({ page: 1, limit: 3, sort: "price_desc" }),
   });
 
-  const featuredLotes = featuredResponse?.data ?? [];
+  const featuredLotes = highlightedLotes.length > 0 ? highlightedLotes : fallbackResponse?.data ?? [];
+  const hasFeaturedError = !!featuredError || !!fallbackError;
+  const isFeaturedLoading = featuredLoading || fallbackLoading;
 
   return (
     <section className="page">
@@ -68,21 +82,27 @@ const Home: React.FC = () => {
             </Link>
           </div>
 
-          {featuredLoading && (
+          {isFeaturedLoading && (
             <SectionLoading
               title="Cargando lotes destacados"
               message="Estamos seleccionando opciones para mostrarte en portada."
               compact
             />
           )}
-          {!featuredLoading && featuredError && (
+          {!isFeaturedLoading && hasFeaturedError && (
             <SectionError
               title="No pudimos cargar destacados"
-              message={featuredError instanceof Error ? featuredError.message : "Intentalo nuevamente en unos minutos."}
+              message={
+                featuredError instanceof Error
+                  ? featuredError.message
+                  : fallbackError instanceof Error
+                    ? fallbackError.message
+                    : "Intentalo nuevamente en unos minutos."
+              }
               compact
             />
           )}
-          {!featuredLoading && !featuredError && featuredLotes.length === 0 && (
+          {!isFeaturedLoading && !hasFeaturedError && featuredLotes.length === 0 && (
             <SectionEmpty
               title="Aun no hay lotes destacados"
               message="Estamos preparando nuevas opciones. Mientras tanto, podes explorar el catalogo completo."
@@ -94,7 +114,7 @@ const Home: React.FC = () => {
               )}
             />
           )}
-          {!featuredLoading && !featuredError && featuredLotes.length > 0 && (
+          {!isFeaturedLoading && !hasFeaturedError && featuredLotes.length > 0 && (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               {featuredLotes.map((lote) => (
                 <article key={lote.id} className="card overflow-hidden rounded-2xl p-0">

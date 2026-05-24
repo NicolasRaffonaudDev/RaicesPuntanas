@@ -28,6 +28,13 @@ const loteController = {
       : undefined;
     const qRaw = req.query.q ? String(req.query.q) : "";
     const q = qRaw.trim();
+    const destacadoRaw = req.query.destacado;
+    let destacado;
+    if (destacadoRaw !== undefined) {
+      const normalized = String(destacadoRaw).trim().toLowerCase();
+      if (normalized === "true" || normalized === "1") destacado = true;
+      if (normalized === "false" || normalized === "0") destacado = false;
+    }
 
     const result = await loteService.list({
       page,
@@ -36,6 +43,7 @@ const loteController = {
       amenities,
       sort,
       q: q || undefined,
+      destacado,
     });
 
     res.json(result);

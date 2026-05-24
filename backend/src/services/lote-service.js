@@ -102,8 +102,11 @@ const normalizeManyLotesImagesForResponse = async (lotes) =>
   Promise.all((lotes || []).map((lote) => normalizeLoteImagesForResponse(lote)));
 
 const loteService = {
-  list: async ({ page, limit, minPrice, amenities, sort, q }) => {
+  list: async ({ page, limit, minPrice, amenities, sort, q, destacado }) => {
     const where = {};
+    if (typeof destacado === "boolean") {
+      where.destacado = destacado;
+    }
     const andConditions = [];
     if (typeof minPrice === "number") {
       andConditions.push({ price: { gte: minPrice } });

@@ -49,6 +49,7 @@ model Lote {
   title       String
   price       Int
   size        Int
+  destacado   Boolean      @default(false)
   amenities   Amenity[]
   image       String
   imagenes    LoteImagen[]

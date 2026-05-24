@@ -36,6 +36,7 @@ interface LotesQuery {
   amenities?: string[];
   sort?: "price_asc" | "price_desc" | "size_desc";
   q?: string;
+  destacado?: boolean;
 }
 
 interface LotesResponse {
@@ -47,6 +48,7 @@ interface LoteUpsertInput {
   title: string;
   price: number;
   size: number;
+  destacado?: boolean;
   amenities: string[];
   image?: string;
   imageFile?: File | null;
@@ -65,6 +67,7 @@ const buildLoteFormData = (body: Partial<LoteUpsertInput>) => {
   if (body.title !== undefined) formData.append("title", body.title);
   if (body.price !== undefined) formData.append("price", String(body.price));
   if (body.size !== undefined) formData.append("size", String(body.size));
+  if (body.destacado !== undefined) formData.append("destacado", String(body.destacado));
   if (!hasImageFile && !hasImageFiles && body.image !== undefined) formData.append("image", body.image);
   if (body.address !== undefined) formData.append("address", body.address);
   if (body.lat !== undefined) formData.append("lat", String(body.lat));
@@ -95,6 +98,7 @@ export const commercialApi = {
     if (query.amenities && query.amenities.length > 0) params.set("amenities", query.amenities.join(","));
     if (query.sort) params.set("sort", query.sort);
     if (query.q) params.set("q", query.q);
+    if (typeof query.destacado === "boolean") params.set("destacado", String(query.destacado));
 
     const queryString = params.toString();
     const res = await apiRequest(queryString ? `/lotes?${queryString}` : "/lotes", { skipAuth: true });

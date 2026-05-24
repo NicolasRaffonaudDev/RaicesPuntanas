@@ -20,6 +20,7 @@ interface LoteFormState {
   title: string;
   price: string;
   size: string;
+  destacado: boolean;
   description: string;
   amenities: string[];
   image: string;
@@ -62,6 +63,7 @@ const emptyLoteForm: LoteFormState = {
   title: "",
   price: "",
   size: "",
+  destacado: false,
   description: "",
   amenities: [],
   image: "",
@@ -174,6 +176,7 @@ const Lotes: React.FC = () => {
       title: string;
       price: number;
       size: number;
+      destacado?: boolean;
       amenities: string[];
       image?: string;
       imageFile?: File | null;
@@ -208,6 +211,7 @@ const Lotes: React.FC = () => {
       title: string;
       price: number;
       size: number;
+      destacado?: boolean;
       amenities: string[];
       image?: string;
       imageFile?: File | null;
@@ -402,13 +406,14 @@ const Lotes: React.FC = () => {
     setContactLote(null);
   };
 
-  const openEditModal = (lote: Lote) => {
+  const openEditModal = useCallback((lote: Lote) => {
     clearSelectedImagePreview();
     setEditingLoteId(lote.id);
     setFormState({
       title: lote.title,
       price: String(lote.price),
       size: String(lote.size),
+      destacado: Boolean(lote.destacado),
       description: lote.description || "",
       amenities: lote.amenities.map((amenity) => amenity.id),
       image: getPrimaryLoteImagePath(lote) || lote.image,
@@ -425,16 +430,17 @@ const Lotes: React.FC = () => {
     void (async () => {
       try {
         const fresh = await commercialApi.getLoteById(lote.id);
-        setFormState((prev) => ({
-          ...prev,
-          image: getPrimaryLoteImagePath(fresh) || fresh.image || "",
-        }));
+      setFormState((prev) => ({
+        ...prev,
+        destacado: Boolean(fresh.destacado),
+        image: getPrimaryLoteImagePath(fresh) || fresh.image || "",
+      }));
         setEditingGallery(fresh.imagenes ?? []);
       } catch {
         // Si falla el refresh puntual, mantenemos snapshot local sin romper el modal.
       }
     })();
-  };
+  }, [clearSelectedImagePreview]);
 
   const closeModal = () => {
     clearSelectedImagePreview();
@@ -543,6 +549,7 @@ const Lotes: React.FC = () => {
       title: formState.title.trim(),
       price: priceValue,
       size: sizeValue,
+      destacado: formState.destacado,
       description: formState.description.trim(),
       amenities: formState.amenities,
       image: formState.image.trim() || undefined,
@@ -569,6 +576,51 @@ const Lotes: React.FC = () => {
     setMutationError("");
     await deleteLoteMutation.mutateAsync(loteId);
   };
+
+  useEffect(() => {
+    const editRaw = searchParams.get("edit");
+    if (!editRaw) return;
+    if (!canManageLotes) return;
+    const editId = Number(editRaw);
+    if (!Number.isInteger(editId) || editId <= 0) {
+      updateSearchParams((params) => {
+        params.delete("edit");
+      });
+      return;
+    }
+
+    if (editingLoteId === editId && isModalOpen) return;
+
+    const fromLoaded = lotes.find((item) => item.id === editId);
+    if (fromLoaded) {
+      openEditModal(fromLoaded);
+      updateSearchParams((params) => {
+        params.delete("edit");
+      });
+      return;
+    }
+
+    void (async () => {
+      try {
+        const lote = await commercialApi.getLoteById(editId);
+        openEditModal(lote);
+      } catch (err) {
+        setMutationError(err instanceof Error ? err.message : "No se pudo abrir el lote para edicion");
+      } finally {
+        updateSearchParams((params) => {
+          params.delete("edit");
+        });
+      }
+    })();
+  }, [
+    canManageLotes,
+    editingLoteId,
+    isModalOpen,
+    lotes,
+    openEditModal,
+    searchParams,
+    updateSearchParams,
+  ]);
 
   const buildPageItems = (current: number, total: number) => {
     if (total <= 7) return Array.from({ length: total }, (_, idx) => idx + 1);
@@ -778,6 +830,11 @@ const Lotes: React.FC = () => {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {lotes.map((lote, index) => (
               <div key={lote.id} className="space-y-2">
+                {canManageLotes && lote.destacado ? (
+                  <span className="inline-flex rounded-full border border-amber-300/30 bg-amber-400/10 px-2.5 py-1 text-[11px] font-semibold text-amber-200">
+                    Destacado
+                  </span>
+                ) : null}
                 <LotCard
                   lote={lote}
                   prioritizeImage={index < 2}
@@ -928,6 +985,20 @@ const Lotes: React.FC = () => {
                       onChange={(e) => setFormState((prev) => ({ ...prev, size: e.target.value }))}
                       required
                     />
+                  </div>
+                  <div className="grid gap-2">
+                    <label htmlFor="lote-destacado" className="text-sm text-[var(--color-text-muted)]">
+                      Mostrar en Home como destacado
+                    </label>
+                    <label className="inline-flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2 text-sm text-[var(--color-text-muted)]">
+                      <input
+                        id="lote-destacado"
+                        type="checkbox"
+                        checked={formState.destacado}
+                        onChange={(e) => setFormState((prev) => ({ ...prev, destacado: e.target.checked }))}
+                      />
+                      Incluir este lote en la seccion de destacados del Home
+                    </label>
                   </div>
                   <div className="grid gap-1 md:col-span-2">
                     <label htmlFor="lote-images" className="text-sm text-[var(--color-text-muted)]">

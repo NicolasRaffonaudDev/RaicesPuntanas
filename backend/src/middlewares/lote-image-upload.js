@@ -43,6 +43,15 @@ const normalizeNumber = (value, fieldName) => {
   return normalized;
 };
 
+const normalizeBoolean = (value, fieldName) => {
+  if (value === undefined) return undefined;
+  if (typeof value === "boolean") return value;
+  const normalized = String(value).trim().toLowerCase();
+  if (normalized === "true" || normalized === "1") return true;
+  if (normalized === "false" || normalized === "0") return false;
+  throw new AppError(400, `El campo ${fieldName} debe ser booleano`);
+};
+
 const normalizeLoteMultipartBody = (req, _res, next) => {
   try {
     const fieldFiles = req.files && typeof req.files === "object" && !Array.isArray(req.files) ? req.files : {};
@@ -74,6 +83,7 @@ const normalizeLoteMultipartBody = (req, _res, next) => {
       description: normalizeNullableString(req.body.description),
       price: normalizeNumber(req.body.price, "price"),
       size: normalizeNumber(req.body.size, "size"),
+      destacado: normalizeBoolean(req.body.destacado, "destacado"),
       lat: normalizeNumber(req.body.lat, "lat"),
       lng: normalizeNumber(req.body.lng, "lng"),
     };

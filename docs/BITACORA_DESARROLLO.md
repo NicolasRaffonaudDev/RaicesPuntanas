@@ -816,3 +816,23 @@ Formato sugerido por entrada:
   - `npm run build` OK.
 - Siguiente paso:
   - Evolucionar a destacados curados por criterio comercial (sin hardcodear) en PR separado.
+## 2026-05-24 - Destacados en Home + edicion desde detalle
+- Scope: `feat(lotes)` + `backend` + `frontend`
+- Cambios:
+  - Se agrega `destacado` en el modelo `Lote` (default `false`) con migracion dedicada.
+  - `GET /api/lotes` ahora soporta filtro opcional `destacado=true|false` sin romper filtros existentes.
+  - Create/Update de lotes aceptan `destacado` desde el formulario admin.
+  - Home pasa a consumir destacados reales y mantiene fallback al listado general si no hay marcados.
+  - En admin, el editor incorpora checkbox `Mostrar en Home como destacado` y badge visual `Destacado` en listado.
+  - En `/lotes/:id`, usuarios con permiso `lotes.write` ven `Editar lote` y navegan directo a `/lotes?edit=<id>` para abrir el editor.
+- Motivo tecnico:
+  - Dar control comercial real sobre el contenido de portada y reducir friccion operativa al editar desde el detalle.
+- Impacto en cliente:
+  - Home mas curado comercialmente y flujo admin mas rapido para ajustar lotes clave.
+- Riesgos:
+  - Migration de Prisma no pudo ejecutarse automatico en esta sesion por `Schema engine error`; se deja migration SQL versionada para aplicar en entorno activo.
+- Validacion:
+  - `npx prisma generate` OK.
+  - `npm run build` OK.
+- Siguiente paso:
+  - Aplicar `prisma migrate deploy` en staging/prod y definir criterio comercial para rotacion de destacados.
