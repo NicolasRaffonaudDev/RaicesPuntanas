@@ -750,3 +750,7 @@ Pasos en Railway:
 - La vista `/lotes/:id` se reorganiza en un layout de conversion: hero visual + panel lateral de resumen y CTA.
 - Se mejora navegacion superior con enlace sutil `Volver a lotes`.
 - Se pulen miniaturas, secciones informativas y bloque de mapa para una experiencia mas inmobiliaria y mobile-first.
+
+### Ajuste UX de detalle sin duplicacion
+- El resumen comercial queda concentrado en el panel lateral (precio, superficie, ubicacion, destacados y CTA).
+- Se elimina la repeticion de cards inferiores para reducir ruido y mejorar jerarquia visual.

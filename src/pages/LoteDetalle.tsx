@@ -149,6 +149,11 @@ const LoteDetalle: React.FC = () => {
                 <div>
                   <p className="text-xs uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Precio</p>
                   <p className="mt-2 text-3xl font-bold text-[var(--color-primary)]">${lote.price.toLocaleString("es-AR")} USD</p>
+                  <div className="mt-3">
+                    <span className="rounded-full border border-emerald-300/40 bg-emerald-500/15 px-2.5 py-1 text-xs font-semibold text-emerald-100">
+                      Disponible
+                    </span>
+                  </div>
                 </div>
 
                 <div className="grid gap-2 text-sm text-[var(--color-text-muted)]">
@@ -188,21 +193,6 @@ const LoteDetalle: React.FC = () => {
                   Recibe atencion comercial personalizada y coordinamos una visita.
                 </p>
               </aside>
-            </section>
-
-            <section className="grid gap-4 md:grid-cols-4">
-              <article className="card p-4">
-                <p className="text-xs uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Precio</p>
-                <p className="mt-2 text-xl font-semibold text-white">${lote.price.toLocaleString("es-AR")} USD</p>
-              </article>
-              <article className="card p-4">
-                <p className="text-xs uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Superficie</p>
-                <p className="mt-2 text-xl font-semibold text-white">{lote.size} m2</p>
-              </article>
-              <article className="card p-4 md:col-span-2">
-                <p className="text-xs uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Estado operativo</p>
-                <p className="mt-2 text-base text-white">Disponible para consulta comercial.</p>
-              </article>
             </section>
 
             <article className="card p-5">

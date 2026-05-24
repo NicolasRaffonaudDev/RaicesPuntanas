@@ -746,3 +746,13 @@ Formato sugerido por entrada:
   - CTA principal de consulta mantenido e integrado en panel lateral para acceso rapido.
 - Validacion:
   - `npm run build` OK.
+## 2026-05-24 - Ajuste UX de detalle: eliminacion de informacion duplicada
+- Scope: `feat(ui)` + `frontend`
+- Cambios:
+  - Se elimina bloque inferior repetido de `Precio`, `Superficie` y `Estado operativo`.
+  - El panel lateral queda como resumen comercial unico con CTA principal.
+  - `Estado operativo` se integra como badge discreto en el resumen.
+- Resultado:
+  - Menor redundancia visual y lectura mas clara entre resumen comercial y contenido extendido.
+- Validacion:
+  - `npm run build` OK.
