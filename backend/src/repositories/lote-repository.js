@@ -114,6 +114,13 @@ const loteRepository = {
       for (let index = 0; index < ordered.length; index += 1) {
         await tx.loteImagen.update({
           where: { id: ordered[index].id },
+          data: { orden: -(index + 1) },
+        });
+      }
+
+      for (let index = 0; index < ordered.length; index += 1) {
+        await tx.loteImagen.update({
+          where: { id: ordered[index].id },
           data: { orden: index },
         });
       }
@@ -139,12 +146,17 @@ const loteRepository = {
       });
 
       for (let index = 0; index < remaining.length; index += 1) {
-        if (remaining[index].orden !== index) {
-          await tx.loteImagen.update({
-            where: { id: remaining[index].id },
-            data: { orden: index },
-          });
-        }
+        await tx.loteImagen.update({
+          where: { id: remaining[index].id },
+          data: { orden: -(index + 1) },
+        });
+      }
+
+      for (let index = 0; index < remaining.length; index += 1) {
+        await tx.loteImagen.update({
+          where: { id: remaining[index].id },
+          data: { orden: index },
+        });
       }
 
       const nextPrimary = remaining[0]?.url ?? "";

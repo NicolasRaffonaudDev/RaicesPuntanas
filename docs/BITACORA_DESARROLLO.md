@@ -692,3 +692,21 @@ Formato sugerido por entrada:
   - Railway queda listo para persistencia real montando volumen sin romper endpoints ni UI.
 - Siguiente paso:
   - Mantener esta base para futura migracion a object storage (S3/R2/Cloudinary) sin acoplar UX actual.
+## 2026-05-24 - Fix principal de galeria + mejora UX admin de imagenes
+- Scope: `fix(lotes)` + `backend` + `frontend`
+- Problema:
+  - Al marcar una imagen como principal fallaba Prisma con `unique(loteId, orden)`.
+- Causa:
+  - El reordenamiento hacia orden final (`0..n`) se hacia de forma directa y generaba colisiones intermedias.
+- Solucion:
+  - Reordenamiento transaccional en dos pasos:
+    1) ordenes temporales negativas
+    2) ordenes finales consecutivas
+  - Aplicado tanto en `marcar principal` como en `eliminar imagen`.
+- UX admin:
+  - Galeria de edicion con badge `Principal`/`Secundaria`.
+  - Acciones compactas por imagen (`Hacer principal`, `Eliminar`) con estado de carga.
+- Amenities:
+  - El selector deja de cerrarse tras cada seleccion, permitiendo multi-seleccion fluida.
+- Validacion:
+  - `npm run build` OK.

@@ -40,7 +40,6 @@ const AmenitiesSelector: React.FC<AmenitiesSelectorProps> = ({ options, value, o
       return;
     }
     onChange([...value, amenity.id]);
-    setIsOpen(false);
   };
 
   const removeAmenity = (amenityId: string) => {
@@ -96,7 +95,14 @@ const AmenitiesSelector: React.FC<AmenitiesSelectorProps> = ({ options, value, o
       )}
 
       {value.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs text-[var(--color-text-muted)] transition hover:border-white/20 hover:text-white"
+            onClick={() => onChange([])}
+          >
+            Limpiar
+          </button>
           {value.map((amenityId) => {
             const amenity = options.find((item) => item.id === amenityId);
             const label = amenity?.name ?? amenityId;

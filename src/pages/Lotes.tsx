@@ -90,6 +90,7 @@ const Lotes: React.FC = () => {
   const [selectedImagePreview, setSelectedImagePreview] = useState<string | null>(null);
   const [selectedImagePreviews, setSelectedImagePreviews] = useState<string[]>([]);
   const [editingGallery, setEditingGallery] = useState<NonNullable<Lote["imagenes"]>>([]);
+  const [galleryActionKey, setGalleryActionKey] = useState<string | null>(null);
   const { favoriteSet: localFavoriteSet, toggleFavorite: toggleLocalFavorite, count: localFavoritesCount } = useFavorites();
 
   const amenitiesFromUrl = useMemo(() => normalizeAmenityIds(parseArrayParam(searchParams.get("amenities"))), [searchParams]);
@@ -476,6 +477,7 @@ const Lotes: React.FC = () => {
   const deleteGalleryImage = async (loteId: number, imagenId: number) => {
     if (!token || !canManageLotes) return;
     setMutationError("");
+    setGalleryActionKey(`delete-${imagenId}`);
     try {
       const updated = await commercialApi.deleteLoteImage(token, loteId, imagenId);
       setEditingGallery(updated.imagenes ?? []);
@@ -484,12 +486,15 @@ const Lotes: React.FC = () => {
       await queryClient.invalidateQueries({ queryKey: ["lotes"] });
     } catch (err) {
       setMutationError(err instanceof Error ? err.message : "No se pudo eliminar la imagen");
+    } finally {
+      setGalleryActionKey(null);
     }
   };
 
   const setPrimaryGalleryImage = async (loteId: number, imagenId: number) => {
     if (!token || !canManageLotes) return;
     setMutationError("");
+    setGalleryActionKey(`primary-${imagenId}`);
     try {
       const updated = await commercialApi.setLoteImageAsPrimary(token, loteId, imagenId);
       setEditingGallery(updated.imagenes ?? []);
@@ -498,6 +503,8 @@ const Lotes: React.FC = () => {
       await queryClient.invalidateQueries({ queryKey: ["lotes"] });
     } catch (err) {
       setMutationError(err instanceof Error ? err.message : "No se pudo marcar imagen principal");
+    } finally {
+      setGalleryActionKey(null);
     }
   };
 
@@ -996,21 +1003,40 @@ const Lotes: React.FC = () => {
                               alt={`Imagen ${image.id}`}
                               className="h-28 w-full rounded object-cover"
                             />
-                            <div className="mt-2 flex gap-2">
-                              <button
-                                type="button"
-                                className="btn btn-outline flex-1 text-xs"
-                                onClick={() => void setPrimaryGalleryImage(editingLoteId, image.id)}
-                              >
-                                Principal
-                              </button>
-                              <button
-                                type="button"
-                                className="btn btn-outline flex-1 text-xs"
-                                onClick={() => void deleteGalleryImage(editingLoteId, image.id)}
-                              >
-                                Eliminar
-                              </button>
+                            <div className="mt-2 flex items-center justify-between gap-2">
+                              {image.orden === 0 ? (
+                                <span className="rounded-full border border-emerald-400/40 bg-emerald-500/15 px-2 py-1 text-[11px] font-medium text-emerald-200">
+                                  Principal
+                                </span>
+                              ) : (
+                                <span className="rounded-full border border-white/10 bg-black/20 px-2 py-1 text-[11px] text-[var(--color-text-muted)]">
+                                  Secundaria
+                                </span>
+                              )}
+                              <div className="flex items-center gap-2">
+                                {image.orden !== 0 && (
+                                  <button
+                                    type="button"
+                                    className="rounded border border-[var(--color-border)] px-2 py-1 text-xs text-[var(--color-text-muted)] transition hover:text-white disabled:opacity-50"
+                                    onClick={() => void setPrimaryGalleryImage(editingLoteId, image.id)}
+                                    disabled={galleryActionKey !== null}
+                                  >
+                                    {galleryActionKey === `primary-${image.id}` ? "Guardando..." : "Hacer principal"}
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  className="rounded border border-red-400/30 px-2 py-1 text-xs text-red-200 transition hover:bg-red-500/10 disabled:opacity-50"
+                                  onClick={() => void deleteGalleryImage(editingLoteId, image.id)}
+                                  disabled={galleryActionKey !== null}
+                                  aria-label={`Eliminar imagen ${image.id}`}
+                                >
+                                  {galleryActionKey === `delete-${image.id}` ? "Eliminando..." : "Eliminar"}
+                                </button>
+                              </div>
+                            </div>
+                            <div className="mt-1 text-[11px] text-[var(--color-text-muted)]">
+                              Orden: {image.orden + 1}
                             </div>
                           </div>
                         ))}

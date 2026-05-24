@@ -729,3 +729,9 @@ Pasos en Railway:
 6. Subir una imagen nueva desde admin.
 7. Verificar que la imagen sigue disponible luego de otro redeploy.
 
+
+### Gestion admin de galeria
+- Se corrige el flujo de imagen principal para evitar errores de unicidad (`loteId`, `orden`) al reordenar galeria.
+- El reordenamiento ahora se aplica en dos fases dentro de transaccion para no colisionar en estados intermedios.
+- En el editor admin, la galeria muestra estado `Principal`/`Secundaria` y acciones mas compactas por imagen.
+- El selector de amenities permite seleccion multiple continua sin cerrarse en cada click.
