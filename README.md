@@ -754,3 +754,7 @@ Pasos en Railway:
 ### Ajuste UX de detalle sin duplicacion
 - El resumen comercial queda concentrado en el panel lateral (precio, superficie, ubicacion, destacados y CTA).
 - Se elimina la repeticion de cards inferiores para reducir ruido y mejorar jerarquia visual.
+
+### Cierre UX de detalle sin redundancias
+- El panel lateral queda enfocado en conversion (precio, superficie, estado y CTA).
+- Las comodidades y la ubicacion completa viven solo en secciones inferiores dedicadas.

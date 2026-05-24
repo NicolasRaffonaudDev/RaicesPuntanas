@@ -161,27 +161,8 @@ const LoteDetalle: React.FC = () => {
                     <span>Superficie</span>
                     <strong className="text-white">{lote.size} m2</strong>
                   </div>
-                  <div className="rounded-lg border border-white/10 bg-black/20 px-3 py-2">
-                    <p className="text-xs uppercase tracking-[0.14em] text-[var(--color-text-muted)]">Ubicacion</p>
-                    <p className="mt-1 text-sm text-white">{lote.address || "Sin direccion disponible"}</p>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-xs uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Amenities destacadas</p>
-                  {lote.amenities.length > 0 ? (
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {lote.amenities.slice(0, 6).map((amenity) => (
-                        <span
-                          key={amenity.id}
-                          className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-[var(--color-text-muted)]"
-                        >
-                          {amenity.name}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="mt-2 text-sm text-[var(--color-text-muted)]">Sin amenities informadas.</p>
+                  {lote.address && (
+                    <p className="text-xs text-[var(--color-text-muted)]">{lote.address}</p>
                   )}
                 </div>
 
@@ -201,13 +182,13 @@ const LoteDetalle: React.FC = () => {
                 <p className="mt-2 text-sm leading-relaxed text-[var(--color-text-muted)]">{lote.description}</p>
               ) : (
                 <p className="mt-2 text-sm text-[var(--color-text-muted)]">
-                  Este lote no tiene descripcion extendida por el momento.
+                  Proximamente agregaremos mas informacion detallada de este lote.
                 </p>
               )}
             </article>
 
             <article className="card p-5">
-              <h2 className="text-lg font-semibold text-white">Amenities</h2>
+              <h2 className="text-lg font-semibold text-white">Comodidades</h2>
               {lote.amenities.length > 0 ? (
                 <div className="mt-3 flex flex-wrap gap-2">
                   {lote.amenities.map((amenity) => (

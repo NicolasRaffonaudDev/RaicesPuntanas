@@ -756,3 +756,14 @@ Formato sugerido por entrada:
   - Menor redundancia visual y lectura mas clara entre resumen comercial y contenido extendido.
 - Validacion:
   - `npm run build` OK.
+## 2026-05-24 - Cierre UX de detalle sin redundancias
+- Scope: `feat(ui)` + `frontend`
+- Cambios finales:
+  - Se retiran amenities y bloque de ubicacion completa del panel lateral.
+  - El panel lateral se mantiene como resumen comercial y CTA.
+  - `Comodidades` y `Ubicacion + mapa` quedan como bloques unicos de contenido extendido.
+  - Se mejora copy de fallback en `Detalles del lote` cuando no hay descripcion.
+- Resultado:
+  - Vista detalle coherente, sin repeticiones y con mejor jerarquia de lectura.
+- Validacion:
+  - `npm run build` OK.
