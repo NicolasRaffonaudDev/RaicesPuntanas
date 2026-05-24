@@ -778,3 +778,13 @@ Formato sugerido por entrada:
   - Mayor foco de conversion y lectura mas limpia para cliente final.
 - Validacion:
   - `npm run build` OK.
+## 2026-05-24 - CTA premium + ubicacion definitiva + mapa util
+- Scope: `feat(ui)` + `frontend`
+- Cambios:
+  - Panel lateral optimizado para conversion: precio, superficie, estado, CTA y contacto rapido.
+  - Accesos rapidos mejorados con identidad visual y estados de foco (WhatsApp, Email, Instagram).
+  - Ubicacion retirada del panel comercial para evitar duplicacion.
+  - Nueva seccion `Ubicacion y entorno` con direccion completa, coordenadas, boton a Google Maps y mapa de mayor protagonismo.
+  - Copy comercial actualizado para orientar a visita y asesoramiento.
+- Validacion:
+  - `npm run build` OK.

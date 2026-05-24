@@ -11,16 +11,6 @@ const WHATSAPP_URL = "https://wa.me/5490000000000";
 const CONTACT_EMAIL = "ventas@raicespuntanas.com";
 const INSTAGRAM_URL = "https://instagram.com/raicespuntanas";
 
-const getShortLocation = (address?: string | null) => {
-  if (!address) return "";
-  const parts = address
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
-  if (parts.length >= 2) return `${parts[0]}, ${parts[1]}`;
-  return parts[0] ?? "";
-};
-
 const LoteDetalle: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -43,7 +33,14 @@ const LoteDetalle: React.FC = () => {
     return resolveLoteImageUrl(getPrimaryLoteImage(lote));
   }, [lote]);
   const [imageSrc, setImageSrc] = useState(mainImage);
-  const shortLocation = useMemo(() => getShortLocation(lote?.address), [lote?.address]);
+  const googleMapsUrl = useMemo(() => {
+    if (!lote) return "";
+    return `https://www.google.com/maps?q=${Number(lote.lat)},${Number(lote.lng)}`;
+  }, [lote]);
+  const hasValidCoords = useMemo(() => {
+    if (!lote) return false;
+    return Number.isFinite(Number(lote.lat)) && Number.isFinite(Number(lote.lng));
+  }, [lote]);
   const galleryImages = useMemo(() => {
     if (!lote) return [];
     const fromGallery = (lote.imagenes ?? [])
@@ -176,9 +173,6 @@ const LoteDetalle: React.FC = () => {
                     <span>Superficie</span>
                     <strong className="text-white">{lote.size} m2</strong>
                   </div>
-                  {shortLocation && (
-                    <p className="text-xs text-[var(--color-text-muted)]">{shortLocation}</p>
-                  )}
                 </div>
 
                 <button type="button" className="btn btn-primary w-full" onClick={() => setIsContactOpen(true)}>
@@ -186,28 +180,34 @@ const LoteDetalle: React.FC = () => {
                 </button>
 
                 <div className="space-y-2">
-                  <p className="text-xs text-[var(--color-text-muted)]">Tambien podes contactarnos por:</p>
+                  <p className="text-xs font-medium text-[var(--color-text-muted)]">Contacto rapido</p>
                   <div className="grid grid-cols-3 gap-2">
                     <a
                       href={WHATSAPP_URL}
                       target="_blank"
-                      rel="noreferrer"
-                      className="rounded-lg border border-white/10 bg-black/20 px-2 py-2 text-center text-xs text-[var(--color-text-muted)] transition hover:border-white/25 hover:text-white"
+                      rel="noopener noreferrer"
+                      aria-label="Contactar por WhatsApp"
+                      className="rounded-lg border border-white/10 bg-black/20 px-2 py-2 text-center text-xs text-[var(--color-text-muted)] transition hover:border-white/25 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
                     >
+                      <span className="mx-auto mb-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/20 text-[10px] font-bold text-emerald-300">W</span>
                       WhatsApp
                     </a>
                     <a
                       href={`mailto:${CONTACT_EMAIL}`}
-                      className="rounded-lg border border-white/10 bg-black/20 px-2 py-2 text-center text-xs text-[var(--color-text-muted)] transition hover:border-white/25 hover:text-white"
+                      aria-label="Contactar por Email"
+                      className="rounded-lg border border-white/10 bg-black/20 px-2 py-2 text-center text-xs text-[var(--color-text-muted)] transition hover:border-white/25 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
                     >
+                      <span className="mx-auto mb-1 flex h-5 w-5 items-center justify-center rounded-full bg-sky-500/20 text-[10px] font-bold text-sky-300">@</span>
                       Email
                     </a>
                     <a
                       href={INSTAGRAM_URL}
                       target="_blank"
-                      rel="noreferrer"
-                      className="rounded-lg border border-white/10 bg-black/20 px-2 py-2 text-center text-xs text-[var(--color-text-muted)] transition hover:border-white/25 hover:text-white"
+                      rel="noopener noreferrer"
+                      aria-label="Ver Instagram"
+                      className="rounded-lg border border-white/10 bg-black/20 px-2 py-2 text-center text-xs text-[var(--color-text-muted)] transition hover:border-white/25 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
                     >
+                      <span className="mx-auto mb-1 flex h-5 w-5 items-center justify-center rounded-full bg-pink-500/20 text-[10px] font-bold text-pink-300">IG</span>
                       Instagram
                     </a>
                   </div>
@@ -249,24 +249,38 @@ const LoteDetalle: React.FC = () => {
             </article>
 
             <article className="card p-5">
-              <h2 className="text-lg font-semibold text-white">Ubicacion</h2>
-              <p className="mt-2 text-sm text-[var(--color-text-muted)]">
-                {lote.address || "Sin direccion disponible"}
-              </p>
-            </article>
-
-            <article className="card p-4">
-              <h2 className="mb-3 text-lg font-semibold text-white">Mapa</h2>
-              <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-start">
-                <div className="text-sm text-[var(--color-text-muted)]">
-                  <p>
-                    Visualiza la ubicacion exacta del lote y abre Google Maps para trazar tu ruta o compartirla.
-                  </p>
+              <h2 className="mb-4 text-lg font-semibold text-white">Ubicacion y entorno</h2>
+              <div className="grid gap-4 lg:grid-cols-[1.8fr_1fr]">
+                <div className="overflow-hidden rounded-xl border border-[var(--color-border)]">
+                  <MapView lote={lote} desktopHeightClass="md:h-[340px]" />
                 </div>
-                <div className="w-full md:w-[420px]">
-                  <div className="overflow-hidden rounded-xl border border-[var(--color-border)]">
-                    <MapView lote={lote} />
+                <div className="space-y-3 rounded-xl border border-white/10 bg-black/20 p-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.14em] text-[var(--color-text-muted)]">Direccion</p>
+                    <p className="mt-1 text-sm text-white">{lote.address || "Sin direccion disponible"}</p>
                   </div>
+                  {hasValidCoords && (
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.14em] text-[var(--color-text-muted)]">Coordenadas</p>
+                      <p className="mt-1 text-sm text-white">
+                        {Number(lote.lat).toFixed(6)}, {Number(lote.lng).toFixed(6)}
+                      </p>
+                    </div>
+                  )}
+                  {hasValidCoords && (
+                    <a
+                      href={googleMapsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Abrir ubicacion en Google Maps"
+                      className="btn btn-outline w-full text-sm"
+                    >
+                      Abrir en Google Maps
+                    </a>
+                  )}
+                  <p className="text-sm text-[var(--color-text-muted)]">
+                    Ubicacion referencial del lote. Coordina una visita para recibir indicaciones precisas y asesoramiento personalizado.
+                  </p>
                 </div>
               </div>
             </article>

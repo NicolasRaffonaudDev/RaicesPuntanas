@@ -763,3 +763,8 @@ Pasos en Railway:
 - El panel lateral del detalle prioriza conversion: precio, superficie, estado y CTA principal.
 - Se agregan accesos rapidos a WhatsApp, Email e Instagram como vias secundarias de contacto.
 - Se mantiene ubicacion breve en resumen y ubicacion completa solo en su seccion dedicada.
+
+### Contacto rapido y ubicacion en detalle
+- El panel comercial incorpora contacto rapido con accesos visuales (WhatsApp, Email, Instagram).
+- Se elimina la ubicacion duplicada del panel y se concentra la informacion completa en `Ubicacion y entorno`.
+- El mapa se muestra en formato mas util, con mayor area visual y acceso directo a Google Maps.
