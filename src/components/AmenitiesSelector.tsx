@@ -61,7 +61,7 @@ const AmenitiesSelector: React.FC<AmenitiesSelectorProps> = ({ options, value, o
       </button>
 
       {isOpen && (
-        <div className="space-y-2 rounded border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-2 shadow-md">
+        <div className="space-y-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3 shadow-md">
           <input
             type="text"
             className="field w-full text-sm"
@@ -69,8 +69,8 @@ const AmenitiesSelector: React.FC<AmenitiesSelectorProps> = ({ options, value, o
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
-          <div className="max-h-48 overflow-auto">
-            <div className="grid gap-2">
+          <div className="max-h-52 overflow-auto pr-1">
+            <div className="grid gap-2 sm:grid-cols-2">
               {filteredOptions.length === 0 && (
                 <p className="px-3 py-2 text-xs text-[var(--color-text-muted)]">No hay coincidencias</p>
               )}
@@ -78,7 +78,7 @@ const AmenitiesSelector: React.FC<AmenitiesSelectorProps> = ({ options, value, o
                 <button
                   key={amenity.id}
                   type="button"
-                  className={`flex items-center justify-between rounded px-3 py-2 text-sm transition hover:bg-white/10 ${
+                  className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm transition hover:bg-white/10 ${
                     value.includes(amenity.id)
                       ? "bg-[var(--color-primary)]/15 text-white"
                       : "bg-black/20 text-[var(--color-text-muted)]"
@@ -95,7 +95,7 @@ const AmenitiesSelector: React.FC<AmenitiesSelectorProps> = ({ options, value, o
       )}
 
       {value.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-2">
           <button
             type="button"
             className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs text-[var(--color-text-muted)] transition hover:border-white/20 hover:text-white"

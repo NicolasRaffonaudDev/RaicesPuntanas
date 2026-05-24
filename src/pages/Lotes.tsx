@@ -91,6 +91,7 @@ const Lotes: React.FC = () => {
   const [selectedImagePreviews, setSelectedImagePreviews] = useState<string[]>([]);
   const [editingGallery, setEditingGallery] = useState<NonNullable<Lote["imagenes"]>>([]);
   const [galleryActionKey, setGalleryActionKey] = useState<string | null>(null);
+  const [galleryFeedback, setGalleryFeedback] = useState("");
   const { favoriteSet: localFavoriteSet, toggleFavorite: toggleLocalFavorite, count: localFavoritesCount } = useFavorites();
 
   const amenitiesFromUrl = useMemo(() => normalizeAmenityIds(parseArrayParam(searchParams.get("amenities"))), [searchParams]);
@@ -392,6 +393,7 @@ const Lotes: React.FC = () => {
     setFormState(emptyLoteForm);
     setEditingGallery([]);
     setMutationError("");
+    setGalleryFeedback("");
     setIsModalOpen(true);
   };
 
@@ -423,6 +425,7 @@ const Lotes: React.FC = () => {
     });
     setEditingGallery(lote.imagenes ?? []);
     setMutationError("");
+    setGalleryFeedback("");
     setIsModalOpen(true);
   };
 
@@ -433,32 +436,18 @@ const Lotes: React.FC = () => {
     setFormState(emptyLoteForm);
     setEditingGallery([]);
     setMutationError("");
-  };
-
-  const handleImageFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0] ?? null;
-
-    clearSelectedImagePreview();
-
-    if (!file) {
-      setFormState((prev) => ({ ...prev, imageFile: null }));
-      return;
-    }
-
-    const previewUrl = URL.createObjectURL(file);
-    setSelectedImagePreview(previewUrl);
-    setFormState((prev) => ({ ...prev, imageFile: file }));
+    setGalleryFeedback("");
   };
 
   const handleImageFilesChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? []);
-    setSelectedImagePreviews((prev) => {
-      prev.forEach((value) => {
-        if (value.startsWith("blob:")) URL.revokeObjectURL(value);
-      });
-      return files.map((file) => URL.createObjectURL(file));
-    });
-    setFormState((prev) => ({ ...prev, imageFiles: files }));
+    clearSelectedImagePreview();
+    const previewUrls = files.map((file) => URL.createObjectURL(file));
+    setSelectedImagePreviews(previewUrls);
+    const firstFile = files[0] ?? null;
+    setSelectedImagePreview(previewUrls[0] ?? null);
+    setFormState((prev) => ({ ...prev, imageFile: firstFile, imageFiles: files }));
+    setGalleryFeedback(files.length > 0 ? `${files.length} imagen${files.length > 1 ? "es" : ""} lista${files.length > 1 ? "s" : ""} para subir.` : "");
   };
 
   const syncLoteInCache = useCallback(
@@ -484,6 +473,7 @@ const Lotes: React.FC = () => {
       setFormState((prev) => ({ ...prev, image: getPrimaryLoteImagePath(updated) || updated.image || "" }));
       syncLoteInCache(updated);
       await queryClient.invalidateQueries({ queryKey: ["lotes"] });
+      setGalleryFeedback("Imagen eliminada.");
     } catch (err) {
       setMutationError(err instanceof Error ? err.message : "No se pudo eliminar la imagen");
     } finally {
@@ -501,6 +491,7 @@ const Lotes: React.FC = () => {
       setFormState((prev) => ({ ...prev, image: getPrimaryLoteImagePath(updated) || updated.image || "" }));
       syncLoteInCache(updated);
       await queryClient.invalidateQueries({ queryKey: ["lotes"] });
+      setGalleryFeedback("Imagen marcada como portada.");
     } catch (err) {
       setMutationError(err instanceof Error ? err.message : "No se pudo marcar imagen principal");
     } finally {
@@ -930,23 +921,9 @@ const Lotes: React.FC = () => {
                       required
                     />
                   </div>
-                  <div className="grid gap-1">
-                    <label htmlFor="lote-image" className="text-sm text-[var(--color-text-muted)]">
-                      Imagen
-                    </label>
-                    <input
-                      id="lote-image"
-                      className="field"
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp"
-                      onChange={handleImageFileChange}
-                      required={editingLoteId === null && !formState.image}
-                    />
-                    <p className="text-xs text-[var(--color-text-muted)]">PNG, JPG o WEBP. Maximo 5MB.</p>
-                  </div>
-                  <div className="grid gap-1">
+                  <div className="grid gap-1 md:col-span-2">
                     <label htmlFor="lote-images" className="text-sm text-[var(--color-text-muted)]">
-                      Galeria (multiples)
+                      Imagenes del lote
                     </label>
                     <input
                       id="lote-images"
@@ -955,8 +932,11 @@ const Lotes: React.FC = () => {
                       accept="image/png,image/jpeg,image/webp"
                       multiple
                       onChange={handleImageFilesChange}
+                      required={editingLoteId === null && !formState.image}
                     />
-                    <p className="text-xs text-[var(--color-text-muted)]">Puedes agregar varias imagenes al lote.</p>
+                    <p className="text-xs text-[var(--color-text-muted)]">
+                      Subi una o varias imagenes del lote. La primera imagen sera usada como portada.
+                    </p>
                   </div>
                   <div className="grid gap-1 md:col-span-2">
                     <label htmlFor="lote-description" className="text-sm text-[var(--color-text-muted)]">
@@ -971,7 +951,7 @@ const Lotes: React.FC = () => {
                     />
                   </div>
                   <div className="grid gap-2 md:col-span-2">
-                    <span className="text-sm text-[var(--color-text-muted)]">Preview</span>
+                    <span className="text-sm text-[var(--color-text-muted)]">Portada del lote</span>
                     {imagePreviewSrc ? (
                       <div className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]">
                         <img src={imagePreviewSrc} alt="Preview del lote" className="h-48 w-full object-cover" />
@@ -984,7 +964,7 @@ const Lotes: React.FC = () => {
                   </div>
                   {selectedImagePreviews.length > 0 && (
                     <div className="grid gap-2 md:col-span-2">
-                      <span className="text-sm text-[var(--color-text-muted)]">Nuevas imagenes</span>
+                      <span className="text-sm text-[var(--color-text-muted)]">Imagenes a subir</span>
                       <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
                         {selectedImagePreviews.map((preview, index) => (
                           <img key={`${preview}-${index}`} src={preview} alt={`Nueva imagen ${index + 1}`} className="h-24 w-full rounded-lg object-cover" />
@@ -1006,7 +986,7 @@ const Lotes: React.FC = () => {
                             <div className="mt-2 flex items-center justify-between gap-2">
                               {image.orden === 0 ? (
                                 <span className="rounded-full border border-emerald-400/40 bg-emerald-500/15 px-2 py-1 text-[11px] font-medium text-emerald-200">
-                                  Principal
+                                  Portada
                                 </span>
                               ) : (
                                 <span className="rounded-full border border-white/10 bg-black/20 px-2 py-1 text-[11px] text-[var(--color-text-muted)]">
@@ -1021,7 +1001,7 @@ const Lotes: React.FC = () => {
                                     onClick={() => void setPrimaryGalleryImage(editingLoteId, image.id)}
                                     disabled={galleryActionKey !== null}
                                   >
-                                    {galleryActionKey === `primary-${image.id}` ? "Guardando..." : "Hacer principal"}
+                                    {galleryActionKey === `primary-${image.id}` ? "Guardando..." : "Usar como portada"}
                                   </button>
                                 )}
                                 <button
@@ -1035,13 +1015,13 @@ const Lotes: React.FC = () => {
                                 </button>
                               </div>
                             </div>
-                            <div className="mt-1 text-[11px] text-[var(--color-text-muted)]">
-                              Orden: {image.orden + 1}
-                            </div>
                           </div>
                         ))}
                       </div>
                     </div>
+                  )}
+                  {galleryFeedback && (
+                    <p className="text-xs text-emerald-300 md:col-span-2">{galleryFeedback}</p>
                   )}
                 </div>
               </section>
@@ -1112,7 +1092,13 @@ const Lotes: React.FC = () => {
                   Cancelar
                 </button>
                 <button type="submit" className="btn btn-primary" disabled={isSaving}>
-                  {isSaving ? "Guardando..." : editingLoteId === null ? "Crear lote" : "Guardar cambios"}
+                  {isSaving
+                    ? formState.imageFiles.length > 0
+                      ? "Subiendo imagenes..."
+                      : "Guardando cambios..."
+                    : editingLoteId === null
+                      ? "Crear lote"
+                      : "Guardar cambios"}
                 </button>
               </div>
             </form>

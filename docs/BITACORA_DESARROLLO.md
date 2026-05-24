@@ -710,3 +710,14 @@ Formato sugerido por entrada:
   - El selector deja de cerrarse tras cada seleccion, permitiendo multi-seleccion fluida.
 - Validacion:
   - `npm run build` OK.
+## 2026-05-24 - Pulido UX del editor de lotes y galeria admin
+- Scope: `feat(ui)` + `frontend`
+- Cambios:
+  - Se unifica la carga de imagenes en un unico bloque (`Imagenes del lote`) con seleccion multiple.
+  - La primera imagen seleccionada se usa como portada en el preview para simplificar decision.
+  - Se mejora microcopy para admin no tecnico: `Portada`, `Usar como portada`.
+  - Se elimina visualmente el dato tecnico `orden` en la galeria.
+  - Se agrega feedback de acciones en edicion (`Imagen marcada como portada`, `Imagen eliminada`).
+  - Selector de amenities con mejor espaciado visual, chips mas claros y seleccion multiple fluida.
+- Validacion:
+  - `npm run build` OK.

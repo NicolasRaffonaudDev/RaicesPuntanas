@@ -735,3 +735,8 @@ Pasos en Railway:
 - El reordenamiento ahora se aplica en dos fases dentro de transaccion para no colisionar en estados intermedios.
 - En el editor admin, la galeria muestra estado `Principal`/`Secundaria` y acciones mas compactas por imagen.
 - El selector de amenities permite seleccion multiple continua sin cerrarse en cada click.
+
+### UX admin de imagenes
+- El editor de lotes unifica la carga en un solo bloque de imagenes (una o multiples) para reducir confusion.
+- Se prioriza lenguaje operativo: `Portada del lote`, `Portada`, `Usar como portada`.
+- Se elimina informacion tecnica de orden en la UI y se refuerza feedback visual de acciones.
