@@ -836,3 +836,22 @@ Formato sugerido por entrada:
   - `npm run build` OK.
 - Siguiente paso:
   - Aplicar `prisma migrate deploy` en staging/prod y definir criterio comercial para rotacion de destacados.
+## 2026-05-26 - Home y favoritos segun rol
+- Scope: `feat(ux)` + `frontend`
+- Cambios:
+  - Home ahora separa experiencia por tipo de usuario: visitante, usuario autenticado y admin/empleado.
+  - Admin/empleado ven hero operativo (panel + gestion), sin CTAs comerciales de cliente final.
+  - Usuario comun mantiene Home comercial con CTA contextual a `Mi panel`.
+  - Visitante al intentar favorito recibe invitacion clara para iniciar sesion o crear cuenta.
+  - Favoritos quedan reservados para rol `usuario`; visitantes y perfiles operativos ven mensaje de acceso.
+  - Corazon de favoritos se oculta cuando no aplica (admin/empleado), manteniendo acciones admin de lotes.
+- Motivo tecnico:
+  - Evitar mezcla de contexto publico y backoffice, y ordenar la UX de favoritos por rol.
+- Impacto en cliente:
+  - Experiencia mas coherente segun perfil, sin perder navegacion publica de lotes/detalle/contacto.
+- Riesgos:
+  - Bajos; sin cambios backend ni contrato de API.
+- Validacion:
+  - `npm run build` OK.
+- Siguiente paso:
+  - Si se desea, migrar favoritos a backend para sincronizacion multi-dispositivo en un PR separado.

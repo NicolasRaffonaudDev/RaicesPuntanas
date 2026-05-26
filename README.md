@@ -784,3 +784,11 @@ Pasos en Railway:
 - El Home consulta primero `GET /api/lotes?destacado=true` y muestra hasta 3 resultados.
 - Si no hay destacados, el Home aplica fallback elegante al listado general para no quedar vacio.
 - Desde la vista detalle (`/lotes/:id`), usuarios con permiso `lotes.write` pueden abrir edicion directa con el boton `Editar lote`.
+
+### ?? Experiencia por rol
+- El Home ahora adapta su hero y CTAs segun perfil:
+  - visitante: enfoque comercial publico
+  - usuario autenticado: mantiene enfoque publico con acceso a su panel
+  - admin/empleado: vista operativa con acceso directo a gestion
+- Favoritos quedan orientados a usuario autenticado comun (`usuario`).
+- Visitantes y perfiles operativos reciben una invitacion clara a iniciar sesion/crear cuenta para usar favoritos.

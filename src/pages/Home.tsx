@@ -8,6 +8,8 @@ import { resolvePrimaryLoteImageUrl } from "../utils/resolveLoteImageUrl";
 const Home: React.FC = () => {
   const { user } = useAuth();
   const isAdminOrEmployee = user?.role === "admin" || user?.role === "empleado";
+  const isCommonUser = user?.role === "usuario";
+  const isVisitor = !user;
   const dashboardRoute = user?.role === "usuario" ? "/mi-panel" : "/dashboard";
 
   const {
@@ -42,26 +44,53 @@ const Home: React.FC = () => {
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,215,0,0.22),_transparent_58%)]" />
           <div className="relative z-10 grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
             <div className="space-y-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-primary)]">
-                Tierra, inversion y futuro
-              </p>
-              <h1 className="text-4xl font-bold sm:text-5xl">Raices Puntanas</h1>
-              <p className="max-w-2xl text-base text-[var(--color-text-muted)] sm:text-lg">
-                Descubri lotes seleccionados en ubicaciones estrategicas, con asesoramiento cercano y una experiencia clara para tomar decisiones con confianza.
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <Link className="btn btn-primary" to="/lotes">
-                  Ver lotes disponibles
-                </Link>
-                <Link className="btn btn-outline" to="/contact">
-                  Contactar asesor
-                </Link>
-                {isAdminOrEmployee && (
-                  <Link className="btn btn-outline" to={dashboardRoute}>
-                    Ir al panel
-                  </Link>
-                )}
-              </div>
+              {isAdminOrEmployee ? (
+                <>
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-primary)]">
+                    Vista operativa
+                  </p>
+                  <h1 className="text-4xl font-bold sm:text-5xl">Raices Puntanas</h1>
+                  <p className="max-w-2xl text-base text-[var(--color-text-muted)] sm:text-lg">
+                    Estas viendo el sitio como administrador. Accede al panel para gestionar lotes, consultas y operacion comercial.
+                  </p>
+                  <div className="flex flex-wrap gap-3">
+                    <Link className="btn btn-primary" to={dashboardRoute}>
+                      Ir al panel
+                    </Link>
+                    <Link className="btn btn-outline" to="/lotes">
+                      Gestionar lotes
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-primary)]">
+                    Tierra, inversion y futuro
+                  </p>
+                  <h1 className="text-4xl font-bold sm:text-5xl">Raices Puntanas</h1>
+                  <p className="max-w-2xl text-base text-[var(--color-text-muted)] sm:text-lg">
+                    Descubri lotes seleccionados en ubicaciones estrategicas, con asesoramiento cercano y una experiencia clara para tomar decisiones con confianza.
+                  </p>
+                  <div className="flex flex-wrap gap-3">
+                    <Link className="btn btn-primary" to="/lotes">
+                      Ver lotes disponibles
+                    </Link>
+                    <Link className="btn btn-outline" to="/contact">
+                      Contactar asesor
+                    </Link>
+                    {isCommonUser && (
+                      <Link className="btn btn-outline" to={dashboardRoute}>
+                        Ir a mi panel
+                      </Link>
+                    )}
+                    {isVisitor && (
+                      <Link className="btn btn-outline" to="/register">
+                        Crear cuenta
+                      </Link>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
             <div className="rounded-2xl border border-white/10 bg-black/25 p-5 backdrop-blur-sm">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-primary)]">Propuesta de valor</p>

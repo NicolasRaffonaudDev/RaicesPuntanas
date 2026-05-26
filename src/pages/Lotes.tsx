@@ -93,6 +93,7 @@ const Lotes: React.FC = () => {
   const [editingGallery, setEditingGallery] = useState<NonNullable<Lote["imagenes"]>>([]);
   const [galleryActionKey, setGalleryActionKey] = useState<string | null>(null);
   const [galleryFeedback, setGalleryFeedback] = useState("");
+  const [showFavoriteAuthPrompt, setShowFavoriteAuthPrompt] = useState(false);
   const { favoriteSet: localFavoriteSet, toggleFavorite: toggleLocalFavorite, count: localFavoritesCount } = useFavorites();
 
   const amenitiesFromUrl = useMemo(() => normalizeAmenityIds(parseArrayParam(searchParams.get("amenities"))), [searchParams]);
@@ -343,6 +344,8 @@ const Lotes: React.FC = () => {
 
   const canManageLotes = !!token && hasPermission(user?.role, "lotes.write");
   const canDeleteLotes = !!token && hasPermission(user?.role, "lotes.delete");
+  const canUseFavorites = user?.role === "usuario";
+  const canPromptFavorites = !user;
   const imagePreviewSrc = formState.image
     ? resolveLoteImageUrl(formState.image)
     : selectedImagePreviews[0] ?? null;
@@ -839,8 +842,14 @@ const Lotes: React.FC = () => {
                   lote={lote}
                   prioritizeImage={index < 2}
                   highlightQuery={searchQuery}
-                  isFavorite={localFavoriteSet.has(String(lote.id))}
-                  onToggleFavorite={() => toggleLocalFavorite(lote.id)}
+                  isFavorite={canUseFavorites ? localFavoriteSet.has(String(lote.id)) : false}
+                  onToggleFavorite={
+                    canUseFavorites
+                      ? () => toggleLocalFavorite(lote.id)
+                      : canPromptFavorites
+                        ? () => setShowFavoriteAuthPrompt(true)
+                        : undefined
+                  }
                   onContact={() => openContactModal(lote)}
                   onEdit={canManageLotes ? () => openEditModal(lote) : undefined}
                   onDelete={canManageLotes && canDeleteLotes ? () => void removeLote(lote.id) : undefined}
@@ -1197,6 +1206,27 @@ const Lotes: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {showFavoriteAuthPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="card w-full max-w-md space-y-4 p-5">
+            <h3 className="text-lg font-semibold text-white">Guarda tus lotes favoritos</h3>
+            <p className="text-sm text-[var(--color-text-muted)]">
+              Inicia sesion para guardar favoritos y acceder rapidamente a tus lotes desde cualquier momento.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" className="btn btn-primary" onClick={() => navigate("/login")}>
+                Iniciar sesion
+              </button>
+              <button type="button" className="btn btn-outline" onClick={() => navigate("/register")}>
+                Crear cuenta
+              </button>
+              <button type="button" className="btn btn-outline" onClick={() => setShowFavoriteAuthPrompt(false)}>
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}

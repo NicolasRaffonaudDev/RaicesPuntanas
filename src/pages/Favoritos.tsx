@@ -3,11 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import LotCard from "../components/LotCard/LotCard";
 import { SectionEmpty, SectionError, SectionLoading } from "../components/Feedback";
+import { useAuth } from "../context/useAuth";
 import { useFavorites } from "../hooks/useFavorites";
 import { commercialApi } from "../services/commercialApi";
 
 const Favoritos: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const canUseFavorites = user?.role === "usuario";
   const { favorites, favoriteSet, toggleFavorite, clearFavorites, count } = useFavorites();
   const [searchInput, setSearchInput] = useState("");
   const normalizedSearch = searchInput.trim().toLowerCase();
@@ -22,9 +25,32 @@ const Favoritos: React.FC = () => {
     error,
   } = useQuery({
     queryKey: ["favoritos-lotes", favoriteIds],
-    enabled: favoriteIds.length > 0,
+    enabled: canUseFavorites && favoriteIds.length > 0,
     queryFn: () => commercialApi.getLotesByIds(favoriteIds),
   });
+
+  if (!canUseFavorites) {
+    return (
+      <section className="page">
+        <div className="container">
+          <SectionEmpty
+            title="Inicia sesion para usar favoritos"
+            message="Puedes explorar lotes, ver detalle y contactarnos sin cuenta, pero para guardar favoritos necesitas registrarte."
+            action={(
+              <div className="flex flex-wrap gap-2">
+                <button type="button" className="btn btn-primary text-sm" onClick={() => navigate("/login")}>
+                  Iniciar sesion
+                </button>
+                <button type="button" className="btn btn-outline text-sm" onClick={() => navigate("/register")}>
+                  Crear cuenta
+                </button>
+              </div>
+            )}
+          />
+        </div>
+      </section>
+    );
+  }
 
   const visibleLotes = useMemo(() => {
     const base = lotes.filter((lote) => favoriteSet.has(String(lote.id)));
