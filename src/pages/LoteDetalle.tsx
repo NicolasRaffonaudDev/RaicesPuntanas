@@ -4,14 +4,11 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import ContactModal from "../components/ContactModal";
 import { SectionEmpty, SectionError, SectionLoading } from "../components/Feedback";
 import MapView from "../components/MapView/MapView";
+import { buildLoteMailtoUrl, buildLoteWhatsAppUrl, siteConfig } from "../config/siteConfig";
 import { useAuth } from "../context/useAuth";
 import { commercialApi } from "../services/commercialApi";
 import { hasPermission } from "../utils/permissions";
 import { getPrimaryLoteImage, LOTE_IMAGE_FALLBACK_SRC, resolveLoteImageUrl } from "../utils/resolveLoteImageUrl";
-
-const WHATSAPP_URL = "https://wa.me/5490000000000";
-const CONTACT_EMAIL = "ventas@raicespuntanas.com";
-const INSTAGRAM_URL = "https://instagram.com/raicespuntanas";
 
 const LoteDetalle: React.FC = () => {
   const navigate = useNavigate();
@@ -44,6 +41,8 @@ const LoteDetalle: React.FC = () => {
     if (!lote) return false;
     return Number.isFinite(Number(lote.lat)) && Number.isFinite(Number(lote.lng));
   }, [lote]);
+  const whatsappUrl = useMemo(() => buildLoteWhatsAppUrl(lote), [lote]);
+  const mailtoUrl = useMemo(() => buildLoteMailtoUrl(lote), [lote]);
   const canEditLotes = hasPermission(user?.role, "lotes.write");
   const galleryImages = useMemo(() => {
     if (!lote) return [];
@@ -194,7 +193,7 @@ const LoteDetalle: React.FC = () => {
                   <p className="text-xs font-medium text-[var(--color-text-muted)]">Contacto rapido</p>
                   <div className="grid grid-cols-3 gap-2">
                     <a
-                      href={WHATSAPP_URL}
+                      href={whatsappUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label="Contactar por WhatsApp"
@@ -204,7 +203,7 @@ const LoteDetalle: React.FC = () => {
                       WhatsApp
                     </a>
                     <a
-                      href={`mailto:${CONTACT_EMAIL}`}
+                      href={mailtoUrl}
                       aria-label="Contactar por Email"
                       className="rounded-xl border border-white/10 bg-black/20 px-2 py-2 text-center text-xs text-[var(--color-text-muted)] transition duration-200 hover:-translate-y-0.5 hover:border-white/25 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
                     >
@@ -212,7 +211,7 @@ const LoteDetalle: React.FC = () => {
                       Email
                     </a>
                     <a
-                      href={INSTAGRAM_URL}
+                      href={siteConfig.instagramUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label="Ver Instagram"
@@ -268,7 +267,7 @@ const LoteDetalle: React.FC = () => {
                 <div className="space-y-3 rounded-xl border border-white/10 bg-black/20 p-4">
                   <div>
                     <p className="text-xs uppercase tracking-[0.14em] text-[var(--color-text-muted)]">Direccion</p>
-                    <p className="mt-1 text-sm text-white">{lote.address || "Sin direccion disponible"}</p>
+                    <p className="mt-1 text-sm text-white">{lote.address || siteConfig.businessLocationLabel}</p>
                   </div>
                   {hasValidCoords && (
                     <div>

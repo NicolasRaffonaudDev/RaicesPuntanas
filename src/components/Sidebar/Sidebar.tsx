@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { getSidebarSections } from "../../config/navigation";
+import { siteConfig } from "../../config/siteConfig";
 import { useAuth } from "../../context/useAuth";
 
 const Sidebar: React.FC = () => {
@@ -39,7 +40,7 @@ const Sidebar: React.FC = () => {
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--color-primary)]">Portal</p>
-            <p className="text-lg font-semibold text-white">Raices Puntanas</p>
+            <p className="text-lg font-semibold text-white">{siteConfig.brandName}</p>
           </div>
           <button
             type="button"
@@ -62,7 +63,7 @@ const Sidebar: React.FC = () => {
               </div>
               <div className="min-w-0">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--color-primary)]">Portal</p>
-                <h1 className="truncate text-xl font-semibold text-white">Raices Puntanas</h1>
+                <h1 className="truncate text-xl font-semibold text-white">{siteConfig.brandName}</h1>
               </div>
             </div>
             <div className="mt-4 rounded-[1rem] border border-[rgba(255,255,255,0.06)] bg-[rgba(0,0,0,0.28)] px-3 py-3">

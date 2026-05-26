@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { buildLoteMailtoUrl, buildLoteWhatsAppUrl, siteConfig } from "../config/siteConfig";
 import { useAuth } from "../context/useAuth";
 import { commercialApi } from "../services/commercialApi";
 
@@ -79,10 +80,26 @@ const Contact: React.FC = () => {
     <section className="page">
       <div className="container">
         <form onSubmit={handleSubmit} className="card mx-auto max-w-xl space-y-3 p-5">
-          <h1 className="text-2xl font-bold text-[var(--color-primary)]">Contacto</h1>
+          <h1 className="text-2xl font-bold text-[var(--color-primary)]">Contacto {siteConfig.brandName}</h1>
           <p className="text-sm text-[var(--color-text-muted)]">
             {user ? `Sesion activa: ${user.name} (${user.role})` : "Inicia sesion para enviar una consulta."}
           </p>
+          {!user && (
+            <div className="rounded border border-white/10 bg-black/30 p-3 text-sm text-[var(--color-text-muted)]">
+              <p className="font-medium text-white">Canales directos</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <a className="btn btn-outline text-xs" href={buildLoteWhatsAppUrl(null)} target="_blank" rel="noopener noreferrer">
+                  WhatsApp
+                </a>
+                <a className="btn btn-outline text-xs" href={buildLoteMailtoUrl(null)}>
+                  Email
+                </a>
+                <a className="btn btn-outline text-xs" href={siteConfig.instagramUrl} target="_blank" rel="noopener noreferrer">
+                  Instagram
+                </a>
+              </div>
+            </div>
+          )}
 
           {!canSend && (
             <p className="rounded border border-amber-700 bg-amber-950/30 p-2 text-sm text-amber-300">
@@ -112,7 +129,7 @@ const Contact: React.FC = () => {
             name="mensaje"
             value={formData.mensaje}
             onChange={handleChange}
-            placeholder="Mensaje"
+            placeholder={siteConfig.defaultContactMessage}
             className="field h-28"
           />
           {errors.mensaje && <p className="text-sm text-red-400">{errors.mensaje}</p>}

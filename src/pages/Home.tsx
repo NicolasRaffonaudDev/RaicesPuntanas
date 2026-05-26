@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { SectionEmpty, SectionError, SectionLoading } from "../components/Feedback";
+import { siteConfig } from "../config/siteConfig";
 import { useAuth } from "../context/useAuth";
 import { commercialApi } from "../services/commercialApi";
 import { resolvePrimaryLoteImageUrl } from "../utils/resolveLoteImageUrl";
@@ -49,7 +50,7 @@ const Home: React.FC = () => {
                   <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-primary)]">
                     Vista operativa
                   </p>
-                  <h1 className="text-3xl font-bold leading-tight sm:text-5xl">Raices Puntanas</h1>
+                  <h1 className="text-3xl font-bold leading-tight sm:text-5xl">{siteConfig.brandName}</h1>
                   <p className="max-w-2xl text-base text-[var(--color-text-muted)] sm:text-lg">
                     Estas viendo el sitio como administrador. Accede al panel para gestionar lotes, consultas y operacion comercial.
                   </p>
@@ -65,9 +66,9 @@ const Home: React.FC = () => {
               ) : (
                 <>
                   <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-primary)]">
-                    Tierra, inversion y futuro
+                    {siteConfig.brandSubtitle}
                   </p>
-                  <h1 className="text-3xl font-bold leading-tight sm:text-5xl">Raices Puntanas</h1>
+                  <h1 className="text-3xl font-bold leading-tight sm:text-5xl">{siteConfig.brandName}</h1>
                   <p className="max-w-2xl text-base text-[var(--color-text-muted)] sm:text-lg">
                     Descubri lotes seleccionados en ubicaciones estrategicas, con asesoramiento cercano y una experiencia clara para tomar decisiones con confianza.
                   </p>

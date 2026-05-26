@@ -798,3 +798,12 @@ Pasos en Railway:
 - Mejora de jerarquia visual, spacing y densidad de contenido en cards, CTAs y secciones principales.
 - Microinteracciones moderadas (hover/focus/transiciones) para feedback mas claro sin sobrecargar la experiencia.
 - Ajustes mobile-first para mejorar tactilidad y lectura en pantallas chicas sin romper desktop.
+
+### ?? Configuracion comercial del sitio
+- Los datos comerciales del frontend ahora se centralizan en `src/config/siteConfig.ts`.
+- Desde ese archivo se controlan: nombre de marca, subtitulo, email, WhatsApp, Instagram, mensaje por defecto y etiqueta de ubicacion.
+- Home, detalle de lote, navbar/sidebar, contacto y modal reutilizan esta fuente unica.
+- Tambien se incluyen helpers para generar links dinamicos:
+  - WhatsApp por lote con mensaje prearmado
+  - `mailto` por lote con subject/body y link directo al detalle
+- Esta base permite migrar luego a configuracion editable desde admin sin reescribir componentes.

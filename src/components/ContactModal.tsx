@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { buildDefaultLoteContactMessage } from "../config/siteConfig";
 import type { Lote } from "../types/interfaces";
 import { commercialApi } from "../services/commercialApi";
 
@@ -7,12 +8,6 @@ interface ContactModalProps {
   lote: Lote | null;
   onClose: () => void;
 }
-
-const buildDefaultMessage = (lote: Lote | null) => {
-  if (!lote) return "";
-  const address = lote.address ? ` (${lote.address})` : "";
-  return `Hola, quiero consultar por el lote ${lote.title}${address}.`;
-};
 
 const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
@@ -26,7 +21,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, lote, onClose }) =>
   const [submitError, setSubmitError] = useState("");
   const nameRef = useRef<HTMLInputElement | null>(null);
 
-  const defaultMessage = useMemo(() => buildDefaultMessage(lote), [lote]);
+  const defaultMessage = useMemo(() => buildDefaultLoteContactMessage(lote), [lote]);
 
   useEffect(() => {
     if (!isOpen) return;

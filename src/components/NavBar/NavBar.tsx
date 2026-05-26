@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import { Link } from "react-router-dom";
+import { siteConfig } from "../../config/siteConfig";
 import { useAuth } from "../../context/useAuth";
 import { preloaders } from "../../routes/lazy-pages";
 import { commercialApi } from "../../services/commercialApi";
@@ -94,7 +95,7 @@ const NavBar: React.FC = () => {
             RP
           </span>
           <span className="space-y-0.5">
-            <span className="block text-lg font-semibold tracking-[0.04em] text-white">Raices Puntanas</span>
+            <span className="block text-lg font-semibold tracking-[0.04em] text-white">{siteConfig.brandName}</span>
             <span className="block text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--color-text-muted)] transition group-hover:text-[var(--color-primary)]">
               Panel comercial
             </span>

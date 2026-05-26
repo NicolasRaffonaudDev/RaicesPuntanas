@@ -873,3 +873,22 @@ Formato sugerido por entrada:
   - `npm run build` OK.
 - Siguiente paso:
   - Medir conversion en CTA principal y ajustar microcopy/orden de bloques segun comportamiento real.
+## 2026-05-26 - Configuracion comercial centralizada del sitio
+- Scope: `feat(config)` + `frontend`
+- Cambios:
+  - Se crea `src/config/siteConfig.ts` como fuente unica de configuracion comercial.
+  - Se centralizan: marca, subtitulo, email, WhatsApp, Instagram, mensaje por defecto y ubicacion comercial.
+  - Se agregan helpers para links dinamicos:
+    - WhatsApp con mensaje por lote
+    - `mailto` con asunto/cuerpo y URL del lote
+  - Home, LoteDetalle, Contact, ContactModal, NavBar y Sidebar dejan de usar datos hardcodeados.
+- Motivo tecnico:
+  - Reducir dispersion de datos comerciales y evitar ediciones manuales en multiples componentes.
+- Impacto en cliente:
+  - Ajustar datos de contacto e identidad base ahora requiere un solo archivo de configuracion.
+- Riesgos:
+  - Bajos; sin cambios backend/DB ni contratos API.
+- Validacion:
+  - `npm run build` OK.
+- Siguiente paso:
+  - Conectar esta configuracion a un modulo admin editable cuando se priorice settings persistentes.
