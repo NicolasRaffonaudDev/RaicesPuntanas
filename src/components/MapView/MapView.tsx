@@ -6,7 +6,7 @@ interface MapViewProps {
   desktopHeightClass?: string;
 }
 
-const MapView: React.FC<MapViewProps> = ({ lote, desktopHeightClass = "md:h-56" }) => {
+const MapView: React.FC<MapViewProps> = ({ lote, desktopHeightClass = "md:h-60" }) => {
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
   const mapsKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
   const hasMapsKey = Boolean(mapsKey);
@@ -48,15 +48,15 @@ const MapView: React.FC<MapViewProps> = ({ lote, desktopHeightClass = "md:h-56" 
   };
 
   const renderMobileLocationButton = () => (
-    <div className="border-t border-[var(--color-border)] p-3 md:hidden">
-      <button
-        type="button"
-        onClick={openGoogleMaps}
-        className="btn btn-outline w-full text-sm"
-      >
-        Ver ubicacion
-      </button>
-    </div>
+      <div className="border-t border-[var(--color-border)] p-3 md:hidden">
+        <button
+          type="button"
+          onClick={openGoogleMaps}
+          className="btn btn-outline w-full text-sm"
+        >
+          Ver ubicacion
+        </button>
+      </div>
   );
 
   if (!hasMapsKey) {
@@ -102,7 +102,7 @@ const MapView: React.FC<MapViewProps> = ({ lote, desktopHeightClass = "md:h-56" 
     <div className="w-full border-t border-[var(--color-border)] bg-[var(--color-surface-alt)]">
       {renderMobileLocationButton()}
       <div
-        className={`group relative hidden h-56 w-full overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3 md:block ${desktopHeightClass}`}
+        className={`group relative hidden h-60 w-full overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3 shadow-[0_14px_26px_rgba(0,0,0,0.28)] md:block ${desktopHeightClass}`}
         role="button"
         tabIndex={0}
         onClick={openGoogleMaps}

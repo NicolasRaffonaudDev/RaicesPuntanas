@@ -792,3 +792,9 @@ Pasos en Railway:
   - admin/empleado: vista operativa con acceso directo a gestion
 - Favoritos quedan orientados a usuario autenticado comun (`usuario`).
 - Visitantes y perfiles operativos reciben una invitacion clara a iniciar sesion/crear cuenta para usar favoritos.
+
+### ? Pulido visual premium
+- Se aplico una pasada de refinamiento UI en Home, catalogo y detalle de lote para elevar percepcion de producto inmobiliario.
+- Mejora de jerarquia visual, spacing y densidad de contenido en cards, CTAs y secciones principales.
+- Microinteracciones moderadas (hover/focus/transiciones) para feedback mas claro sin sobrecargar la experiencia.
+- Ajustes mobile-first para mejorar tactilidad y lectura en pantallas chicas sin romper desktop.

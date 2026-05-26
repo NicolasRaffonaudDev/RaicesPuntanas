@@ -70,7 +70,7 @@ const LoteDetalle: React.FC = () => {
 
   return (
     <section className="page">
-      <div className="container space-y-5">
+      <div className="container space-y-6">
         {isLoading && (
           <SectionLoading
             title="Cargando detalle del lote"
@@ -117,12 +117,12 @@ const LoteDetalle: React.FC = () => {
             </div>
 
             <section className="grid gap-5 lg:grid-cols-[1.45fr_1fr]">
-              <article className="card overflow-hidden border border-white/10">
+              <article className="card overflow-hidden border border-white/10 shadow-[0_22px_42px_rgba(0,0,0,0.35)]">
                 <div className="relative overflow-hidden rounded-xl">
                   <img
                     src={imageSrc}
                     alt={lote.title}
-                    className="h-64 w-full object-cover md:h-[380px]"
+                    className="h-64 w-full object-cover transition duration-300 md:h-[380px]"
                     loading="eager"
                     onError={() => {
                       if (imageSrc !== LOTE_IMAGE_FALLBACK_SRC) {
@@ -153,10 +153,10 @@ const LoteDetalle: React.FC = () => {
                         <button
                           key={`${image}-${index}`}
                           type="button"
-                          className={`overflow-hidden rounded-lg border transition ${
+                          className={`overflow-hidden rounded-lg border transition duration-200 ${
                             image === imageSrc
                               ? "border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]/50"
-                              : "border-white/10 hover:border-white/30"
+                              : "border-white/10 hover:border-white/30 hover:-translate-y-0.5"
                           }`}
                           onClick={() => setImageSrc(image)}
                         >
@@ -168,7 +168,7 @@ const LoteDetalle: React.FC = () => {
                 )}
               </article>
 
-              <aside className="card flex h-fit flex-col gap-4 p-5">
+              <aside className="card flex h-fit flex-col gap-4 p-5 shadow-[0_16px_30px_rgba(0,0,0,0.26)]">
                 <div>
                   <p className="text-xs uppercase tracking-[0.16em] text-[var(--color-text-muted)]">Precio</p>
                   <p className="mt-2 text-3xl font-bold text-[var(--color-primary)]">${lote.price.toLocaleString("es-AR")} USD</p>
@@ -186,7 +186,7 @@ const LoteDetalle: React.FC = () => {
                   </div>
                 </div>
 
-                <button type="button" className="btn btn-primary w-full" onClick={() => setIsContactOpen(true)}>
+                <button type="button" className="btn btn-primary w-full text-sm sm:text-base" onClick={() => setIsContactOpen(true)}>
                   Consultar por este lote
                 </button>
 
@@ -198,7 +198,7 @@ const LoteDetalle: React.FC = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label="Contactar por WhatsApp"
-                      className="rounded-lg border border-white/10 bg-black/20 px-2 py-2 text-center text-xs text-[var(--color-text-muted)] transition hover:border-white/25 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
+                      className="rounded-xl border border-white/10 bg-black/20 px-2 py-2 text-center text-xs text-[var(--color-text-muted)] transition duration-200 hover:-translate-y-0.5 hover:border-white/25 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
                     >
                       <span className="mx-auto mb-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/20 text-[10px] font-bold text-emerald-300">W</span>
                       WhatsApp
@@ -206,7 +206,7 @@ const LoteDetalle: React.FC = () => {
                     <a
                       href={`mailto:${CONTACT_EMAIL}`}
                       aria-label="Contactar por Email"
-                      className="rounded-lg border border-white/10 bg-black/20 px-2 py-2 text-center text-xs text-[var(--color-text-muted)] transition hover:border-white/25 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
+                      className="rounded-xl border border-white/10 bg-black/20 px-2 py-2 text-center text-xs text-[var(--color-text-muted)] transition duration-200 hover:-translate-y-0.5 hover:border-white/25 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
                     >
                       <span className="mx-auto mb-1 flex h-5 w-5 items-center justify-center rounded-full bg-sky-500/20 text-[10px] font-bold text-sky-300">@</span>
                       Email
@@ -216,7 +216,7 @@ const LoteDetalle: React.FC = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label="Ver Instagram"
-                      className="rounded-lg border border-white/10 bg-black/20 px-2 py-2 text-center text-xs text-[var(--color-text-muted)] transition hover:border-white/25 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
+                      className="rounded-xl border border-white/10 bg-black/20 px-2 py-2 text-center text-xs text-[var(--color-text-muted)] transition duration-200 hover:-translate-y-0.5 hover:border-white/25 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
                     >
                       <span className="mx-auto mb-1 flex h-5 w-5 items-center justify-center rounded-full bg-pink-500/20 text-[10px] font-bold text-pink-300">IG</span>
                       Instagram
@@ -230,7 +230,7 @@ const LoteDetalle: React.FC = () => {
               </aside>
             </section>
 
-            <article className="card p-5">
+            <article className="card p-5 sm:p-6">
               <h2 className="text-lg font-semibold text-white">Detalles del lote</h2>
               {lote.description ? (
                 <p className="mt-2 text-sm leading-relaxed text-[var(--color-text-muted)]">{lote.description}</p>
@@ -241,7 +241,7 @@ const LoteDetalle: React.FC = () => {
               )}
             </article>
 
-            <article className="card p-5">
+            <article className="card p-5 sm:p-6">
               <h2 className="text-lg font-semibold text-white">Comodidades</h2>
               {lote.amenities.length > 0 ? (
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -259,7 +259,7 @@ const LoteDetalle: React.FC = () => {
               )}
             </article>
 
-            <article className="card p-5">
+            <article className="card p-5 sm:p-6">
               <h2 className="mb-4 text-lg font-semibold text-white">Ubicacion y entorno</h2>
               <div className="grid gap-4 lg:grid-cols-[1.8fr_1fr]">
                 <div className="overflow-hidden rounded-xl border border-[var(--color-border)]">

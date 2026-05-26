@@ -855,3 +855,21 @@ Formato sugerido por entrada:
   - `npm run build` OK.
 - Siguiente paso:
   - Si se desea, migrar favoritos a backend para sincronizacion multi-dispositivo en un PR separado.
+## 2026-05-26 - Pulido visual premium del catalogo
+- Scope: `feat(ui)` + `frontend`
+- Cambios:
+  - Ajustes globales de UI (radios, sombras, botones, focus y transiciones) para una base visual mas consistente.
+  - Home refinado con mejor jerarquia tipografica, spacing y cards destacadas con presencia mas premium.
+  - LotCard pulida en proporciones, imagen protagonista, badges y microinteracciones suaves.
+  - LoteDetalle refinado en hero, miniaturas, panel lateral de contacto y separacion de secciones.
+  - MapView ajustado con contenedor desktop mas equilibrado y sombra/altura consistentes.
+- Motivo tecnico:
+  - Elevar percepcion de calidad del producto sin tocar arquitectura ni logica de negocio.
+- Impacto en cliente:
+  - Experiencia mas moderna, clara y coherente entre Home, catalogo y detalle.
+- Riesgos:
+  - Bajos; sin cambios de backend ni contratos API.
+- Validacion:
+  - `npm run build` OK.
+- Siguiente paso:
+  - Medir conversion en CTA principal y ajustar microcopy/orden de bloques segun comportamiento real.

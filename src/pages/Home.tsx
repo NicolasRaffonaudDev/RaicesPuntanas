@@ -39,17 +39,17 @@ const Home: React.FC = () => {
 
   return (
     <section className="page">
-      <div className="container space-y-8">
-        <section className="card relative overflow-hidden px-6 py-14 sm:px-10">
+      <div className="container space-y-10">
+        <section className="card relative overflow-hidden px-6 py-12 sm:px-10 sm:py-14">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,215,0,0.22),_transparent_58%)]" />
-          <div className="relative z-10 grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
-            <div className="space-y-5">
+          <div className="relative z-10 grid gap-7 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
+            <div className="space-y-4 sm:space-y-5">
               {isAdminOrEmployee ? (
                 <>
                   <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-primary)]">
                     Vista operativa
                   </p>
-                  <h1 className="text-4xl font-bold sm:text-5xl">Raices Puntanas</h1>
+                  <h1 className="text-3xl font-bold leading-tight sm:text-5xl">Raices Puntanas</h1>
                   <p className="max-w-2xl text-base text-[var(--color-text-muted)] sm:text-lg">
                     Estas viendo el sitio como administrador. Accede al panel para gestionar lotes, consultas y operacion comercial.
                   </p>
@@ -67,12 +67,12 @@ const Home: React.FC = () => {
                   <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-primary)]">
                     Tierra, inversion y futuro
                   </p>
-                  <h1 className="text-4xl font-bold sm:text-5xl">Raices Puntanas</h1>
+                  <h1 className="text-3xl font-bold leading-tight sm:text-5xl">Raices Puntanas</h1>
                   <p className="max-w-2xl text-base text-[var(--color-text-muted)] sm:text-lg">
                     Descubri lotes seleccionados en ubicaciones estrategicas, con asesoramiento cercano y una experiencia clara para tomar decisiones con confianza.
                   </p>
                   <div className="flex flex-wrap gap-3">
-                    <Link className="btn btn-primary" to="/lotes">
+                    <Link className="btn btn-primary min-w-[200px]" to="/lotes">
                       Ver lotes disponibles
                     </Link>
                     <Link className="btn btn-outline" to="/contact">
@@ -92,7 +92,7 @@ const Home: React.FC = () => {
                 </>
               )}
             </div>
-            <div className="rounded-2xl border border-white/10 bg-black/25 p-5 backdrop-blur-sm">
+            <div className="rounded-2xl border border-white/10 bg-black/25 p-5 backdrop-blur-sm shadow-[0_18px_38px_rgba(0,0,0,0.32)]">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-primary)]">Propuesta de valor</p>
               <ul className="mt-4 space-y-3 text-sm text-[var(--color-text-muted)]">
                 <li>Seleccion de lotes con informacion clara y visual.</li>
@@ -103,7 +103,7 @@ const Home: React.FC = () => {
           </div>
         </section>
 
-        <section className="space-y-4">
+        <section className="space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-2xl font-semibold text-white">Lotes destacados</h2>
             <Link className="text-sm font-medium text-[var(--color-primary)] transition hover:opacity-80" to="/lotes">
@@ -144,13 +144,13 @@ const Home: React.FC = () => {
             />
           )}
           {!isFeaturedLoading && !hasFeaturedError && featuredLotes.length > 0 && (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
               {featuredLotes.map((lote) => (
-                <article key={lote.id} className="card overflow-hidden rounded-2xl p-0">
+                <article key={lote.id} className="card group overflow-hidden rounded-2xl p-0 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_20px_36px_rgba(0,0,0,0.36)]">
                   <img
                     src={resolvePrimaryLoteImageUrl(lote)}
                     alt={lote.title}
-                    className="h-44 w-full object-cover"
+                    className="h-48 w-full object-cover transition duration-300 group-hover:scale-[1.02]"
                     loading="lazy"
                   />
                   <div className="space-y-3 p-4">
@@ -174,19 +174,19 @@ const Home: React.FC = () => {
         </section>
 
         <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <article className="card space-y-2 p-5">
+          <article className="card space-y-2 p-5 transition duration-200 hover:border-white/20">
             <h3 className="text-base font-semibold text-white">Ubicaciones seleccionadas</h3>
             <p className="text-sm text-[var(--color-text-muted)]">
               Opciones en zonas con potencial de crecimiento y buena conectividad.
             </p>
           </article>
-          <article className="card space-y-2 p-5">
+          <article className="card space-y-2 p-5 transition duration-200 hover:border-white/20">
             <h3 className="text-base font-semibold text-white">Asesoramiento personalizado</h3>
             <p className="text-sm text-[var(--color-text-muted)]">
               Te acompanamos en cada decision con informacion clara y seguimiento real.
             </p>
           </article>
-          <article className="card space-y-2 p-5">
+          <article className="card space-y-2 p-5 transition duration-200 hover:border-white/20">
             <h3 className="text-base font-semibold text-white">Gestion clara y segura</h3>
             <p className="text-sm text-[var(--color-text-muted)]">
               Proceso ordenado desde la consulta inicial hasta el cierre comercial.

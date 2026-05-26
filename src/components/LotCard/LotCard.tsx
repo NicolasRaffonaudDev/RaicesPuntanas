@@ -38,7 +38,7 @@ const LotCard: React.FC<LotCardProps> = ({
 
   return (
     <article
-      className="card group relative overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_12px_28px_rgba(0,0,0,0.2)] transition-transform duration-200 md:hover:-translate-y-0.5"
+      className="card group relative overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_14px_30px_rgba(0,0,0,0.28)] transition duration-200 md:hover:-translate-y-0.5 md:hover:shadow-[0_22px_40px_rgba(0,0,0,0.36)]"
       data-testid={`lote-card-${lote.id}`}
       data-price={lote.price}
       data-size={lote.size}
@@ -47,7 +47,7 @@ const LotCard: React.FC<LotCardProps> = ({
         <img
           src={imageSrc}
           alt={lote.title}
-          className="h-52 w-full bg-[var(--color-surface-alt)] object-cover sm:h-56"
+          className="h-48 w-full bg-[var(--color-surface-alt)] object-cover transition duration-300 group-hover:scale-[1.02] sm:h-52"
           loading={prioritizeImage ? "eager" : "lazy"}
           decoding="async"
           fetchPriority={prioritizeImage ? "high" : "auto"}
@@ -95,9 +95,9 @@ const LotCard: React.FC<LotCardProps> = ({
           </svg>
         </button>
       )}
-      <div className="space-y-3 p-3 sm:p-4">
+      <div className="space-y-3 p-3.5 sm:p-4">
         <div className="space-y-1">
-          <p className="text-lg font-semibold text-[var(--color-primary)]">${lote.price.toLocaleString("es-AR")} USD</p>
+          <p className="text-xl font-semibold text-[var(--color-primary)]">${lote.price.toLocaleString("es-AR")} USD</p>
           <h2 className="line-clamp-1 text-base font-semibold text-white sm:text-lg">
             {highlightText(lote.title, highlightQuery)}
           </h2>
@@ -107,7 +107,7 @@ const LotCard: React.FC<LotCardProps> = ({
             {highlightText(lote.address, highlightQuery)}
           </p>
         )}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 pt-0.5">
           {visibleAmenities.map((amenity) => (
             <span
               key={amenity.id}
