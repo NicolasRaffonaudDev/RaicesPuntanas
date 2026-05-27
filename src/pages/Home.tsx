@@ -148,12 +148,24 @@ const Home: React.FC = () => {
             <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
               {featuredLotes.map((lote) => (
                 <article key={lote.id} className="card group overflow-hidden rounded-2xl p-0 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_20px_36px_rgba(0,0,0,0.36)]">
-                  <img
-                    src={resolvePrimaryLoteImageUrl(lote)}
-                    alt={lote.title}
-                    className="h-48 w-full object-cover transition duration-300 group-hover:scale-[1.02]"
-                    loading="lazy"
-                  />
+                  <div className="relative">
+                    <img
+                      src={resolvePrimaryLoteImageUrl(lote)}
+                      alt={lote.title}
+                      className="h-48 w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+                      loading="lazy"
+                    />
+                    <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+                      {lote.destacado && (
+                        <span className="rounded-full border border-amber-300/40 bg-amber-500/20 px-2.5 py-1 text-[11px] font-semibold text-amber-100">
+                          ⭐ Destacado
+                        </span>
+                      )}
+                      <span className="rounded-full border border-emerald-300/40 bg-emerald-500/20 px-2.5 py-1 text-[11px] font-semibold text-emerald-100">
+                        {`${lote.size} m2`}
+                      </span>
+                    </div>
+                  </div>
                   <div className="space-y-3 p-4">
                     <p className="text-lg font-semibold text-[var(--color-primary)]">${lote.price.toLocaleString("es-AR")} USD</p>
                     <h3 className="line-clamp-1 text-base font-semibold text-white">{lote.title}</h3>
@@ -161,8 +173,8 @@ const Home: React.FC = () => {
                       {lote.address?.trim() || "Ubicacion a confirmar por asesor"}
                     </p>
                     <div className="flex items-center justify-between text-xs text-[var(--color-text-muted)]">
-                      <span>{lote.size} m2</span>
                       <span>{lote.amenities.length} comodidades</span>
+                      {lote.imagenes && lote.imagenes.length > 1 ? <span>{`Fotos: ${lote.imagenes.length}`}</span> : <span>Listo para visitar</span>}
                     </div>
                     <Link className="btn btn-primary w-full text-sm" to={`/lotes/${lote.id}`}>
                       Ver detalle

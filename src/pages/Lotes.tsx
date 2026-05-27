@@ -833,11 +833,6 @@ const Lotes: React.FC = () => {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {lotes.map((lote, index) => (
               <div key={lote.id} className="space-y-2">
-                {canManageLotes && lote.destacado ? (
-                  <span className="inline-flex rounded-full border border-amber-300/30 bg-amber-400/10 px-2.5 py-1 text-[11px] font-semibold text-amber-200">
-                    Destacado
-                  </span>
-                ) : null}
                 <LotCard
                   lote={lote}
                   prioritizeImage={index < 2}

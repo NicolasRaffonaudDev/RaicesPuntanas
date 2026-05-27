@@ -59,6 +59,11 @@ const LotCard: React.FC<LotCardProps> = ({
         />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
         <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+          {lote.destacado && (
+            <span className="rounded-full border border-amber-300/40 bg-amber-500/20 px-2.5 py-1 text-[11px] font-semibold text-amber-100">
+              ⭐ Destacado
+            </span>
+          )}
           {totalPhotos > 1 && (
             <span className="rounded-full border border-white/25 bg-black/55 px-2.5 py-1 text-[11px] font-medium text-white">
               {`Fotos: ${totalPhotos}`}

@@ -892,3 +892,20 @@ Formato sugerido por entrada:
   - `npm run build` OK.
 - Siguiente paso:
   - Conectar esta configuracion a un modulo admin editable cuando se priorice settings persistentes.
+## 2026-05-27 - Badge destacado en card + auditoria de placeholders
+- Scope: `feat(ui)` + `auditoria ux`
+- Cambios:
+  - El badge `? Destacado` pasa al overlay de imagen en `LotCard`, junto a metros/fotos, evitando que quede fuera del cuerpo visual.
+  - Las cards destacadas del Home replican el badge en la zona de imagen para mantener consistencia.
+  - Se elimina el badge externo en listado de lotes para evitar duplicacion visual.
+  - Se realiza auditoria funcional de modulos legacy/placeholder del backoffice para definir roadmap de visibilidad y priorizacion.
+- Motivo tecnico:
+  - Mejorar coherencia visual premium y reducir ruido de navegacion con evidencia real del estado de cada modulo.
+- Impacto en cliente:
+  - Catalogo mas claro (destacado dentro de imagen) y base de decisiones mas firme sobre que mostrar en sidebar.
+- Riesgos:
+  - Bajos; sin cambios backend, sin cambios de rutas ni permisos.
+- Validacion:
+  - `npm run build` OK.
+- Siguiente paso:
+  - Ejecutar PR especifico de limpieza de sidebar segun recomendaciones de auditoria.

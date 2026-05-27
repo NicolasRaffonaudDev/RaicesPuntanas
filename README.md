@@ -807,3 +807,8 @@ Pasos en Railway:
   - WhatsApp por lote con mensaje prearmado
   - `mailto` por lote con subject/body y link directo al detalle
 - Esta base permite migrar luego a configuracion editable desde admin sin reescribir componentes.
+
+### ?? Auditoria de modulos del backoffice
+- Se audito el estado real de modulos legacy y placeholders visibles en sidebar (`Archivo legacy`, `Auditoria`, `Mi perfil`, `Seguridad`, `Preferencias`, `Identidad de marca`, `Editor del sitio`).
+- El objetivo fue definir que mantener visible, que renombrar y que mover a backlog sin romper rutas actuales.
+- Esta auditoria deja recomendaciones priorizadas para los proximos PRs sin aplicar cambios destructivos en esta etapa.
