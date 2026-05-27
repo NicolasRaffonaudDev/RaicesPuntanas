@@ -36,6 +36,21 @@ export const getSidebarSections = (role: UserRole | undefined): NavigationSectio
       sections.push({ id: "comercial", label: "Comercial", items: comercial });
     }
 
+    
+    const operaciones: NavigationItem[] = [];
+    if (hasPermission(role, "productos.read")) {
+      operaciones.push({ id: "productos", label: "Productos", to: "/gestion?tab=productos" });
+    }
+    if (hasPermission(role, "ventas.read")) {
+      operaciones.push({ id: "ventas", label: "Ventas", to: "/gestion?tab=ventas" });
+    }
+    if (hasPermission(role, "inventario.read")) {
+      operaciones.push({ id: "inventario", label: "Inventario", to: "/gestion?tab=inventario" });
+    }
+    if (operaciones.length > 0) {
+      sections.push({ id: "operaciones", label: "Operaciones", items: operaciones });
+    }
+    
     if (hasPermission(role, "consultas.manage")) {
       sections.push({
         id: "crm",
@@ -46,21 +61,7 @@ export const getSidebarSections = (role: UserRole | undefined): NavigationSectio
         ],
       });
     }
-
-    const operaciones: NavigationItem[] = [];
-    if (hasPermission(role, "ventas.read")) {
-      operaciones.push({ id: "ventas", label: "Ventas", to: "/gestion?tab=ventas" });
-    }
-    if (hasPermission(role, "productos.read")) {
-      operaciones.push({ id: "productos", label: "Productos", to: "/gestion?tab=productos" });
-    }
-    if (hasPermission(role, "inventario.read")) {
-      operaciones.push({ id: "inventario", label: "Inventario", to: "/gestion?tab=inventario" });
-    }
-    if (operaciones.length > 0) {
-      sections.push({ id: "operaciones", label: "Operaciones", items: operaciones });
-    }
-
+    
     if (role === "admin") {
       const administracion: NavigationItem[] = [];
       if (hasPermission(role, "users.read")) {

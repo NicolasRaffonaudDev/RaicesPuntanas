@@ -1,0 +1,87 @@
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e5]:
+      - link "RP Raices Puntanas Panel comercial" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e7]: RP
+        - generic [ref=e8]:
+          - generic [ref=e9]: Raices Puntanas
+          - generic [ref=e10]: Panel comercial
+      - generic [ref=e11]:
+        - link "Lotes" [ref=e12] [cursor=pointer]:
+          - /url: /lotes
+        - link "Favoritos" [ref=e13] [cursor=pointer]:
+          - /url: /favoritos
+        - link "Contacto" [ref=e14] [cursor=pointer]:
+          - /url: /contact
+        - link "Ingresar" [ref=e15] [cursor=pointer]:
+          - /url: /login
+        - link "Registrarse" [ref=e16] [cursor=pointer]:
+          - /url: /register
+  - generic [ref=e19]:
+    - link "Volver a lotes" [ref=e21] [cursor=pointer]:
+      - /url: /lotes
+      - generic [ref=e22]: <-
+      - text: Volver a lotes
+    - generic [ref=e23]:
+      - article [ref=e24]:
+        - generic [ref=e25]:
+          - img "Lote Costero en Santa Teresita" [ref=e26]
+          - generic [ref=e27]:
+            - generic [ref=e28]: Disponible
+            - generic [ref=e29]: 2 fotos
+          - generic [ref=e30]:
+            - heading "Lote Costero en Santa Teresita" [level=1] [ref=e31]
+            - paragraph [ref=e32]: Merlo, San Luis, Argentina
+        - generic [ref=e34]:
+          - button "Miniatura 1" [ref=e35]:
+            - img "Miniatura 1" [ref=e36]
+          - button "Miniatura 2" [ref=e37]:
+            - img "Miniatura 2" [ref=e38]
+      - complementary [ref=e39]:
+        - generic [ref=e40]:
+          - paragraph [ref=e41]: Precio
+          - paragraph [ref=e42]: $50.000 USD
+          - generic [ref=e43]: Disponible
+        - generic [ref=e45]:
+          - generic [ref=e46]: Superficie
+          - strong [ref=e47]: 500 m2
+        - button "Consultar por este lote" [ref=e48] [cursor=pointer]
+        - generic [ref=e49]:
+          - paragraph [ref=e50]: Contacto rapido
+          - generic [ref=e51]:
+            - link "Contactar por WhatsApp" [ref=e52] [cursor=pointer]:
+              - /url: https://wa.me/5490000000000
+              - generic [ref=e53]: W
+              - text: WhatsApp
+            - link "Contactar por Email" [ref=e54] [cursor=pointer]:
+              - /url: mailto:ventas@raicespuntanas.com
+              - generic [ref=e55]: "@"
+              - text: Email
+            - link "Ver Instagram" [ref=e56] [cursor=pointer]:
+              - /url: https://instagram.com/raicespuntanas
+              - generic [ref=e57]: IG
+              - text: Instagram
+        - paragraph [ref=e58]: Recibe atencion comercial personalizada y coordinamos una visita.
+    - article [ref=e59]:
+      - heading "Detalles del lote" [level=2] [ref=e60]
+      - paragraph [ref=e61]: Proximamente agregaremos mas informacion detallada de este lote.
+    - article [ref=e62]:
+      - heading "Comodidades" [level=2] [ref=e63]
+      - generic [ref=e64]:
+        - generic [ref=e65]: Cerca playa
+        - generic [ref=e66]: Parrilla
+        - generic [ref=e67]: Electricidad
+    - article [ref=e68]:
+      - heading "Ubicacion y entorno" [level=2] [ref=e69]
+      - generic [ref=e73]:
+        - generic [ref=e74]:
+          - paragraph [ref=e75]: Direccion
+          - paragraph [ref=e76]: Merlo, San Luis, Argentina
+        - generic [ref=e77]:
+          - paragraph [ref=e78]: Coordenadas
+          - paragraph [ref=e79]: "-34.603700, -58.381600"
+        - link "Abrir ubicacion en Google Maps" [ref=e80] [cursor=pointer]:
+          - /url: https://www.google.com/maps?q=-34.6037,-58.3816
+          - text: Abrir en Google Maps
+        - paragraph [ref=e81]: Ubicacion referencial del lote. Coordina una visita para recibir indicaciones precisas y asesoramiento personalizado.
