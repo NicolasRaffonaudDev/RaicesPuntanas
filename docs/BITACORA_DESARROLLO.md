@@ -939,3 +939,17 @@ Formato sugerido por entrada:
   - `node --check` OK en `env.js`, `multer.js`, `app.js`, `server.js`.
 - Siguiente paso en Railway:
   - redeploy backend, revisar logs de startup y validar `/health` + `/api/auth/login`.
+## 2026-05-28 - Estabilizacion de arranque backend en Railway (502 persistente)
+- Scope: `fix(deploy)` + `backend`
+- Evidencia:
+  - `/health`, `/api/lotes` (backend directo y via frontend proxy) devolvian `502 Application failed to respond`.
+  - Esto indica proceso backend caido/no alcanzable, no problema de UI.
+- Causa operativa probable:
+  - El script de arranque cortaba el proceso con `set -e` si fallaba `prisma migrate deploy` o `db:seed`.
+- Fix aplicado:
+  - `prisma migrate deploy` ahora tiene reintentos configurables (`MIGRATE_MAX_ATTEMPTS`, `MIGRATE_RETRY_SLEEP_SECONDS`).
+  - El seed en contenedor pasa a modo no bloqueante para evitar downtime por datos/duplicados.
+- Resultado esperado:
+  - Backend levanta aun con fallos transitorios de DB o seed, manteniendo `/health` disponible.
+- Pendiente de verificacion en Railway:
+  - redeploy y confirmar 200 en `/health`, `/api/lotes`, login y telemetry/web-vitals.

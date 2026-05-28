@@ -822,3 +822,5 @@ Pasos en Railway:
 - El backend ahora acepta `FRONTEND_ORIGIN` con multiples dominios separados por coma (ej: `https://frontend.app,https://staging.app`).
 - Se agregaron defaults operativos para variables no criticas de auth (`ACCESS_TOKEN_EXPIRES_IN`, `REFRESH_TOKEN_EXPIRES_DAYS`, `MAX_LOGIN_ATTEMPTS`, `LOCKOUT_MINUTES`).
 - Si `UPLOADS_DIR` falla por permisos/mount, el servidor aplica fallback a `backend/uploads` para evitar crash de arranque.
+- Se robustecio el arranque del backend en contenedor: `prisma migrate deploy` ahora reintenta ante fallos transitorios de red/DB.
+- `RUN_DB_SEED=true` ya no tumba el servicio si el seed falla; se registra warning y el API igualmente levanta.
