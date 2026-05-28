@@ -44,6 +44,7 @@ const Login: React.FC = () => {
       <div className="container">
         <form onSubmit={handleSubmit} className="card mx-auto max-w-md space-y-4 p-5">
           <h1 className="text-2xl font-bold text-[var(--color-primary)]">Ingresar</h1>
+          <p className="text-sm text-[var(--color-text-muted)]">Accede para guardar favoritos, gestionar consultas y seguir tu actividad.</p>
           <input
             className="field"
             type="email"
@@ -65,6 +66,12 @@ const Login: React.FC = () => {
           <button type="submit" className="btn btn-primary w-full" disabled={isSubmitting}>
             {isSubmitting ? "Validando..." : "Entrar"}
           </button>
+          <p className="text-center text-sm text-[var(--color-text-muted)]">
+            No tenes cuenta?{" "}
+            <Link to="/register" className="font-medium text-[var(--color-primary)] hover:underline">
+              Crear cuenta
+            </Link>
+          </p>
           <p className="text-center text-xs text-[var(--color-text-muted)]">
             Si no existe admin, usa <Link to="/setup-admin" className="text-[var(--color-primary)]">setup admin</Link>.
           </p>

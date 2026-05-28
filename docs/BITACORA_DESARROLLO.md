@@ -909,3 +909,21 @@ Formato sugerido por entrada:
   - `npm run build` OK.
 - Siguiente paso:
   - Ejecutar PR especifico de limpieza de sidebar segun recomendaciones de auditoria.
+## 2026-05-28 - Navbar, login y footer profesional
+- Scope: `feat(ui)` + `frontend`
+- Cambios:
+  - `NavBar` publica con mejor presencia visual (sticky, spacing y transiciones suaves).
+  - Favoritos en header pasan a ser contextuales: solo visibles para rol `usuario` autenticado.
+  - Login y Register incorporan enlaces cruzados (`Crear cuenta` / `Iniciar sesion`) y mejor jerarquia de copy.
+  - Se agrega `PublicFooter` reutilizable con marca, navegacion, canales de contacto y datos comerciales desde `siteConfig`.
+  - `App` integra footer solo en layout publico, manteniendo backoffice sin ruido visual adicional.
+- Motivo tecnico:
+  - Mejorar percepcion de producto terminado y reducir friccion en el flujo publico de autenticacion/contacto.
+- Impacto en cliente:
+  - Sitio mas coherente entre header-body-footer y mejor experiencia de acceso para usuarios nuevos.
+- Riesgos:
+  - Bajos; sin cambios backend, sin cambios de rutas ni de auth real.
+- Validacion:
+  - `npm run build` OK.
+- Siguiente paso:
+  - Afinar microcopys finales del footer y revisar contraste AA en mobile para accesibilidad.

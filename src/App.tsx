@@ -4,6 +4,7 @@ import { Route, Routes, useLocation } from "react-router-dom";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
 import AuthenticatedLayout from "./components/Layout/AuthenticatedLayout";
 import NavBar from "./components/NavBar/NavBar";
+import PublicFooter from "./components/Footer/PublicFooter";
 import { useAuth } from "./context/useAuth";
 import {
   CompararLotesPage,
@@ -135,8 +136,9 @@ function App() {
     <div className="app-shell">
       {!useSidebarLayout ? <NavBar /> : null}
       <Suspense fallback={<div className="container py-8 text-sm text-[var(--color-text-muted)]">Cargando pagina...</div>}>
-        {useSidebarLayout ? <AuthenticatedLayout>{routedContent}</AuthenticatedLayout> : routedContent}
+        {useSidebarLayout ? <AuthenticatedLayout>{routedContent}</AuthenticatedLayout> : <div className="app-public-content">{routedContent}</div>}
       </Suspense>
+      {!useSidebarLayout ? <PublicFooter /> : null}
     </div>
   );
 }

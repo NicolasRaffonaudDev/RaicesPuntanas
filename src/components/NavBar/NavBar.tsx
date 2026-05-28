@@ -12,6 +12,7 @@ const NavBar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [pendingConsultas, setPendingConsultas] = useState(0);
   const { token, user, logout } = useAuth();
+  const isStandardUser = user?.role === "usuario";
 
   const canManageConsultas = hasPermission(user?.role, "consultas.manage");
 
@@ -88,7 +89,7 @@ const NavBar: React.FC = () => {
     "rounded-full px-3 py-2 text-sm font-medium text-[rgba(255,255,255,0.82)] transition-[background-color,color,border-color,box-shadow] duration-180 hover:bg-[rgba(212,175,55,0.08)] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(212,175,55,0.3)] focus-visible:ring-offset-2 focus-visible:ring-offset-black";
 
   return (
-    <nav className="border-b border-[rgba(255,255,255,0.08)] bg-[rgba(0,0,0,0.84)] px-4 py-4 text-white backdrop-blur-xl">
+    <nav className="sticky top-0 z-40 border-b border-[rgba(255,255,255,0.08)] bg-[rgba(0,0,0,0.84)] px-4 py-3 text-white backdrop-blur-xl">
       <div className="container flex flex-wrap items-center justify-between gap-4">
         <Link to="/" className="group flex items-center gap-3 rounded-full pr-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(212,175,55,0.28)] focus-visible:ring-offset-2 focus-visible:ring-offset-black">
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(212,175,55,0.24)] bg-[linear-gradient(180deg,rgba(212,175,55,0.14),rgba(212,175,55,0.04))] text-sm font-semibold text-[var(--color-primary)] shadow-[0_10px_24px_rgba(0,0,0,0.22)]">
@@ -116,9 +117,11 @@ const NavBar: React.FC = () => {
           <Link to="/lotes" className={navItemClass} onMouseEnter={onPrefetch("lotes")} onFocus={onPrefetch("lotes")}>
             Lotes
           </Link>
-          <Link to="/favoritos" className={navItemClass} onMouseEnter={onPrefetch("favoritos")} onFocus={onPrefetch("favoritos")}>
-            Favoritos
-          </Link>
+          {isStandardUser && (
+            <Link to="/favoritos" className={navItemClass} onMouseEnter={onPrefetch("favoritos")} onFocus={onPrefetch("favoritos")}>
+              Favoritos
+            </Link>
+          )}
           <Link to="/contact" className={navItemClass} onMouseEnter={onPrefetch("contacto")} onFocus={onPrefetch("contacto")}>
             Contacto
           </Link>

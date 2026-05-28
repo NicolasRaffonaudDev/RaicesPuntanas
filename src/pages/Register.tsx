@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 
 const Register: React.FC = () => {
@@ -37,6 +37,7 @@ const Register: React.FC = () => {
       <div className="container">
         <form onSubmit={handleSubmit} className="card mx-auto max-w-md space-y-4 p-5">
           <h1 className="text-2xl font-bold text-[var(--color-primary)]">Crear cuenta</h1>
+          <p className="text-sm text-[var(--color-text-muted)]">Crea tu cuenta para guardar favoritos y seguir tus consultas.</p>
 
           <input
             className="field"
@@ -67,6 +68,12 @@ const Register: React.FC = () => {
           <button className="btn btn-primary w-full" disabled={isSubmitting}>
             {isSubmitting ? "Creando..." : "Registrarse"}
           </button>
+          <p className="text-center text-sm text-[var(--color-text-muted)]">
+            Ya tenes cuenta?{" "}
+            <Link to="/login" className="font-medium text-[var(--color-primary)] hover:underline">
+              Iniciar sesion
+            </Link>
+          </p>
         </form>
       </div>
     </section>

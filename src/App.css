@@ -1,5 +1,11 @@
 .app-shell {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-public-content {
+  flex: 1;
 }
 
 .page {

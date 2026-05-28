@@ -812,3 +812,8 @@ Pasos en Railway:
 - Se audito el estado real de modulos legacy y placeholders visibles en sidebar (`Archivo legacy`, `Auditoria`, `Mi perfil`, `Seguridad`, `Preferencias`, `Identidad de marca`, `Editor del sitio`).
 - El objetivo fue definir que mantener visible, que renombrar y que mover a backlog sin romper rutas actuales.
 - Esta auditoria deja recomendaciones priorizadas para los proximos PRs sin aplicar cambios destructivos en esta etapa.
+
+### ?? Estructura pública profesional
+- Se refina la estructura publica con `NavBar` mas consistente, `Footer` reutilizable y cohesion visual entre header, contenido y cierre.
+- Login y Registro ahora incluyen enlaces cruzados para reducir friccion en autenticacion.
+- Favoritos en navegacion publica se muestran solo para `usuario` autenticado; visitantes y perfiles operativos no lo ven en el header.
