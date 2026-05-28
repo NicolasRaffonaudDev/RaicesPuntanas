@@ -5,14 +5,14 @@ const moduleContent = {
   "/perfil": {
     eyebrow: "Configuracion",
     title: "Mi perfil",
-    description: "Espacio reservado para la gestion de tus datos personales y la informacion visible de tu cuenta.",
-    bullets: ["Datos personales del usuario", "Informacion de contacto", "Ajustes basicos de cuenta"],
+    description: "Informacion basica de cuenta. La edicion avanzada se incorporara progresivamente.",
+    bullets: ["Datos personales del usuario", "Informacion de contacto", "Resumen de cuenta"],
   },
   "/seguridad": {
     eyebrow: "Configuracion",
     title: "Seguridad",
-    description: "Centro de control para sesiones, acceso personal y proximas opciones de seguridad de la cuenta.",
-    bullets: ["Cierre de sesiones activas", "Controles de acceso personales", "Espacio preparado para password y seguridad avanzada"],
+    description: "Gestiona la seguridad de tu cuenta. Esta seccion prioriza acciones operativas reales.",
+    bullets: ["Cerrar todas las sesiones", "Control de acceso actual", "Proximamente: cambio de contrasena y autenticacion avanzada"],
   },
   "/preferencias": {
     eyebrow: "Configuracion",
@@ -22,15 +22,15 @@ const moduleContent = {
   },
   "/marca": {
     eyebrow: "Configuracion admin",
-    title: "Identidad de marca",
-    description: "Placeholder administrativo para logo, lineamientos institucionales y activos globales del sitio publico.",
-    bullets: ["Logo e imagen institucional", "Recursos visuales globales", "Base para gestion de marca futura"],
+    title: "Identidad de marca (Beta)",
+    description: "Modulo beta preparado para evolucion futura. La configuracion comercial actual vive en siteConfig.ts.",
+    bullets: ["Estado: modulo beta", "Base para lineamientos de marca", "Sin persistencia administrativa activa en esta etapa"],
   },
   "/editor-sitio": {
     eyebrow: "Configuracion admin",
-    title: "Editor del sitio",
-    description: "Placeholder para la edicion futura del home publico, bloques destacados y contenido comercial visible.",
-    bullets: ["Hero principal", "Imagenes destacadas", "Bloques visuales y comerciales del home"],
+    title: "Editor del sitio (Beta)",
+    description: "Modulo beta preparado para edicion futura del Home y bloques comerciales.",
+    bullets: ["Estado: modulo beta", "Evolucion futura de bloques del Home", "Sin publicacion dinamica en esta etapa"],
   },
 } as const;
 
@@ -78,16 +78,22 @@ const SettingsModule: React.FC = () => {
                 <h2 className="mt-1 text-xl font-semibold text-white">Implementacion gradual</h2>
               </div>
               <p className="text-sm text-[var(--color-text-muted)]">
-                La ruta ya existe para consolidar la arquitectura del portal. La logica funcional puede agregarse despues, por modulo y con permisos reales.
+                La ruta ya existe para consolidar arquitectura sin romper navegacion. La logica funcional se incorpora por etapas.
               </p>
               {location.pathname === "/seguridad" ? (
-                <button
-                  type="button"
-                  onClick={() => void logoutAll()}
-                  className="btn btn-outline w-full text-sm"
-                >
-                  Cerrar todas las sesiones
-                </button>
+                <div className="space-y-3">
+                  <button
+                    type="button"
+                    onClick={() => void logoutAll()}
+                    className="btn btn-outline w-full text-sm"
+                  >
+                    Cerrar todas las sesiones
+                  </button>
+                  <div className="rounded-lg border border-white/10 bg-black/20 p-3 text-xs text-[var(--color-text-muted)]">
+                    <p className="mb-1 font-semibold uppercase tracking-[0.14em] text-[var(--color-primary)]">Proximamente</p>
+                    <p>Cambio de contrasena y autenticacion avanzada.</p>
+                  </div>
+                </div>
               ) : null}
               <Link to="/dashboard" className="btn btn-primary w-full text-sm">
                 Volver al dashboard

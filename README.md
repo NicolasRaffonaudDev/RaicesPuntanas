@@ -841,3 +841,9 @@ Pasos en Railway:
   - `BACKEND_URL` (default: `https://backend-production-a499.up.railway.app`)
   - `FRONTEND_URL` (default: `https://frontend-production-1cb7e.up.railway.app`)
 - El script valida salud backend, salud nginx y consumo de lotes tanto directo como por proxy.
+
+### ?? Higiene final de navegación
+- `Preferencias` se oculta temporalmente del sidebar para reducir ruido de placeholders, manteniendo su ruta disponible.
+- `Archivo legacy` queda visible solo para admin como referencia historica de consultas.
+- Los modulos `Identidad de marca (Beta)` y `Editor del sitio (Beta)` quedan claramente marcados como beta y solo para admin.
+- Se ajusta copy de modulos placeholder para que el backoffice refleje estado real del producto.

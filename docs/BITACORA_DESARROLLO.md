@@ -967,3 +967,15 @@ Formato sugerido por entrada:
   - `nodeEnv`
   - `uptime`
 - Se documenta runbook de incidente 502 en README para diagnostico guiado.
+## 2026-05-28 - Limpieza final de navegación y placeholders
+- Scope: `feat(ux)` + `frontend`
+- Cambios de visibilidad:
+  - `Preferencias` se oculta del sidebar (ruta conservada).
+  - `Archivo legacy` queda solo para `admin`.
+  - `Identidad de marca (Beta)` y `Editor del sitio (Beta)` siguen solo para `admin` con foco beta.
+- Cambios de copy:
+  - `Mi perfil` pasa a mensaje honesto de modulo en evolucion.
+  - `Seguridad` prioriza accion real (`Cerrar todas las sesiones`) y separa bloque `Proximamente`.
+  - En gestion, la vista de auditoria muestra copy coherente: registro de actividad administrativa y eventos relevantes.
+- Resultado:
+  - Sidebar mas limpio, menor confusion de modulos incompletos y mejor percepcion de producto terminado.

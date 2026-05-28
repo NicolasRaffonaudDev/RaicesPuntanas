@@ -52,13 +52,14 @@ export const getSidebarSections = (role: UserRole | undefined): NavigationSectio
     }
     
     if (hasPermission(role, "consultas.manage")) {
+      const crmItems: NavigationItem[] = [{ id: "consultas", label: "Consultas CRM", to: "/consultas" }];
+      if (role === "admin") {
+        crmItems.push({ id: "inquiries", label: "Archivo legacy", to: "/admin/inquiries" });
+      }
       sections.push({
         id: "crm",
         label: "CRM",
-        items: [
-          { id: "consultas", label: "Consultas CRM", to: "/consultas" },
-          { id: "inquiries", label: "Archivo legacy", to: "/admin/inquiries" },
-        ],
+        items: crmItems,
       });
     }
     
@@ -95,7 +96,6 @@ export const getSidebarSections = (role: UserRole | undefined): NavigationSectio
   const configuracion: NavigationItem[] = [
     { id: "perfil", label: "Mi perfil", to: "/perfil" },
     { id: "seguridad", label: "Seguridad", to: "/seguridad" },
-    { id: "preferencias", label: "Preferencias", to: "/preferencias" },
   ];
   if (role === "admin") {
     configuracion.push({ id: "marca", label: "Identidad de marca (Beta)", to: "/marca" });

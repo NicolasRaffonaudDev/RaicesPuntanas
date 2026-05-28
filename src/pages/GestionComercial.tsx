@@ -438,8 +438,12 @@ const GestionComercial: React.FC = () => {
         <PageHeader
           compact
           eyebrow="Modulo de gestion"
-          title="Gestion Comercial Pro"
-          description="Centro operativo para administrar clientes, productos, ventas, inventario y vistas avanzadas de gestion segun el rol activo."
+          title={tab === "auditoria" ? "Auditoria" : "Gestion Comercial"}
+          description={
+            tab === "auditoria"
+              ? "Registro de actividad administrativa y eventos relevantes del sistema."
+              : "Centro operativo para administrar clientes, productos, ventas e inventario segun el rol activo."
+          }
           meta={(
             <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-[rgba(212,175,55,0.18)] bg-black/25 px-3 py-1.5">
               <span className="text-[var(--color-text-muted)]">Rol activo</span>
