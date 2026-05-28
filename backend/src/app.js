@@ -75,28 +75,32 @@ app.get("/health", (req, res) => {
 });
 
 app.get("/health/details", async (req, res) => {
-  let dbConnected = false;
-  let uploadsDirWritable = false;
+  let prismaConnected = false;
+  let uploadsWritable = false;
 
   try {
     await prisma.$queryRaw`SELECT 1`;
-    dbConnected = true;
+    prismaConnected = true;
   } catch {
-    dbConnected = false;
+    prismaConnected = false;
   }
 
   try {
     fs.accessSync(path.resolve(UPLOADS_ROOT_DIR), fs.constants.W_OK);
-    uploadsDirWritable = true;
+    uploadsWritable = true;
   } catch {
-    uploadsDirWritable = false;
+    uploadsWritable = false;
   }
 
   res.json({
-    status: dbConnected ? "ok" : "degraded",
-    dbConnected,
-    uploadsDirWritable,
+    status: prismaConnected ? "ok" : "degraded",
+    prismaConnected,
+    dbConnected: prismaConnected,
+    uploadsWritable,
+    uploadsDirWritable: uploadsWritable,
     nodeEnv: env.NODE_ENV,
+    nodeVersion: process.version,
+    envLoaded: Boolean(env.ENV_LOADED),
     uptime: Math.floor(process.uptime()),
   });
 });

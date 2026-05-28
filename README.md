@@ -852,3 +852,17 @@ Pasos en Railway:
 - Se incorpora checklist funcional y operativo en docs/QA_PRE_ENTREGA.md.
 - Incluye validaciones de flujo publico, usuario, admin y smoke de deploy Railway.
 
+
+## Diagnóstico Railway
+Si aparece `502` en backend o API:
+1. Verificar `GET /health` en backend.
+2. Verificar `GET /health/details` para estado operativo (`prismaConnected`, `uploadsWritable`, `nodeEnv`, `nodeVersion`, `uptime`).
+3. Revisar logs de arranque buscando trazas `[boot]` y `[boot:error]`.
+4. Ejecutar `npm run smoke:railway` para validar backend directo y proxy frontend.
+5. Confirmar variables criticas: `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_ORIGIN`, `UPLOADS_DIR`, `NODE_ENV`.
+6. Confirmar mount/escritura de uploads (`/app/uploads`) y resultado de `prisma migrate deploy`.
+
+Notas operativas:
+- `container-start.sh` reintenta migraciones y registra errores estructurados.
+- `db:seed` es no bloqueante para evitar downtime por datos no criticos.
+- `ALLOW_MIGRATE_FAILURE=true` permite continuidad controlada en escenarios de emergencia.

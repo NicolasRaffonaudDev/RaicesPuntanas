@@ -993,3 +993,15 @@ Formato sugerido por entrada:
 - Validaciones ejecutadas:
   - `npm run build`
   - `npm run smoke:railway`
+## 2026-05-28 - Hardening definitivo backend Railway
+- Scope: `fix(ops)` + `backend` + `docs`
+- Cambios de resiliencia:
+  - Logs estructurados de arranque en `server.js` y `container-start.sh` (`[boot]` / `[boot:error]`).
+  - Verificacion explicita de uploads en startup y logging de estado.
+  - Reintentos de `prisma migrate deploy` con control de salida y politica configurable (`ALLOW_MIGRATE_FAILURE`).
+  - Seed no bloqueante con trazas operativas claras.
+- Observabilidad:
+  - `/health/details` amplía payload con `prismaConnected`, `uploadsWritable`, `nodeVersion`, `envLoaded`, `uptime` (sin exponer secretos).
+  - Se agregan handlers globales para `unhandledRejection` y `uncaughtException`.
+- Resultado esperado:
+  - Menor probabilidad de caida silenciosa post-redeploy y diagnostico mas rapido ante incidentes 502.

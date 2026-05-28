@@ -44,4 +44,10 @@ env.FRONTEND_ORIGINS = env.FRONTEND_ORIGIN.split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
 
+if (env.FRONTEND_ORIGINS.length === 0) {
+  env.FRONTEND_ORIGINS = ["http://localhost:5173"];
+}
+
+env.ENV_LOADED = true;
+
 module.exports = env;
