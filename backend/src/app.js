@@ -2,9 +2,12 @@ const express = require("express");
 const cors = require("cors");
 const compression = require("compression");
 const helmet = require("helmet");
+const fs = require("node:fs");
+const path = require("node:path");
 const rateLimit = require("express-rate-limit");
 const { env } = require("./config");
 const { UPLOADS_ROOT_DIR } = require("./config/multer");
+const { prisma } = require("./db/prisma");
 const { apiRoutes } = require("./routes");
 const { errorHandler } = require("./middlewares/error-handler");
 const { notFoundHandler } = require("./middlewares/not-found");
@@ -69,6 +72,33 @@ app.use(
 
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
+});
+
+app.get("/health/details", async (req, res) => {
+  let dbConnected = false;
+  let uploadsDirWritable = false;
+
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    dbConnected = true;
+  } catch {
+    dbConnected = false;
+  }
+
+  try {
+    fs.accessSync(path.resolve(UPLOADS_ROOT_DIR), fs.constants.W_OK);
+    uploadsDirWritable = true;
+  } catch {
+    uploadsDirWritable = false;
+  }
+
+  res.json({
+    status: dbConnected ? "ok" : "degraded",
+    dbConnected,
+    uploadsDirWritable,
+    nodeEnv: env.NODE_ENV,
+    uptime: Math.floor(process.uptime()),
+  });
 });
 
 app.use("/uploads", express.static(UPLOADS_ROOT_DIR));

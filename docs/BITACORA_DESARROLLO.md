@@ -953,3 +953,17 @@ Formato sugerido por entrada:
   - Backend levanta aun con fallos transitorios de DB o seed, manteniendo `/health` disponible.
 - Pendiente de verificacion en Railway:
   - redeploy y confirmar 200 en `/health`, `/api/lotes`, login y telemetry/web-vitals.
+## 2026-05-28 - Hardening post-incidente deploy/API
+- Scope: `chore(deploy)` + `backend` + `ops`
+- Se agrega `scripts/staging-health-smoke.js` para chequeo remoto de endpoints criticos:
+  - backend `/health`
+  - backend `/api/lotes?limit=1`
+  - frontend `/nginx-health`
+  - frontend `/api/lotes?limit=1`
+- Se expone script raiz `npm run smoke:railway` para validacion rapida post-deploy.
+- Se agrega endpoint `GET /health/details` con estado operativo basico sin exponer secretos:
+  - `dbConnected`
+  - `uploadsDirWritable`
+  - `nodeEnv`
+  - `uptime`
+- Se documenta runbook de incidente 502 en README para diagnostico guiado.

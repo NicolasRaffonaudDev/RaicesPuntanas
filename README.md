@@ -824,3 +824,20 @@ Pasos en Railway:
 - Si `UPLOADS_DIR` falla por permisos/mount, el servidor aplica fallback a `backend/uploads` para evitar crash de arranque.
 - Se robustecio el arranque del backend en contenedor: `prisma migrate deploy` ahora reintenta ante fallos transitorios de red/DB.
 - `RUN_DB_SEED=true` ya no tumba el servicio si el seed falla; se registra warning y el API igualmente levanta.
+
+### ?? Runbook Railway 502
+1. Probar backend directo: `GET /health`.
+2. Probar backend API: `GET /api/lotes?limit=1`.
+3. Probar frontend proxy: `GET /api/lotes?limit=1`.
+4. Revisar logs del backend en Railway (startup, crash, prisma, env).
+5. Verificar `prisma migrate deploy` en arranque.
+6. Verificar si `db:seed` fallo y si quedo en modo no bloqueante.
+7. Confirmar variables: `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_ORIGIN`, `UPLOADS_DIR`, `NODE_ENV`.
+8. Confirmar volume/mount de uploads (`/app/uploads`) y permisos.
+
+### ?? Smoke remoto Railway
+- Ejecutar: `npm run smoke:railway`
+- Variables opcionales:
+  - `BACKEND_URL` (default: `https://backend-production-a499.up.railway.app`)
+  - `FRONTEND_URL` (default: `https://frontend-production-1cb7e.up.railway.app`)
+- El script valida salud backend, salud nginx y consumo de lotes tanto directo como por proxy.

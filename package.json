@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "crm:smoke": "node scripts/crm-smoke.js",
     "smoke:staging": "node scripts/crm-smoke.js",
+    "smoke:railway": "node scripts/staging-health-smoke.js",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed"
   },
