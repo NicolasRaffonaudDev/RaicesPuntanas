@@ -979,3 +979,17 @@ Formato sugerido por entrada:
   - En gestion, la vista de auditoria muestra copy coherente: registro de actividad administrativa y eventos relevantes.
 - Resultado:
   - Sidebar mas limpio, menor confusion de modulos incompletos y mejor percepcion de producto terminado.
+## 2026-05-28 - QA pre-entrega y checklist funcional
+- Scope: `chore(qa)` + `frontend` + `docs`
+- Se crea `docs/QA_PRE_ENTREGA.md` con checklist de validacion para:
+  - flujo publico
+  - flujo usuario autenticado
+  - flujo admin
+  - estado operativo de deploy (health/smoke)
+  - demo con cliente
+- Ajustes menores de estabilidad/copy para demo:
+  - correccion de textos con codificacion rota en badges/placeholders.
+  - normalizacion de labels de estados en panel legacy para evitar caracteres corruptos.
+- Validaciones ejecutadas:
+  - `npm run build`
+  - `npm run smoke:railway`

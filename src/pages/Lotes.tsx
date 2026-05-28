@@ -676,7 +676,7 @@ const Lotes: React.FC = () => {
                 type="text"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Buscar por nombre o ubicación..."
+                placeholder="Buscar por nombre o ubicacion..."
                 className="field"
               />
               {isDebouncing && (
@@ -1231,3 +1231,4 @@ const Lotes: React.FC = () => {
 };
 
 export default Lotes;
+

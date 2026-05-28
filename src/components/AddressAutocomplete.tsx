@@ -14,7 +14,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   value,
   onChange,
   onSelect,
-  placeholder = "Buscar dirección...",
+  placeholder = "Buscar direccion...",
 }) => {
   const mapsKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
@@ -69,3 +69,4 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
 };
 
 export default AddressAutocomplete;
+

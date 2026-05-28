@@ -115,19 +115,19 @@ const InquiriesAdmin: React.FC = () => {
           <div className="card flex flex-col gap-1 p-4">
             <span className="text-xs uppercase text-[var(--color-text-muted)]">Total</span>
             <span className="text-2xl font-semibold text-white">
-              {statsFallback ? "—" : stats.total}
+              {statsFallback ? "-" : stats.total}
             </span>
           </div>
           <div className="card flex flex-col gap-1 p-4">
             <span className="text-xs uppercase text-[var(--color-text-muted)]">Pendientes</span>
             <span className="text-2xl font-semibold text-amber-200">
-              {statsFallback ? "—" : stats.pending}
+              {statsFallback ? "-" : stats.pending}
             </span>
           </div>
           <div className="card flex flex-col gap-1 p-4">
             <span className="text-xs uppercase text-[var(--color-text-muted)]">Leidas</span>
             <span className="text-2xl font-semibold text-emerald-200">
-              {statsFallback ? "—" : stats.read}
+              {statsFallback ? "-" : stats.read}
             </span>
           </div>
         </div>
@@ -241,3 +241,4 @@ const InquiriesAdmin: React.FC = () => {
 };
 
 export default InquiriesAdmin;
+

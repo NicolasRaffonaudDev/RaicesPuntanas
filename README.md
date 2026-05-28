@@ -847,3 +847,8 @@ Pasos en Railway:
 - `Archivo legacy` queda visible solo para admin como referencia historica de consultas.
 - Los modulos `Identidad de marca (Beta)` y `Editor del sitio (Beta)` quedan claramente marcados como beta y solo para admin.
 - Se ajusta copy de modulos placeholder para que el backoffice refleje estado real del producto.
+
+### ? QA pre-entrega
+- Se incorpora checklist funcional y operativo en docs/QA_PRE_ENTREGA.md.
+- Incluye validaciones de flujo publico, usuario, admin y smoke de deploy Railway.
+
