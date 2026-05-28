@@ -927,3 +927,15 @@ Formato sugerido por entrada:
   - `npm run build` OK.
 - Siguiente paso:
   - Afinar microcopys finales del footer y revisar contraste AA en mobile para accesibilidad.
+## 2026-05-28 - Fix urgente backend 502 en Railway
+- Scope: `fix(deploy)` + `backend`
+- Causa probable:
+  - Arranque fragil por validacion estricta de `FRONTEND_ORIGIN` (una sola URL) y posible fallo de escritura en `UPLOADS_DIR` montado.
+- Fix aplicado:
+  - `FRONTEND_ORIGIN` ahora admite lista separada por comas y se transforma a `FRONTEND_ORIGINS` para CORS y Socket.IO.
+  - Se agregan defaults seguros para variables operativas de auth no criticas.
+  - `multer` aplica fallback a ruta local si el mount de uploads falla al iniciar.
+- Validacion local:
+  - `node --check` OK en `env.js`, `multer.js`, `app.js`, `server.js`.
+- Siguiente paso en Railway:
+  - redeploy backend, revisar logs de startup y validar `/health` + `/api/auth/login`.

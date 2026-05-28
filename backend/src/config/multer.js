@@ -6,16 +6,23 @@ const { AppError } = require("../utils/app-error");
 const env = require("./env");
 
 const DEFAULT_UPLOADS_DIR = path.resolve(__dirname, "../../uploads");
-const UPLOADS_ROOT_DIR = path.resolve(env.UPLOADS_DIR || DEFAULT_UPLOADS_DIR);
-const LOTE_UPLOADS_DIR = path.join(UPLOADS_ROOT_DIR, "lotes");
+let uploadsRootDir = path.resolve(env.UPLOADS_DIR || DEFAULT_UPLOADS_DIR);
+let loteUploadsDir = path.join(uploadsRootDir, "lotes");
 const LOTE_UPLOADS_PUBLIC_PREFIX = "/uploads/lotes/";
 const ALLOWED_IMAGE_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 
-fs.mkdirSync(LOTE_UPLOADS_DIR, { recursive: true });
+try {
+  fs.mkdirSync(loteUploadsDir, { recursive: true });
+} catch (error) {
+  uploadsRootDir = DEFAULT_UPLOADS_DIR;
+  loteUploadsDir = path.join(uploadsRootDir, "lotes");
+  fs.mkdirSync(loteUploadsDir, { recursive: true });
+  console.warn(`[uploads] fallback to local path due to mount error: ${error.message}`);
+}
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
-    cb(null, LOTE_UPLOADS_DIR);
+    cb(null, loteUploadsDir);
   },
   filename: (_req, file, cb) => {
     const originalExtension = path.extname(file.originalname || "").toLowerCase();
@@ -44,7 +51,7 @@ const loteImageUpload = multer({
 
 module.exports = {
   loteImageUpload,
-  UPLOADS_ROOT_DIR,
-  LOTE_UPLOADS_DIR,
+  UPLOADS_ROOT_DIR: uploadsRootDir,
+  LOTE_UPLOADS_DIR: loteUploadsDir,
   LOTE_UPLOADS_PUBLIC_PREFIX,
 };

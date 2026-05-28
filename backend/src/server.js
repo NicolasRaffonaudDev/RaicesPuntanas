@@ -9,7 +9,7 @@ const { prisma } = require("./db/prisma");
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: env.FRONTEND_ORIGIN,
+    origin: env.FRONTEND_ORIGINS,
     credentials: true,
   },
 });
@@ -23,7 +23,7 @@ io.on("connection", (socket) => {
 const start = async () => {
   await prisma.$connect();
   console.log(
-    `[startup] db=connected env=${env.NODE_ENV} port=${env.PORT} frontend_origin=${env.FRONTEND_ORIGIN}`,
+    `[startup] db=connected env=${env.NODE_ENV} port=${env.PORT} frontend_origin=${env.FRONTEND_ORIGINS.join("|")}`,
   );
   httpServer.listen(env.PORT, () => {
     console.log(`[startup] api=listening url=http://localhost:${env.PORT}`);

@@ -2,15 +2,15 @@ const { z } = require("zod");
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-  PORT: z.coerce.number().int().positive(),
+  PORT: z.coerce.number().int().positive().default(3000),
   DATABASE_URL: z.string().min(1),
   JWT_SECRET: z.string().min(12),
-  ACCESS_TOKEN_EXPIRES_IN: z.string().min(1),
-  REFRESH_TOKEN_EXPIRES_DAYS: z.coerce.number().int().min(1),
-  MAX_LOGIN_ATTEMPTS: z.coerce.number().int().min(1),
-  LOCKOUT_MINUTES: z.coerce.number().int().min(1),
+  ACCESS_TOKEN_EXPIRES_IN: z.string().min(1).default("15m"),
+  REFRESH_TOKEN_EXPIRES_DAYS: z.coerce.number().int().min(1).default(14),
+  MAX_LOGIN_ATTEMPTS: z.coerce.number().int().min(1).default(5),
+  LOCKOUT_MINUTES: z.coerce.number().int().min(1).default(15),
   FRONTEND_URL: z.string().url().optional(),
-  FRONTEND_ORIGIN: z.string().url().default("http://localhost:5173"),
+  FRONTEND_ORIGIN: z.string().min(1).default("http://localhost:5173"),
   UPLOADS_DIR: z.string().min(1).default("uploads"),
   REFRESH_TOKEN_SECRET: z.string().min(12).optional(),
   SMTP_FROM: z.string().email().default("no-reply@raicespuntanas.local"),
@@ -39,5 +39,9 @@ const env = {
   ...parsed.data,
   FRONTEND_ORIGIN: parsed.data.FRONTEND_URL || parsed.data.FRONTEND_ORIGIN,
 };
+
+env.FRONTEND_ORIGINS = env.FRONTEND_ORIGIN.split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 module.exports = env;

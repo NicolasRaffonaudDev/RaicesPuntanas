@@ -44,7 +44,7 @@ const publicConsultaLimiter = rateLimit({
 
 app.use(
   cors({
-    origin: env.FRONTEND_ORIGIN,
+    origin: env.FRONTEND_ORIGINS,
     credentials: true,
   }),
 );

@@ -817,3 +817,8 @@ Pasos en Railway:
 - Se refina la estructura publica con `NavBar` mas consistente, `Footer` reutilizable y cohesion visual entre header, contenido y cierre.
 - Login y Registro ahora incluyen enlaces cruzados para reducir friccion en autenticacion.
 - Favoritos en navegacion publica se muestran solo para `usuario` autenticado; visitantes y perfiles operativos no lo ven en el header.
+
+### ?? Fix operativo Railway (backend 502)
+- El backend ahora acepta `FRONTEND_ORIGIN` con multiples dominios separados por coma (ej: `https://frontend.app,https://staging.app`).
+- Se agregaron defaults operativos para variables no criticas de auth (`ACCESS_TOKEN_EXPIRES_IN`, `REFRESH_TOKEN_EXPIRES_DAYS`, `MAX_LOGIN_ATTEMPTS`, `LOCKOUT_MINUTES`).
+- Si `UPLOADS_DIR` falla por permisos/mount, el servidor aplica fallback a `backend/uploads` para evitar crash de arranque.
