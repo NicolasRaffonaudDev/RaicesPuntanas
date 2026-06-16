@@ -866,3 +866,8 @@ Notas operativas:
 - `container-start.sh` reintenta migraciones y registra errores estructurados.
 - `db:seed` es no bloqueante para evitar downtime por datos no criticos.
 - `ALLOW_MIGRATE_FAILURE=true` permite continuidad controlada en escenarios de emergencia.
+
+### Premium UI: tarjetas de lotes
+- Las cards de lotes ahora siguen una jerarquia mas inmobiliaria: `foto -> ubicacion/mapa -> datos del lote`.
+- El bloque de mapa se compacta para mejorar escaneabilidad y mostrar mas propiedades en pantalla.
+- Favoritos y acciones comerciales bajan al bloque inferior para concentrar la toma de decision en una sola zona visual.

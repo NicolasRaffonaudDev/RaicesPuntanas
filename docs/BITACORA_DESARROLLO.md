@@ -1005,3 +1005,14 @@ Formato sugerido por entrada:
   - Se agregan handlers globales para `unhandledRejection` y `uncaughtException`.
 - Resultado esperado:
   - Menor probabilidad de caida silenciosa post-redeploy y diagnostico mas rapido ante incidentes 502.
+## 2026-06-16 - Premium UI en tarjetas de lotes
+- Scope: `feat(ui)` + `frontend`
+- Reorganizacion visual aplicada en `LotCard`:
+  - imagen principal arriba sin cambios en badges
+  - bloque intermedio de ubicacion/mapa como transicion visual
+  - datos comerciales debajo (precio, amenities, favoritos, CTAs)
+- Ajustes UX:
+  - `MapView` compacto para cards, con menor altura visual y soporte mobile mas claro.
+  - Favorito baja a la zona comercial para no competir con la imagen principal.
+- Resultado esperado:
+  - Cards mas escaneables, menos altas y con una jerarquia mas natural para catalogo inmobiliario.

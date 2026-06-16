@@ -4,9 +4,16 @@ import type { Lote } from "../../types/interfaces";
 interface MapViewProps {
   lote: Lote;
   desktopHeightClass?: string;
+  mobileMap?: boolean;
+  compact?: boolean;
 }
 
-const MapView: React.FC<MapViewProps> = ({ lote, desktopHeightClass = "md:h-60" }) => {
+const MapView: React.FC<MapViewProps> = ({
+  lote,
+  desktopHeightClass = "md:h-60",
+  mobileMap = false,
+  compact = false,
+}) => {
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
   const mapsKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
   const hasMapsKey = Boolean(mapsKey);
@@ -48,7 +55,7 @@ const MapView: React.FC<MapViewProps> = ({ lote, desktopHeightClass = "md:h-60" 
   };
 
   const renderMobileLocationButton = () => (
-      <div className="border-t border-[var(--color-border)] p-3 md:hidden">
+      <div className="p-3 md:hidden">
         <button
           type="button"
           onClick={openGoogleMaps}
@@ -61,10 +68,18 @@ const MapView: React.FC<MapViewProps> = ({ lote, desktopHeightClass = "md:h-60" 
 
   if (!hasMapsKey) {
     return (
-      <div className="w-full border-t border-[var(--color-border)] bg-[var(--color-surface-alt)]">
-        {renderMobileLocationButton()}
+      <div className="w-full bg-[var(--color-surface-alt)]">
+        {mobileMap ? (
+          <div className="p-3">
+            <div className="flex h-32 items-center justify-center rounded border border-dashed border-[var(--color-border)] bg-black/25 p-3 text-sm text-[var(--color-text-muted)] sm:h-36">
+              Configura VITE_GOOGLE_MAPS_API_KEY para ver el mapa
+            </div>
+          </div>
+        ) : (
+          renderMobileLocationButton()
+        )}
         <div className="hidden p-3 md:block">
-          <div className="flex h-56 items-center justify-center rounded border border-dashed border-[var(--color-border)] bg-black/25 p-3 text-sm text-[var(--color-text-muted)]">
+          <div className={`flex items-center justify-center rounded border border-dashed border-[var(--color-border)] bg-black/25 p-3 text-sm text-[var(--color-text-muted)] ${compact ? "h-36" : "h-56"}`}>
             Configura VITE_GOOGLE_MAPS_API_KEY para ver el mapa
           </div>
         </div>
@@ -74,10 +89,18 @@ const MapView: React.FC<MapViewProps> = ({ lote, desktopHeightClass = "md:h-60" 
 
   if (loadError) {
     return (
-      <div className="w-full border-t border-[var(--color-border)] bg-[var(--color-surface-alt)]">
-        {renderMobileLocationButton()}
+      <div className="w-full bg-[var(--color-surface-alt)]">
+        {mobileMap ? (
+          <div className="p-3">
+            <div className="flex h-32 items-center justify-center rounded border border-dashed border-[var(--color-border)] bg-black/25 p-3 text-sm text-[var(--color-text-muted)] sm:h-36">
+              Error cargando mapa
+            </div>
+          </div>
+        ) : (
+          renderMobileLocationButton()
+        )}
         <div className="hidden p-3 md:block">
-          <div className="flex h-56 items-center justify-center rounded border border-dashed border-[var(--color-border)] bg-black/25 p-3 text-sm text-[var(--color-text-muted)]">
+          <div className={`flex items-center justify-center rounded border border-dashed border-[var(--color-border)] bg-black/25 p-3 text-sm text-[var(--color-text-muted)] ${compact ? "h-36" : "h-56"}`}>
             Error cargando mapa
           </div>
         </div>
@@ -87,10 +110,18 @@ const MapView: React.FC<MapViewProps> = ({ lote, desktopHeightClass = "md:h-60" 
 
   if (!isLoaded) {
     return (
-      <div className="w-full border-t border-[var(--color-border)] bg-[var(--color-surface-alt)]">
-        {renderMobileLocationButton()}
+      <div className="w-full bg-[var(--color-surface-alt)]">
+        {mobileMap ? (
+          <div className="p-3">
+            <div className="flex h-32 items-center justify-center rounded border border-dashed border-[var(--color-border)] bg-black/25 p-3 text-sm text-[var(--color-text-muted)] sm:h-36">
+              Cargando mapa...
+            </div>
+          </div>
+        ) : (
+          renderMobileLocationButton()
+        )}
         <div className="hidden p-3 md:block">
-          <div className="flex h-56 items-center justify-center rounded border border-dashed border-[var(--color-border)] bg-black/25 p-3 text-sm text-[var(--color-text-muted)]">
+          <div className={`flex items-center justify-center rounded border border-dashed border-[var(--color-border)] bg-black/25 p-3 text-sm text-[var(--color-text-muted)] ${compact ? "h-36" : "h-56"}`}>
             Cargando mapa...
           </div>
         </div>
@@ -99,10 +130,38 @@ const MapView: React.FC<MapViewProps> = ({ lote, desktopHeightClass = "md:h-60" 
   }
 
   return (
-    <div className="w-full border-t border-[var(--color-border)] bg-[var(--color-surface-alt)]">
-      {renderMobileLocationButton()}
+    <div className="w-full bg-[var(--color-surface-alt)]">
+      {mobileMap ? (
+        <div
+          className="group relative block h-32 w-full overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-2 shadow-[0_10px_20px_rgba(0,0,0,0.24)] sm:h-36 md:hidden"
+          role="button"
+          tabIndex={0}
+          onClick={openGoogleMaps}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") openGoogleMaps();
+          }}
+        >
+          <GoogleMap
+            mapContainerStyle={{ height: "100%", width: "100%" }}
+            center={center}
+            zoom={15}
+            options={{ disableDefaultUI: true, clickableIcons: false }}
+            onLoad={(map) => setMapInstance(map)}
+            onUnmount={() => setMapInstance(null)}
+          >
+            <Marker position={center} title={lote.title} />
+          </GoogleMap>
+          <div className="pointer-events-none absolute inset-2 flex items-end justify-end rounded-xl bg-gradient-to-t from-black/45 via-transparent to-transparent p-3">
+            <span className="rounded-full border border-white/30 bg-black/50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">
+              Ver mapa
+            </span>
+          </div>
+        </div>
+      ) : (
+        renderMobileLocationButton()
+      )}
       <div
-        className={`group relative hidden h-60 w-full overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3 shadow-[0_14px_26px_rgba(0,0,0,0.28)] md:block ${desktopHeightClass}`}
+        className={`group relative hidden w-full overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3 shadow-[0_14px_26px_rgba(0,0,0,0.28)] md:block ${desktopHeightClass}`}
         role="button"
         tabIndex={0}
         onClick={openGoogleMaps}
