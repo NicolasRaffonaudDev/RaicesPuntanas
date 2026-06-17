@@ -1016,3 +1016,12 @@ Formato sugerido por entrada:
   - Favorito baja a la zona comercial para no competir con la imagen principal.
 - Resultado esperado:
   - Cards mas escaneables, menos altas y con una jerarquia mas natural para catalogo inmobiliario.
+## 2026-06-17 - Header y branding premium
+- Scope: `feat(ui)` + `frontend`
+- Cambios principales:
+  - `NavBar` publica con presencia mas premium: sticky, blur suave, fondo translúcido y mejor jerarquia de marca.
+  - Branding preparado para un logo futuro, manteniendo compatibilidad con `siteConfig`.
+  - Menu mobile con mejor espaciado y presentacion visual sin cambiar funcionalidad.
+  - Footer reorganizado en columnas claras: marca, navegacion, contacto y redes.
+- Resultado esperado:
+  - Mejor percepcion de producto terminado y una identidad visual mas coherente entre header y footer.

@@ -871,3 +871,8 @@ Notas operativas:
 - Las cards de lotes ahora siguen una jerarquia mas inmobiliaria: `foto -> ubicacion/mapa -> datos del lote`.
 - El bloque de mapa se compacta para mejorar escaneabilidad y mostrar mas propiedades en pantalla.
 - Favoritos y acciones comerciales bajan al bloque inferior para concentrar la toma de decision en una sola zona visual.
+
+### Header + branding premium
+- Se refina la navegacion publica con una `NavBar` sticky, translúcida y con mejor presencia de marca.
+- El footer se reorganiza como sistema visual consistente con columnas de marca, navegacion, contacto y redes.
+- La estructura visual queda preparada para incorporar un logo definitivo sin cambiar la logica del sitio.

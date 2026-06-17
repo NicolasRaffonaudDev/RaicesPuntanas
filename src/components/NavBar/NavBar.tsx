@@ -86,35 +86,42 @@ const NavBar: React.FC = () => {
   };
 
   const navItemClass =
-    "rounded-full px-3 py-2 text-sm font-medium text-[rgba(255,255,255,0.82)] transition-[background-color,color,border-color,box-shadow] duration-180 hover:bg-[rgba(212,175,55,0.08)] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(212,175,55,0.3)] focus-visible:ring-offset-2 focus-visible:ring-offset-black";
+    "rounded-full px-3 py-2 text-sm font-medium text-[rgba(255,255,255,0.82)] transition-[background-color,color,border-color,box-shadow,transform] duration-180 hover:bg-[rgba(212,175,55,0.08)] hover:text-white hover:-translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(212,175,55,0.3)] focus-visible:ring-offset-2 focus-visible:ring-offset-black";
 
   return (
-    <nav className="sticky top-0 z-40 border-b border-[rgba(255,255,255,0.08)] bg-[rgba(0,0,0,0.84)] px-4 py-3 text-white backdrop-blur-xl">
+    <nav className="sticky top-0 z-40 border-b border-[rgba(255,255,255,0.08)] bg-[linear-gradient(180deg,rgba(6,6,6,0.88),rgba(10,10,10,0.72))] px-4 py-3 text-white shadow-[0_14px_40px_rgba(0,0,0,0.22)] backdrop-blur-2xl">
       <div className="container flex flex-wrap items-center justify-between gap-4">
-        <Link to="/" className="group flex items-center gap-3 rounded-full pr-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(212,175,55,0.28)] focus-visible:ring-offset-2 focus-visible:ring-offset-black">
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(212,175,55,0.24)] bg-[linear-gradient(180deg,rgba(212,175,55,0.14),rgba(212,175,55,0.04))] text-sm font-semibold text-[var(--color-primary)] shadow-[0_10px_24px_rgba(0,0,0,0.22)]">
-            RP
+        <Link to="/" className="group flex items-center gap-3 rounded-[1.2rem] pr-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(212,175,55,0.28)] focus-visible:ring-offset-2 focus-visible:ring-offset-black">
+          <span className="relative inline-flex h-12 w-12 items-center justify-center overflow-hidden rounded-[1rem] border border-[rgba(212,175,55,0.28)] bg-[radial-gradient(circle_at_top,rgba(212,175,55,0.2),rgba(212,175,55,0.04)_52%,rgba(255,255,255,0.02)_100%)] text-sm font-semibold text-[var(--color-primary)] shadow-[0_14px_28px_rgba(0,0,0,0.28)]">
+            <span className="absolute inset-[5px] rounded-[0.8rem] border border-[rgba(255,255,255,0.08)]" />
+            <span className="relative z-10 tracking-[0.18em]">RP</span>
           </span>
           <span className="space-y-0.5">
-            <span className="block text-lg font-semibold tracking-[0.04em] text-white">{siteConfig.brandName}</span>
-            <span className="block text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--color-text-muted)] transition group-hover:text-[var(--color-primary)]">
-              Panel comercial
+            <span className="block text-[10px] font-semibold uppercase tracking-[0.26em] text-[rgba(255,255,255,0.52)] transition group-hover:text-[var(--color-primary)]">
+              Inmobiliaria digital
+            </span>
+            <span className="block text-lg font-semibold tracking-[0.06em] text-white sm:text-xl">{siteConfig.brandName}</span>
+            <span className="block text-[11px] text-[var(--color-text-muted)]">
+              {siteConfig.brandSubtitle}
             </span>
           </span>
         </Link>
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="rounded-full border border-[rgba(212,175,55,0.22)] bg-[rgba(255,255,255,0.03)] px-4 py-2 text-sm font-medium text-[rgba(255,255,255,0.9)] transition-[border-color,background-color,color] duration-180 hover:border-[rgba(212,175,55,0.36)] hover:bg-[rgba(212,175,55,0.08)] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(212,175,55,0.3)] focus-visible:ring-offset-2 focus-visible:ring-offset-black md:hidden"
+          className="rounded-full border border-[rgba(212,175,55,0.22)] bg-[rgba(255,255,255,0.04)] px-4 py-2 text-sm font-medium text-[rgba(255,255,255,0.9)] shadow-[0_10px_24px_rgba(0,0,0,0.18)] transition-[border-color,background-color,color,transform] duration-180 hover:border-[rgba(212,175,55,0.36)] hover:bg-[rgba(212,175,55,0.08)] hover:text-white hover:-translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(212,175,55,0.3)] focus-visible:ring-offset-2 focus-visible:ring-offset-black md:hidden"
           type="button"
+          aria-expanded={isOpen}
+          aria-controls="public-nav-menu"
         >
           Menu
         </button>
         <div
+          id="public-nav-menu"
           className={`w-full flex-col gap-3 rounded-[1rem] border border-[rgba(255,255,255,0.08)] bg-[rgba(18,18,18,0.92)] p-3 shadow-[0_18px_40px_rgba(0,0,0,0.24)] md:flex md:w-auto md:flex-row md:items-center md:rounded-full md:border-[rgba(255,255,255,0.05)] md:bg-[rgba(255,255,255,0.02)] md:p-2 md:shadow-none ${
             isOpen ? "flex" : "hidden"
           }`}
         >
-          <Link to="/lotes" className={navItemClass} onMouseEnter={onPrefetch("lotes")} onFocus={onPrefetch("lotes")}>
+          <Link to="/lotes" className={`${navItemClass} md:px-4`} onMouseEnter={onPrefetch("lotes")} onFocus={onPrefetch("lotes")}>
             Lotes
           </Link>
           {isStandardUser && (
@@ -122,7 +129,7 @@ const NavBar: React.FC = () => {
               Favoritos
             </Link>
           )}
-          <Link to="/contact" className={navItemClass} onMouseEnter={onPrefetch("contacto")} onFocus={onPrefetch("contacto")}>
+          <Link to="/contact" className={`${navItemClass} md:px-4`} onMouseEnter={onPrefetch("contacto")} onFocus={onPrefetch("contacto")}>
             Contacto
           </Link>
           {user ? (
